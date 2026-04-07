@@ -4,163 +4,309 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Echo Deck Memory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #e74c3c;
-            --bg: #ecf0f1;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--primary);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-        }
-        .status {
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--accent);
-        }
-        button {
-            background: var(--primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s;
         }
-        button:hover { transform: scale(1.05); }
-        button:disabled { background: #bdc3c7; cursor: not-allowed; }
-        input {
-            padding: 10px;
-            width: 80%;
-            margin-top: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
         }
-        .card-display {
-            font-size: 5rem;
-            margin: 20px 0;
+
+        .card-button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #feedback { margin-top: 20px; font-weight: bold; }
-        .hidden { display: none; }
+
+        .card-button:hover:not(:disabled) {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .card-button:active {
+            transform: scale(0.95);
+        }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .correct { background: #10b981 !important; border-color: #059669 !important; }
+        .wrong { background: #ef4444 !important; border-color: #dc2626 !important; }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8 flex items-center justify-center">
 
-<div class="container">
-    <h1>♠️ Echo Deck</h1>
-    <div id="status" class="status">Siap Bermain?</div>
-    
-    <div id="setup-area">
-        <label>Jumlah Kartu: </label>
-        <input type="number" id="card-count" value="5" min="1" max="52" style="width: 50px;">
-        <br><br>
-        <button onclick="startGame()">Mulai Fase Memorize</button>
+<div class="max-w-4xl w-full glass-morphism p-6 md:p-10 shadow-2xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold tracking-tight mb-2">♠️ Echo Deck Memory</h1>
+        <p class="text-white/70">Uji ketajaman telinga dan ingatan visualmu</p>
     </div>
 
-    <div id="game-area" class="hidden">
-        <div class="card-display">🔊</div>
-        <p>Dengarkan baik-baik...</p>
+    <!-- Screen: Setup -->
+    <div id="screen-setup" class="space-y-8 text-center">
+        <div class="bg-black/20 p-6 rounded-2xl">
+            <label class="block text-lg font-semibold mb-4">Ingin menghafal berapa kartu?</label>
+            <div class="flex items-center justify-center gap-4">
+                <input type="range" id="card-slider" min="3" max="52" value="5" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                <span id="slider-val" class="text-2xl font-bold w-12">5</span>
+            </div>
+        </div>
+        <button onclick="initGame()" class="w-full py-4 bg-white text-red-600 font-bold text-xl rounded-xl shadow-lg hover:bg-opacity-90 transition-all">
+            MULAI PERMAINAN
+        </button>
     </div>
 
-    <div id="recall-area" class="hidden">
-        <p id="recall-instruction"></p>
-        <input type="text" id="answer-input" placeholder="Contoh: As Hati, 7 Sekop">
-        <br><br>
-        <button onclick="checkAnswer()">Cek Jawaban</button>
+    <!-- Screen: Memorize (Audio Only) -->
+    <div id="screen-memorize" class="hidden flex flex-col items-center justify-center py-12 space-y-8">
+        <div class="relative">
+            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-center">
+            <p id="mem-status" class="text-2xl font-bold mb-2">Mendengarkan...</p>
+            <p id="mem-progress" class="text-white/60">Kartu 1 dari 5</p>
+        </div>
+        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+            <div id="mem-bar" class="h-full bg-white transition-all duration-300" style="width: 0%"></div>
+        </div>
     </div>
 
-    <div id="feedback"></div>
-    <button id="reset-btn" class="hidden" onclick="location.reload()">Main Lagi</button>
+    <!-- Screen: Recall (Answering) -->
+    <div id="screen-recall" class="hidden space-y-6">
+        <div class="flex justify-between items-center bg-black/20 p-4 rounded-xl">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-white/50 font-bold">Langkah Berikutnya</p>
+                <p id="recall-target" class="text-xl font-bold text-yellow-400">Pilih Kartu Ke-1</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs uppercase tracking-wider text-white/50 font-bold">Skor</p>
+                <p id="recall-score" class="text-xl font-bold">0 / 5</p>
+            </div>
+        </div>
+
+        <div id="card-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/20">
+            <!-- Cards will be injected here -->
+        </div>
+    </div>
+
+    <!-- Screen: Result -->
+    <div id="screen-result" class="hidden text-center space-y-8 py-10">
+        <div id="result-icon" class="text-7xl">🏆</div>
+        <div>
+            <h2 id="result-title" class="text-3xl font-bold mb-2">Luar Biasa!</h2>
+            <p id="result-desc" class="text-white/70 text-lg">Kamu mengingat semua kartu dengan sempurna.</p>
+        </div>
+        <div class="text-5xl font-black" id="final-score">5 / 5</div>
+        <button onclick="location.reload()" class="px-8 py-3 bg-white/20 hover:bg-white/30 border border-white/30 rounded-xl transition-all">
+            Main Lagi
+        </button>
+    </div>
 </div>
 
 <script>
-    const suits = ['Hati', 'Wajik', 'Sekop', 'Keriting'];
+    const suits = [
+        { name: 'Hati', symbol: '♥️', color: 'text-red-500' },
+        { name: 'Wajik', symbol: '♦️', color: 'text-red-500' },
+        { name: 'Sekop', symbol: '♠️', color: 'text-gray-900' },
+        { name: 'Keriting', symbol: '♣️', color: 'text-gray-900' }
+    ];
     const values = ['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'];
-    let deck = [];
-    let gameDeck = [];
-    let currentIndex = 0;
+    
+    let masterDeck = [];
+    let selectedDeck = [];
+    let userAnswers = [];
+    let currentRecallIndex = 0;
+    let cardCount = 5;
 
-    // Inisialisasi suara
     const synth = window.speechSynthesis;
 
-    function createDeck() {
-        let newDeck = [];
-        for (let s of suits) {
-            for (let v of values) {
-                newDeck.push(`${v} ${s}`);
-            }
+    // UI Elements
+    const slider = document.getElementById('card-slider');
+    const sliderVal = document.getElementById('slider-val');
+    
+    slider.oninput = function() {
+        sliderVal.innerText = this.value;
+        cardCount = parseInt(this.value);
+    }
+
+    function createFullDeck() {
+        let deck = [];
+        suits.forEach(suit => {
+            values.forEach(val => {
+                deck.push({
+                    id: `${val}-${suit.name}`,
+                    display: `${val} ${suit.symbol}`,
+                    voiceName: `${val} ${suit.name}`,
+                    suitName: suit.name,
+                    val: val,
+                    suitSymbol: suit.symbol,
+                    color: suit.color
+                });
+            });
+        });
+        return deck;
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-        return newDeck.sort(() => Math.random() - 0.5);
+        return array;
     }
 
-    function startGame() {
-        const count = document.getElementById('card-count').value;
-        gameDeck = createDeck().slice(0, count);
+    function initGame() {
+        masterDeck = createFullDeck();
+        const shuffled = shuffle([...masterDeck]);
+        selectedDeck = shuffled.slice(0, cardCount);
         
-        document.getElementById('setup-area').classList.add('hidden');
-        document.getElementById('game-area').classList.remove('hidden');
-        document.getElementById('status').innerText = "Fase Memorize: Mendengarkan...";
-        
-        speakCards(0);
+        showScreen('screen-memorize');
+        speakSequentially(0);
     }
 
-    function speakCards(index) {
-        if (index < gameDeck.length) {
-            let utterance = new SpeechSynthesisUtterance(gameDeck[index]);
-            utterance.lang = 'id-ID';
-            utterance.rate = 0.8; // Sedikit lebih lambat agar jelas
-            
-            utterance.onend = () => {
-                setTimeout(() => speakCards(index + 1), 1000);
-            };
-            
+    function showScreen(id) {
+        ['screen-setup', 'screen-memorize', 'screen-recall', 'screen-result'].forEach(s => {
+            document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function speakSequentially(index) {
+        if (index >= selectedDeck.length) {
+            setTimeout(startRecallPhase, 1500);
+            return;
+        }
+
+        // Update UI
+        document.getElementById('mem-progress').innerText = `Kartu ${index + 1} dari ${cardCount}`;
+        document.getElementById('mem-bar').style.width = `${((index + 1) / cardCount) * 100}%`;
+
+        const card = selectedDeck[index];
+        const utterance = new SpeechSynthesisUtterance(card.voiceName);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.85;
+
+        utterance.onend = () => {
+            setTimeout(() => speakSequentially(index + 1), 1200);
+        };
+
+        // Fallback jika suara tidak jalan
+        if (!synth.speaking) {
             synth.speak(utterance);
-        } else {
-            startRecall();
         }
     }
 
-    function startRecall() {
-        document.getElementById('game-area').classList.add('hidden');
-        document.getElementById('recall-area').classList.remove('hidden');
-        document.getElementById('status').innerText = "Fase Recall: Jawab!";
-        document.getElementById('recall-instruction').innerText = 
-            `Sebutkan ${gameDeck.length} kartu tadi secara berurutan (pisahkan dengan koma):`;
+    function startRecallPhase() {
+        showScreen('screen-recall');
+        renderCardGrid();
+        updateRecallUI();
     }
 
-    function checkAnswer() {
-        const userAnswer = document.getElementById('answer-input').value.toLowerCase();
-        const correctAnswer = gameDeck.join(', ').toLowerCase();
+    function renderCardGrid() {
+        const grid = document.getElementById('card-grid');
+        grid.innerHTML = '';
         
-        const feedback = document.getElementById('feedback');
-        if (userAnswer.trim() === correctAnswer) {
-            feedback.innerHTML = "<span style='color: green;'>Luar Biasa! Ingatanmu setajam silet. ✅</span>";
-        } else {
-            feedback.innerHTML = `<span style='color: red;'>Salah sedikit!</span><br>Jawaban benar:<br><b>${gameDeck.join(', ')}</b>`;
-        }
+        // Urutkan master deck agar mudah dicari saat menjawab
+        const sortedMaster = createFullDeck();
         
-        document.getElementById('reset-btn').classList.remove('hidden');
+        sortedMaster.forEach(card => {
+            const btn = document.createElement('button');
+            btn.className = `card-button bg-white p-2 rounded-lg flex flex-col items-center justify-center text-xs font-bold border-2 border-transparent h-16 shadow-sm`;
+            btn.innerHTML = `
+                <span class="${card.color}">${card.val}</span>
+                <span class="${card.color} text-lg leading-none">${card.suitSymbol}</span>
+            `;
+            btn.onclick = () => handleCardSelection(card, btn);
+            grid.appendChild(btn);
+        });
     }
+
+    function handleCardSelection(card, btnElement) {
+        if (currentRecallIndex >= cardCount) return;
+
+        const targetCard = selectedDeck[currentRecallIndex];
+        const isCorrect = card.id === targetCard.id;
+
+        if (isCorrect) {
+            btnElement.classList.add('correct', 'text-white');
+            btnElement.disabled = true;
+            userAnswers.push(true);
+        } else {
+            btnElement.classList.add('wrong', 'text-white');
+            // Jika salah, beri kesempatan sejenak lalu biarkan user coba lagi atau lanjut?
+            // Sesuai aturan game memori standar: satu kesalahan biasanya fatal.
+            // Di sini kita catat salah dan lanjut ke kartu berikutnya agar user tahu urutan penuh.
+            userAnswers.push(false);
+        }
+
+        currentRecallIndex++;
+        updateRecallUI();
+
+        if (currentRecallIndex === cardCount) {
+            setTimeout(showResults, 1000);
+        }
+    }
+
+    function updateRecallUI() {
+        const score = userAnswers.filter(a => a).length;
+        document.getElementById('recall-score').innerText = `${score} / ${cardCount}`;
+        
+        if (currentRecallIndex < cardCount) {
+            document.getElementById('recall-target').innerText = `Pilih Kartu Ke-${currentRecallIndex + 1}`;
+        }
+    }
+
+    function showResults() {
+        showScreen('screen-result');
+        const score = userAnswers.filter(a => a).length;
+        const percentage = (score / cardCount) * 100;
+        
+        document.getElementById('final-score').innerText = `${score} / ${cardCount}`;
+        
+        const title = document.getElementById('result-title');
+        const desc = document.getElementById('result-desc');
+        const icon = document.getElementById('result-icon');
+
+        if (percentage === 100) {
+            title.innerText = "Master Memori!";
+            desc.innerText = "Ingatanmu luar biasa sempurna.";
+            icon.innerText = "👑";
+        } else if (percentage >= 70) {
+            title.innerText = "Hebat!";
+            desc.innerText = "Hanya sedikit kesalahan, kamu punya potensi.";
+            icon.innerText = "🥈";
+        } else {
+            title.innerText = "Terus Berlatih";
+            desc.innerText = "Gunakan teknik visualisasi untuk hasil lebih baik.";
+            icon.innerText = "🧠";
+        }
+    }
+
+    // Handle speech initial interaction for Chrome
+    document.addEventListener('click', () => {
+        // Just to unlock audio context in some browsers
+        if (synth.speaking) return;
+    }, { once: true });
+
 </script>
-
 </body>
 </html>
