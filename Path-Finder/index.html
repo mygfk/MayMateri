@@ -366,20 +366,20 @@
         .path-node.trail {
             background: radial-gradient(circle, rgba(0,229,255,.3), rgba(0,229,255,.08));
             border: 1px solid rgba(0,229,255,.4);
-            color: rgba(0,229,255,.7);
-            font-size: .55rem;
+            color: rgba(0,229,255,.85);
+            font-size: 1rem;
         }
         .path-node.start-trail {
             background: radial-gradient(circle, rgba(255,68,68,.3), rgba(255,68,68,.08));
             border: 1px solid rgba(255,68,68,.5);
-            color: rgba(255,68,68,.8);
-            font-size: .55rem;
+            color: rgba(255,68,68,.9);
+            font-size: 1rem;
         }
         .path-node.avatar {
             background: radial-gradient(circle at 38% 35%, rgba(0,229,255,.5), rgba(0,229,255,.15));
             border: 1.5px solid var(--accent);
             box-shadow: 0 0 10px rgba(0,229,255,.5);
-            font-size: .6rem;
+            font-size: .9rem;
             flex-direction: column;
             gap: 0;
         }
@@ -387,7 +387,7 @@
             background: radial-gradient(circle at 38% 35%, rgba(0,230,118,.4), rgba(0,230,118,.1));
             border: 1.5px solid var(--green);
             box-shadow: 0 0 12px rgba(0,230,118,.5);
-            font-size: .6rem;
+            font-size: .9rem;
             flex-direction: column;
         }
 
@@ -570,8 +570,6 @@
 
             <div class="audio-stage">
                 <div class="audio-orb" id="audio-orb">🔊</div>
-
-                <div class="spoken-word" id="spoken-word">—</div>
 
                 <div class="step-bar-wrap">
                     <div class="step-bar-label">
@@ -759,8 +757,6 @@
         const orb = document.getElementById('audio-orb');
         const word = document.getElementById('spoken-word');
 
-        word.textContent = actionLabels[action];
-
         utt.onstart = () => orb.classList.add('speaking');
         utt.onend   = () => orb.classList.remove('speaking');
 
@@ -831,11 +827,11 @@
         node.className = `path-node avatar`;
 
         const emoji = document.createElement('span');
-        emoji.style.fontSize = '.7rem';
+        emoji.style.fontSize = '1rem';
         emoji.textContent = '🧍';
 
         const arrow = document.createElement('span');
-        arrow.style.fontSize = '.55rem';
+        arrow.style.fontSize = '.8rem';
         arrow.textContent = emojiArrows[heading];
 
         node.appendChild(emoji);
@@ -863,7 +859,7 @@
         node.className = 'path-node finish-node';
 
         const icon = document.createElement('span');
-        icon.style.fontSize = '.75rem';
+        icon.style.fontSize = '1rem';
         icon.textContent = '🏁';
 
         node.appendChild(icon);
