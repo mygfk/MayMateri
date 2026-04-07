@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Deck Memory</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --bg: #ecf0f1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .status {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; }
+        input {
+            padding: 10px;
+            width: 80%;
+            margin-top: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .card-display {
+            font-size: 5rem;
+            margin: 20px 0;
+        }
+        #feedback { margin-top: 20px; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>♠️ Echo Deck</h1>
+    <div id="status" class="status">Siap Bermain?</div>
+    
+    <div id="setup-area">
+        <label>Jumlah Kartu: </label>
+        <input type="number" id="card-count" value="5" min="1" max="52" style="width: 50px;">
+        <br><br>
+        <button onclick="startGame()">Mulai Fase Memorize</button>
+    </div>
+
+    <div id="game-area" class="hidden">
+        <div class="card-display">🔊</div>
+        <p>Dengarkan baik-baik...</p>
+    </div>
+
+    <div id="recall-area" class="hidden">
+        <p id="recall-instruction"></p>
+        <input type="text" id="answer-input" placeholder="Contoh: As Hati, 7 Sekop">
+        <br><br>
+        <button onclick="checkAnswer()">Cek Jawaban</button>
+    </div>
+
+    <div id="feedback"></div>
+    <button id="reset-btn" class="hidden" onclick="location.reload()">Main Lagi</button>
+</div>
+
+<script>
+    const suits = ['Hati', 'Wajik', 'Sekop', 'Keriting'];
+    const values = ['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'];
+    let deck = [];
+    let gameDeck = [];
+    let currentIndex = 0;
+
+    // Inisialisasi suara
+    const synth = window.speechSynthesis;
+
+    function createDeck() {
+        let newDeck = [];
+        for (let s of suits) {
+            for (let v of values) {
+                newDeck.push(`${v} ${s}`);
+            }
+        }
+        return newDeck.sort(() => Math.random() - 0.5);
+    }
+
+    function startGame() {
+        const count = document.getElementById('card-count').value;
+        gameDeck = createDeck().slice(0, count);
+        
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('game-area').classList.remove('hidden');
+        document.getElementById('status').innerText = "Fase Memorize: Mendengarkan...";
+        
+        speakCards(0);
+    }
+
+    function speakCards(index) {
+        if (index < gameDeck.length) {
+            let utterance = new SpeechSynthesisUtterance(gameDeck[index]);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.8; // Sedikit lebih lambat agar jelas
+            
+            utterance.onend = () => {
+                setTimeout(() => speakCards(index + 1), 1000);
+            };
+            
+            synth.speak(utterance);
+        } else {
+            startRecall();
+        }
+    }
+
+    function startRecall() {
+        document.getElementById('game-area').classList.add('hidden');
+        document.getElementById('recall-area').classList.remove('hidden');
+        document.getElementById('status').innerText = "Fase Recall: Jawab!";
+        document.getElementById('recall-instruction').innerText = 
+            `Sebutkan ${gameDeck.length} kartu tadi secara berurutan (pisahkan dengan koma):`;
+    }
+
+    function checkAnswer() {
+        const userAnswer = document.getElementById('answer-input').value.toLowerCase();
+        const correctAnswer = gameDeck.join(', ').toLowerCase();
+        
+        const feedback = document.getElementById('feedback');
+        if (userAnswer.trim() === correctAnswer) {
+            feedback.innerHTML = "<span style='color: green;'>Luar Biasa! Ingatanmu setajam silet. ✅</span>";
+        } else {
+            feedback.innerHTML = `<span style='color: red;'>Salah sedikit!</span><br>Jawaban benar:<br><b>${gameDeck.join(', ')}</b>`;
+        }
+        
+        document.getElementById('reset-btn').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
