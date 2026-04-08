@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Memori Dinamis: Jejak Hewan Terbang</title>
+    <style>
+        :root {
+            --bg-color: #f0f8ff;
+            --grid-bg: #87ceeb;
+            --cell-bg: rgba(255, 255, 255, 0.8);
+            --cell-hidden: #2e8b57;
+            --cell-hover: #3cb371;
+            --text-dark: #333;
+            --accent: #ff8c00;
+            --hint-color: #20b2aa;
+            --grid-size: 5; /* Akan diubah dinamis oleh JS */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #1e90ff;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        /* --- SISTEM HALAMAN (PAGES) --- */
+        .page-container {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-container.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setup-panel {
+            background-color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+            max-width: 800px;
+            border: 2px dashed #87ceeb;
+        }
+
+        .setup-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .setup-item label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            text-align: center;
+        }
+
+        .setup-item input {
+            width: 70px;
+            padding: 5px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .score-board {
+            background-color: #fffacd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            color: #d2691e;
+            border: 2px solid #ffd700;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #e07b00;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #hintBtn {
+            background-color: var(--hint-color);
+        }
+
+        #hintBtn:hover:not(:disabled) {
+            background-color: #178a84;
+        }
+
+        #applySetupBtn {
+            background-color: #1e90ff;
+        }
+
+        #applySetupBtn:hover {
+            background-color: #0066cc;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 900px;
+        }
+
+        .legend-item {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--grid-bg);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            /* Tambahan agar tidak rusak saat grid besar (misal 15x15) */
+            max-width: 100%;
+            overflow-x: auto; 
+        }
+
+        .grid-title {
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .grid-with-labels {
+            display: grid;
+            grid-template-columns: 20px auto;
+            grid-template-rows: auto 20px;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .y-labels {
+            grid-column: 1;
+            grid-row: 1;
+            display: grid;
+            grid-template-rows: repeat(var(--grid-size), 40px);
+            gap: 2px;
+            color: #333;
+            font-weight: bold;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .x-labels {
+            grid-column: 2;
+            grid-row: 2;
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 40px);
+            gap: 2px;
+            color: #333;
+            font-weight: bold;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .grid {
+            grid-column: 2;
+            grid-row: 1;
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 40px);
+            grid-template-rows: repeat(var(--grid-size), 40px);
+            gap: 2px;
+            background-color: #fff;
+            border: 2px solid #fff;
+        }
+
+        .cell {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background-color: var(--cell-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .cell.hidden {
+            background-color: var(--cell-hidden);
+            color: transparent;
+        }
+
+        .cell.hidden::after {
+            content: '?';
+            color: rgba(255,255,255,0.7);
+            font-size: 20px;
+        }
+
+        .cell.hidden:hover {
+            background-color: var(--cell-hover);
+        }
+
+        .cell.matched {
+            cursor: default;
+            animation: matchAnim 0.8s ease forwards;
+        }
+
+        .cell.hint-glow {
+            background-color: #e0ffff;
+            box-shadow: inset 0 0 10px rgba(0, 206, 209, 0.5);
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .cell.hint-glow::after {
+            content: none;
+        }
+
+        .status {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            min-height: 30px;
+            color: #d2691e;
+            text-align: center;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes matchAnim {
+            0% { transform: scale(1); background-color: #ffd700; color: var(--text-dark); }
+            50% { transform: scale(1.2); background-color: #ffd700; color: var(--text-dark); }
+            100% { transform: scale(1); background-color: var(--cell-bg); color: transparent; text-shadow: none; }
+        }
+
+        /* Responsive untuk layar HP / Layar lebih kecil */
+        @media (max-width: 600px) {
+            .setup-panel {
+                flex-direction: column;
+                align-items: center;
+            }
+            .grid-with-labels {
+                grid-template-columns: 15px auto;
+                grid-template-rows: auto 15px;
+            }
+            .y-labels {
+                grid-template-rows: repeat(var(--grid-size), 30px);
+                font-size: 12px;
+            }
+            .x-labels {
+                grid-template-columns: repeat(var(--grid-size), 30px);
+                font-size: 12px;
+            }
+            .grid {
+                grid-template-columns: repeat(var(--grid-size), 30px);
+                grid-template-rows: repeat(var(--grid-size), 30px);
+            }
+            .cell {
+                width: 30px;
+                height: 30px;
+                font-size: 18px;
+            }
+            .cell.hidden::after {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🧠 Memori Dinamis: Jejak Hewan Terbang</h1>
+    
+    <!-- ================= HALAMAN 1: SETUP ================= -->
+    <div id="page-setup" class="page-container active">
+        <div class="instructions">
+            <p><strong>Cara Bermain:</strong> Ingat posisi awal hewan di Grid 1 dan Grid 2. Saat disembunyikan, mereka <strong>bergerak 1 langkah</strong>. <br><span style="color:var(--accent)"><strong>ATURAN DINAMIS:</strong> Setiap kali Anda menemukan satu pasangan, hewan yang masih bersembunyi otomatis <strong>bergeser lagi 1 langkah!</strong></span></p>
+        </div>
+
+        <div class="setup-panel">
+            <div class="setup-item">
+                <!-- Batas Maksimal Grid diperbarui menjadi 15 -->
+                <label for="inputGridSize">Ukuran Grid (N x N)<br><small>(Min: 3, Max: 15)</small></label>
+                <input type="number" id="inputGridSize" value="5" min="3" max="15">
+            </div>
+            <div class="setup-item">
+                <label for="inputNumTypes">Berapa Jenis Hewan?<br><small>(Aturan Gerak Beda)</small></label>
+                <input type="number" id="inputNumTypes" value="3" min="1" max="10">
+            </div>
+            <div class="setup-item">
+                <label for="inputTotalAnimals">Total Pasangan<br><small>(Jumlah target)</small></label>
+                <input type="number" id="inputTotalAnimals" value="4" min="1" max="100">
+            </div>
+            <button id="applySetupBtn" onclick="applySetupAndGoToGame()">⚙️ Buat Papan & Mulai</button>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 2: PERMAINAN ================= -->
+    <div id="page-game" class="page-container">
+        <div class="legend" id="legend">
+            <!-- Akan diisi oleh JS sesuai jenis yang dipilih -->
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="startGame()">Mulai Menghafal</button>
+            <button id="hintBtn" onclick="useHint()" disabled>💡 Hint (-1 Langkah)</button>
+            <button id="backBtn" onclick="goToSetup()" style="background-color: #6c757d;">Kembali ke Pengaturan</button>
+            <div class="score-board">
+                Skor: <span id="scoreText">0</span> / <span id="totalScoreText">0</span>
+            </div>
+            <div>
+                <span>Fase: <strong id="phaseText">Menunggu...</strong></span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="grid-container">
+                <div class="grid-title">Grid 1</div>
+                <div class="grid-with-labels">
+                    <div class="y-labels"></div>
+                    <div class="grid" id="grid1"></div>
+                    <div class="x-labels"></div>
+                </div>
+            </div>
+            <div class="grid-container">
+                <div class="grid-title">Grid 2</div>
+                <div class="grid-with-labels">
+                    <div class="y-labels"></div>
+                    <div class="grid" id="grid2"></div>
+                    <div class="x-labels"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status" id="statusMessage">Klik "Mulai Menghafal" saat Anda siap!</div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI GAME & POOL HEWAN ---
+        let GRID_SIZE = 5; 
+        let TOTAL_ANIMALS = 4;
+        let MEMORIZE_TIME = 4000; 
+
+        // Master koleksi (bisa sampai 10 jenis hewan dengan pola unik)
+        const MASTER_ENTITIES = [
+            { id: 'duck', icon: '🦆', moveX: 1, moveY: 0, desc: "Kanan 1" },
+            { id: 'eagle', icon: '🦅', moveX: 0, moveY: 1, desc: "Atas 1" },
+            { id: 'owl', icon: '🦉', moveX: 1, moveY: 1, desc: "Kanan 1, Atas 1" },
+            { id: 'turtle', icon: '🐢', moveX: -1, moveY: 0, desc: "Kiri 1" },
+            { id: 'fish', icon: '🐟', moveX: 0, moveY: -1, desc: "Bawah 1" },
+            { id: 'crab', icon: '🦀', moveX: -1, moveY: -1, desc: "Kiri 1, Bawah 1" },
+            { id: 'horse', icon: '🐴', moveX: 1, moveY: 2, desc: "Kanan 1, Atas 2 (Kuda)" },
+            { id: 'frog', icon: '🐸', moveX: 2, moveY: 2, desc: "Kanan 2, Atas 2" },
+            { id: 'rabbit', icon: '🐇', moveX: 2, moveY: 0, desc: "Kanan 2" },
+            { id: 'monkey', icon: '🐒', moveX: -2, moveY: 0, desc: "Kiri 2" }
+        ];
+
+        let activeEntities = []; // Jenis hewan yang terpilih untuk ronde ini
+        let spawnList = []; // Daftar hewan aktual yang akan dimasukkan ke grid
+
+        // Status permainan
+        let state = {
+            grid1: [], 
+            grid2: [],
+            phase: 'idle', // idle, memorize, moving, playing, hinting
+            selection1: null, 
+            selection2: null, 
+            matchedPairs: 0
+        };
+
+        // DOM Elements
+        const grid1El = document.getElementById('grid1');
+        const grid2El = document.getElementById('grid2');
+        const startBtn = document.getElementById('startBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const phaseText = document.getElementById('phaseText');
+        const statusMsg = document.getElementById('statusMessage');
+
+        // --- SETUP DAN INISIALISASI ---
+
+        function applySetupAndGoToGame() {
+            let newGridSize = parseInt(document.getElementById('inputGridSize').value);
+            let numTypes = parseInt(document.getElementById('inputNumTypes').value);
+            let total = parseInt(document.getElementById('inputTotalAnimals').value);
+
+            // Validasi input diperbarui agar mendukung Grid maksimal 15
+            if (isNaN(newGridSize) || newGridSize < 3) newGridSize = 3;
+            if (newGridSize > 15) newGridSize = 15;
+            if (isNaN(numTypes) || numTypes < 1) numTypes = 1;
+            if (numTypes > MASTER_ENTITIES.length) numTypes = MASTER_ENTITIES.length;
+            if (isNaN(total) || total < 1) total = 1;
+            
+            let maxCapacity = newGridSize * newGridSize;
+            if (total > maxCapacity) total = maxCapacity;
+            if (numTypes > total) numTypes = total; 
+
+            // Kembalikan value ke UI setelah divalidasi
+            document.getElementById('inputGridSize').value = newGridSize;
+            document.getElementById('inputNumTypes').value = numTypes;
+            document.getElementById('inputTotalAnimals').value = total;
+
+            GRID_SIZE = newGridSize;
+            TOTAL_ANIMALS = total;
+            
+            // Waktu menghafal dinamis
+            MEMORIZE_TIME = Math.max(3000, Math.min(TOTAL_ANIMALS * 1200, 10000));
+
+            // Update UI Skor
+            document.getElementById('scoreText').innerText = "0";
+            document.getElementById('totalScoreText').innerText = TOTAL_ANIMALS;
+
+            // Set CSS Variable untuk merender grid CSS
+            document.documentElement.style.setProperty('--grid-size', GRID_SIZE);
+
+            // Pilih N jenis hewan secara acak dari Master Pool
+            let shuffledPool = [...MASTER_ENTITIES].sort(() => 0.5 - Math.random());
+            activeEntities = shuffledPool.slice(0, numTypes);
+
+            spawnList = [];
+            for (let i = 0; i < TOTAL_ANIMALS; i++) {
+                let typeIndex = i % activeEntities.length;
+                spawnList.push(activeEntities[typeIndex]);
+            }
+
+            // Bersihkan status permainan
+            state.phase = 'idle';
+            startBtn.disabled = false;
+            hintBtn.disabled = true;
+            startBtn.innerText = "Mulai Menghafal";
+            phaseText.innerText = "Menunggu...";
+            statusMsg.innerText = "Papan siap! Pahami aturan gerak dan klik 'Mulai Menghafal'.";
+
+            renderLegend();
+            createEmptyGrids();
+
+            // Pindah navigasi halaman (Sembunyikan Setup, Tampilkan Game)
+            document.getElementById('page-setup').classList.remove('active');
+            document.getElementById('page-game').classList.add('active');
+        }
+
+        function goToSetup() {
+            // Kembali navigasi halaman (Sembunyikan Game, Tampilkan Setup)
+            state.phase = 'idle';
+            document.getElementById('page-game').classList.remove('active');
+            document.getElementById('page-setup').classList.add('active');
+        }
+
+        function renderLegend() {
+            const legendEl = document.getElementById('legend');
+            legendEl.innerHTML = activeEntities.map(e => `
+                <div class="legend-item">
+                    <span style="font-size:24px">${e.icon}</span> 
+                    <span>${e.desc}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- SISTEM KOORDINAT MATEMATIKA ---
+        
+        function indexToMathCoord(index) {
+            const cssX = index % GRID_SIZE;
+            const cssY = Math.floor(index / GRID_SIZE);
+            const mathX = cssX;
+            const mathY = (GRID_SIZE - 1) - cssY;
+            return { x: mathX, y: mathY };
+        }
+
+        // Konsep Modulo Arithmetic untuk pergeseran "tembus"
+        function mathCoordToIndex(x, y) {
+            let wrapX = ((x % GRID_SIZE) + GRID_SIZE) % GRID_SIZE;
+            let wrapY = ((y % GRID_SIZE) + GRID_SIZE) % GRID_SIZE;
+            
+            const cssX = wrapX;
+            const cssY = (GRID_SIZE - 1) - wrapY;
+            return cssY * GRID_SIZE + cssX;
+        }
+
+        function generateRandomPositions() {
+            let pos1 = [];
+            let pos2 = [];
+            
+            // Generate posisi random yang unik dalam grid
+            while(pos1.length < TOTAL_ANIMALS) {
+                let r = Math.floor(Math.random() * (GRID_SIZE * GRID_SIZE));
+                if(!pos1.includes(r)) pos1.push(r);
+            }
+            while(pos2.length < TOTAL_ANIMALS) {
+                let r = Math.floor(Math.random() * (GRID_SIZE * GRID_SIZE));
+                if(!pos2.includes(r)) pos2.push(r);
+            }
+
+            // Acak urutan spawn list (agar letaknya tidak bisa ditebak berurutan)
+            let shuffledSpawn1 = [...spawnList].sort(() => 0.5 - Math.random());
+            let shuffledSpawn2 = [...spawnList].sort(() => 0.5 - Math.random());
+
+            state.grid1 = pos1.map((posIndex, i) => ({
+                uniqueId: `g1_${i}`,      // ID unik untuk membedakan hewan kembar di grid yang sama
+                typeId: shuffledSpawn1[i].id, // Kunci validasi (bebek dicocokkan dengan bebek)
+                icon: shuffledSpawn1[i].icon,
+                moveX: shuffledSpawn1[i].moveX,
+                moveY: shuffledSpawn1[i].moveY,
+                currentIndex: posIndex,
+                matched: false
+            }));
+
+            state.grid2 = pos2.map((posIndex, i) => ({
+                uniqueId: `g2_${i}`,
+                typeId: shuffledSpawn2[i].id,
+                icon: shuffledSpawn2[i].icon,
+                moveX: shuffledSpawn2[i].moveX,
+                moveY: shuffledSpawn2[i].moveY,
+                currentIndex: posIndex,
+                matched: false
+            }));
+        }
+
+        function createEmptyGrids() {
+            grid1El.innerHTML = '';
+            grid2El.innerHTML = '';
+            
+            // Label Y dinamis (N, N-1, ..., 1)
+            const yLabelsText = Array.from({length: GRID_SIZE}, (_, i) => `<div>${GRID_SIZE - i}</div>`).join('');
+            // Label X dinamis (A, B, C, ...)
+            const xLabelsText = Array.from({length: GRID_SIZE}, (_, i) => `<div>${String.fromCharCode(65 + i)}</div>`).join('');
+            
+            document.querySelectorAll('.y-labels').forEach(el => el.innerHTML = yLabelsText);
+            document.querySelectorAll('.x-labels').forEach(el => el.innerHTML = xLabelsText);
+
+            for(let i=0; i < GRID_SIZE * GRID_SIZE; i++) {
+                grid1El.innerHTML += `<div class="cell" data-grid="1" data-index="${i}"></div>`;
+                grid2El.innerHTML += `<div class="cell" data-grid="2" data-index="${i}"></div>`;
+            }
+        }
+
+        function renderEntities(isHidden = false) {
+            document.querySelectorAll('.cell').forEach(cell => {
+                // Hapus kondisi if(!matched) karena hewan yang matched harus dihilangkan seluruhnya
+                cell.innerHTML = '';
+                cell.className = `cell ${isHidden ? 'hidden' : ''}`;
+                // Hapus data agar tidak salah klik di posisi yang sudah bergeser
+                delete cell.dataset.uniqueId;
+                delete cell.dataset.typeId;
+                delete cell.dataset.icon;
+                delete cell.dataset.selected;
+                delete cell.dataset.stackCount; // Hapus data tumpukan
+            });
+
+            const renderGrid = (gridState, gridNum) => {
+                // Urutkan berdasarkan ID agar tumpukan selalu konsisten (siapa yang di atas/bawah)
+                let sortedState = [...gridState].sort((a,b) => a.uniqueId.localeCompare(b.uniqueId));
+
+                sortedState.forEach(entity => {
+                    if(entity.matched) return;
+                    const cell = document.querySelector(`.cell[data-grid="${gridNum}"][data-index="${entity.currentIndex}"]`);
+                    if(cell) {
+                        let currentCount = parseInt(cell.dataset.stackCount || 0);
+
+                        // Selalu timpa dataset agar entitas terakhir (paling atas) yang bisa di-klik
+                        cell.dataset.uniqueId = entity.uniqueId;
+                        cell.dataset.typeId = entity.typeId; 
+                        cell.dataset.icon = entity.icon;
+                        cell.dataset.stackCount = currentCount + 1;
+
+                        if(!isHidden) {
+                            cell.innerHTML = entity.icon;
+                            // Jika ada lebih dari 1 hewan, tampilkan lencana/indikator tumpukan
+                            if (currentCount > 0) {
+                                cell.innerHTML += `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 4px; border-radius:4px; line-height:1; z-index:10;">+${currentCount}</span>`;
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderGrid(state.grid1, "1");
+            renderGrid(state.grid2, "2");
+        }
+
+        // --- ALUR PERMAINAN ---
+
+        function startGame() {
+            startBtn.disabled = true;
+            hintBtn.disabled = true;
+            
+            state.matchedPairs = 0;
+            document.getElementById('scoreText').innerText = "0";
+            state.selection1 = null;
+            state.selection2 = null;
+            
+            document.querySelectorAll('.cell').forEach(c => {
+                c.classList.remove('matched');
+            });
+
+            generateRandomPositions();
+            
+            // FASE 1: MENGHAFAL
+            state.phase = 'memorize';
+            phaseText.innerText = "Hafalkan Posisinya!";
+            phaseText.style.color = "blue";
+            statusMsg.innerText = `Posisi Awal! Anda punya waktu ${Math.round(MEMORIZE_TIME/1000)} detik...`;
+            
+            renderEntities(false); 
+
+            setTimeout(() => {
+                // FASE 2: HEWAN SEMBUNYI & BERGERAK
+                state.phase = 'moving';
+                phaseText.innerText = "Hewan Bersembunyi & Bergerak...";
+                phaseText.style.color = "orange";
+                statusMsg.innerText = "Mereka sedang bergeser 1 langkah secara rahasia!";
+                
+                renderEntities(true);
+
+                setTimeout(() => {
+                    moveAllEntities();
+                    
+                    // FASE 3: MENEBAK
+                    state.phase = 'playing';
+                    phaseText.innerText = "Mulai Mencari!";
+                    phaseText.style.color = "green";
+                    statusMsg.innerText = "Hewan telah berpindah. Pilih di Grid 1, lalu cari di Grid 2.";
+                    hintBtn.disabled = false;
+                    
+                    renderEntities(true); 
+                    attachClickEvents();
+                }, 1500);
+
+            }, MEMORIZE_TIME);
+        }
+
+        function moveAllEntities() {
+            const moveLogic = (entityList) => {
+                entityList.forEach(entity => {
+                    if (entity.matched) return; 
+                    let coord = indexToMathCoord(entity.currentIndex);
+                    let newX = coord.x + entity.moveX;
+                    let newY = coord.y + entity.moveY;
+                    entity.currentIndex = mathCoordToIndex(newX, newY);
+                });
+            };
+
+            moveLogic(state.grid1);
+            moveLogic(state.grid2);
+        }
+
+        // --- FITUR HINT ---
+
+        function getPreviousIndex(entity) {
+            let coord = indexToMathCoord(entity.currentIndex);
+            let prevX = coord.x - entity.moveX;
+            let prevY = coord.y - entity.moveY;
+            return mathCoordToIndex(prevX, prevY);
+        }
+
+        function useHint() {
+            if (state.phase !== 'playing') return;
+            state.phase = 'hinting'; 
+            hintBtn.disabled = true;
+
+            const sel1 = state.selection1;
+            const sel2 = state.selection2;
+
+            document.querySelectorAll('.cell').forEach(cell => {
+                if (!cell.classList.contains('matched')) {
+                    cell.innerHTML = '';
+                    cell.classList.add('hidden');
+                }
+            });
+
+            const showPrev = (gridState, gridNum) => {
+                let sortedState = [...gridState].sort((a,b) => a.uniqueId.localeCompare(b.uniqueId));
+                sortedState.forEach(entity => {
+                    if (entity.matched) return;
+                    let prevIndex = getPreviousIndex(entity);
+                    const cell = document.querySelector(`.cell[data-grid="${gridNum}"][data-index="${prevIndex}"]`);
+                    if (cell) {
+                        let currentCount = parseInt(cell.dataset.hintStack || 0);
+                        
+                        cell.innerHTML = entity.icon;
+                        if (currentCount > 0) {
+                            cell.innerHTML += `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 4px; border-radius:4px; line-height:1; z-index:10;">+${currentCount}</span>`;
+                        }
+
+                        cell.classList.remove('hidden');
+                        cell.classList.add('hint-glow');
+                        cell.dataset.hintStack = currentCount + 1;
+                    }
+                });
+            };
+
+            showPrev(state.grid1, "1");
+            showPrev(state.grid2, "2");
+
+            statusMsg.innerText = "💡 Menampilkan posisi 1 langkah sebelumnya...";
+
+            setTimeout(() => {
+                document.querySelectorAll('.hint-glow').forEach(c => {
+                    c.classList.remove('hint-glow');
+                    c.innerHTML = '';
+                    c.classList.add('hidden');
+                    delete c.dataset.hintStack;
+                });
+
+                if (sel1) {
+                    let sCount = parseInt(sel1.element.dataset.stackCount || 1);
+                    sel1.element.innerHTML = sel1.element.dataset.icon + (sCount > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 4px; border-radius:4px; line-height:1; z-index:10;">+${sCount - 1}</span>` : '');
+                    sel1.element.classList.remove('hidden');
+                }
+                if (sel2) {
+                    let sCount = parseInt(sel2.element.dataset.stackCount || 1);
+                    sel2.element.innerHTML = sel2.element.dataset.icon + (sCount > 1 ? `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 4px; border-radius:4px; line-height:1; z-index:10;">+${sCount - 1}</span>` : '');
+                    sel2.element.classList.remove('hidden');
+                }
+
+                state.phase = 'playing';
+                hintBtn.disabled = false;
+                statusMsg.innerText = "Lanjutkan pencarian! Ingat arah gesernya.";
+            }, 3000);
+        }
+
+        // --- INTERAKSI PEMAIN ---
+
+        function attachClickEvents() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                const newCell = cell.cloneNode(true);
+                cell.parentNode.replaceChild(newCell, cell);
+                newCell.addEventListener('click', () => handleCellClick(newCell));
+            });
+        }
+
+        function handleCellClick(cell) {
+            if(state.phase !== 'playing') return;
+            if(cell.classList.contains('matched')) return; 
+            if(!cell.classList.contains('hidden') && !cell.dataset.selected) return; 
+
+            const gridNum = cell.dataset.grid;
+            const uniqueId = cell.dataset.uniqueId;
+            const typeId = cell.dataset.typeId;
+            const icon = cell.dataset.icon;
+            const stackCount = parseInt(cell.dataset.stackCount || 1);
+
+            if(!uniqueId) {
+                cell.classList.remove('hidden');
+                cell.innerHTML = '❌';
+                statusMsg.innerText = "Oops, kotak kosong!";
+                setTimeout(() => {
+                    if (state.phase !== 'hinting') {
+                        cell.classList.add('hidden');
+                        cell.innerHTML = '';
+                        statusMsg.innerText = "Ayo coba lagi.";
+                    }
+                }, 1000);
+                return;
+            }
+
+            // Buka kotak dan kembalikan indikator tumpukan jika ada
+            cell.classList.remove('hidden');
+            cell.innerHTML = icon;
+            if (stackCount > 1) {
+                cell.innerHTML += `<span style="position:absolute; bottom:2px; right:2px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 4px; border-radius:4px; line-height:1; z-index:10;">+${stackCount - 1}</span>`;
+            }
+            
+            cell.dataset.selected = 'true';
+
+            if(gridNum === "1") {
+                if(state.selection1) {
+                    state.selection1.element.classList.add('hidden');
+                    state.selection1.element.innerHTML = '';
+                    delete state.selection1.element.dataset.selected;
+                }
+                state.selection1 = { uniqueId, typeId, element: cell };
+                statusMsg.innerText = "Bagus! Sekarang cari pasangannya di Grid 2.";
+            } 
+            else if (gridNum === "2") {
+                if(!state.selection1) {
+                    statusMsg.innerText = "Pilih dari Grid 1 terlebih dahulu!";
+                    setTimeout(() => {
+                        cell.classList.add('hidden');
+                        cell.innerHTML = '';
+                        delete cell.dataset.selected;
+                    }, 1000);
+                    return;
+                }
+
+                state.selection2 = { uniqueId, typeId, element: cell };
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            state.phase = 'checking'; 
+            hintBtn.disabled = true;
+
+            // Logika Validasi Cerdas: Mencocokkan ID Jenis Hewan (bukan identitas unik spesifik)
+            // Jadi kalau ada 2 Bebek, pemain bebas mencocokkan bebek mana saja!
+            if(state.selection1.typeId === state.selection2.typeId) {
+                // COCOK!
+                state.selection1.element.classList.add('matched');
+                state.selection2.element.classList.add('matched');
+                
+                // Gunakan Unique ID untuk mengunci status hewan yang sudah ketemu
+                state.grid1.find(e => e.uniqueId === state.selection1.uniqueId).matched = true;
+                state.grid2.find(e => e.uniqueId === state.selection2.uniqueId).matched = true;
+
+                state.matchedPairs++;
+                document.getElementById('scoreText').innerText = state.matchedPairs;
+
+                if(state.matchedPairs === TOTAL_ANIMALS) {
+                    statusMsg.innerText = "Hebat! Anda menemukan pasangan terakhir.";
+                    setTimeout(() => {
+                        statusMsg.innerText = "🎉 SELAMAT! Anda berhasil menyelesaikan tantangan! 🎉";
+                        phaseText.innerText = "Selesai";
+                        document.getElementById('applySetupBtn').disabled = false;
+                        startBtn.disabled = false;
+                        startBtn.innerText = "Main Lagi";
+                    }, 800);
+                    resetSelections(true);
+                } else {
+                    statusMsg.innerText = "Tepat! Pasangan dihilangkan. Sisa hewan bergeser 1 langkah...";
+                    setTimeout(() => {
+                        moveAllEntities(); 
+                        renderEntities(true); 
+                        attachClickEvents(); 
+                        resetSelections(true); 
+                        statusMsg.innerText = "Lanjutkan pencarian! Ingat posisi baru mereka.";
+                    }, 1800); 
+                }
+            } else {
+                // TIDAK COCOK
+                statusMsg.innerText = "Belum tepat posisinya. Coba tekan Hint jika butuh bantuan.";
+                setTimeout(() => {
+                    state.selection1.element.classList.add('hidden');
+                    state.selection1.element.innerHTML = '';
+                    delete state.selection1.element.dataset.selected;
+                    
+                    state.selection2.element.classList.add('hidden');
+                    state.selection2.element.innerHTML = '';
+                    delete state.selection2.element.dataset.selected;
+                    
+                    resetSelections(false);
+                    statusMsg.innerText = "Pilih satu kotak di Grid 1, lalu cari pasangannya di Grid 2.";
+                }, 1500);
+            }
+        }
+
+        function resetSelections(keepPlaying) {
+            state.selection1 = null;
+            state.selection2 = null;
+            if (state.matchedPairs !== TOTAL_ANIMALS) {
+                state.phase = 'playing';
+                hintBtn.disabled = false;
+            }
+        }
+
+    </script>
+</body>
+</html>
