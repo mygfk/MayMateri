@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Aritmetika: Dual Competition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        :root {
+            --primary: #FF5722; /* Orange ceria */
+            --secondary: #2196F3; /* Biru kalem */
+            --set1-color: #E91E63; /* Pink untuk Set 1 */
+            --set2-color: #4CAF50; /* Hijau untuk Set 2 */
+            --bg-color: #F0F8FF;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background-color: #FFF9C4;
+            border-left: 5px solid #FFC107;
+            padding: 15px;
+            text-align: left;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .controls {
+            background-color: #E3F2FD;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 200px;
+        }
+
+        button {
+            font-family: 'Fredoka One', cursive;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 5px 0 #D84315;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background-color: #F4511E;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #D84315;
+        }
+
+        button:disabled {
+            background-color: #B0BEC5;
+            box-shadow: 0 5px 0 #90A4AE;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            min-height: 150px;
+        }
+
+        .set-box {
+            width: 45%;
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px solid #eee;
+            transition: all 0.3s;
+            opacity: 0.5;
+        }
+
+        .set-box h2 {
+            font-family: 'Fredoka One', cursive;
+            margin-top: 0;
+        }
+
+        .set-box.active {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        #set1-box.active { border-color: var(--set1-color); }
+        #set2-box.active { border-color: var(--set2-color); }
+
+        .current-operation {
+            font-size: 2rem;
+            font-weight: bold;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-section {
+            display: none;
+            margin-top: 30px;
+            background-color: #E8F5E9;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .inputs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            font-size: 1.5rem;
+            width: 150px;
+            text-align: center;
+            border: 3px solid #CCC;
+            border-radius: 10px;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .pembahasan {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .correct { color: #4CAF50; font-weight: bold; }
+        .wrong { color: #F44336; font-weight: bold; }
+        
+        .feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .game-area, .inputs {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            .set-box {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dual Competition Audio</h1>
+    
+    <div class="info-box">
+        <strong>📚 Konsep Pembelajaran:</strong> Melatih <i>split attention</i> (konsentrasi ganda) dan kecepatan komputasi mental aritmetika tanpa alat bantu.<br>
+        <strong>🎮 Cara Bermain:</strong> Dengarkan operasi hitung yang dibacakan secara bergantian (Set 1 lalu Set 2). Simpan hasilnya di ingatanmu, lalu ikuti instruksi operasi berikutnya. Masukkan hasil akhir untuk kedua set setelah suara selesai!
+    </div>
+
+    <div class="controls">
+        <div class="slider-container">
+            <label for="speedRate">Kecepatan Suara:</label>
+            <input type="range" id="speedRate" min="0.5" max="2" value="1" step="0.1">
+            <span id="speedValue">1.0x</span>
+        </div>
+        <div class="slider-container">
+            <label for="pauseRate">Jeda Antar Operasi:</label>
+            <input type="range" id="pauseRate" min="0.5" max="5" value="1" step="0.5">
+            <span id="pauseValue">1.0 detik</span>
+        </div>
+        <div>
+            <input type="checkbox" id="showText" checked>
+            <label for="showText" style="font-weight: bold;">Tampilkan Teks Operasi (Hilangkan centang untuk mode murni mendengarkan)</label>
+        </div>
+        <button id="startBtn" onclick="startGame()">🔊 Mulai Dengarkan</button>
+    </div>
+
+    <div class="game-area">
+        <div class="set-box" id="set1-box">
+            <h2 style="color: var(--set1-color);">SET 1</h2>
+            <div class="current-operation" id="op-set1">?</div>
+        </div>
+        <div class="set-box" id="set2-box">
+            <h2 style="color: var(--set2-color);">SET 2</h2>
+            <div class="current-operation" id="op-set2">?</div>
+        </div>
+    </div>
+
+    <div class="answer-section" id="answerSection">
+        <h2>Masukkan Jawaban Akhirmu!</h2>
+        <div class="inputs">
+            <div class="input-group">
+                <label for="ans1" style="color: var(--set1-color);">Hasil SET 1</label>
+                <input type="number" id="ans1" placeholder="...">
+            </div>
+            <div class="input-group">
+                <label for="ans2" style="color: var(--set2-color);">Hasil SET 2</label>
+                <input type="number" id="ans2" placeholder="...">
+            </div>
+        </div>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="checkAnswers()" style="background-color: #4CAF50; box-shadow: 0 5px 0 #2E7D32;">Cek Jawaban ✔️</button>
+            <button onclick="replayAudio()" style="background-color: var(--secondary); box-shadow: 0 5px 0 #1565C0;">🔄 Dengarkan Ulang</button>
+        </div>
+        <div id="feedbackResult" class="feedback"></div>
+    </div>
+
+    <div class="pembahasan" id="pembahasanSection">
+        <h2>📝 Pembahasan Langkah demi Langkah</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Langkah</th>
+                        <th style="color: var(--set1-color);">Operasi SET 1</th>
+                        <th>Sub-total 1</th>
+                        <th style="color: var(--set2-color);">Operasi SET 2</th>
+                        <th>Sub-total 2</th>
+                    </tr>
+                </thead>
+                <tbody id="pembahasanBody">
+                    <!-- Diisi lewat JS -->
+                </tbody>
+            </table>
+        </div>
+        <button onclick="resetGame()" style="margin-top: 20px; background-color: var(--secondary); box-shadow: 0 5px 0 #1565C0;">🔄 Main Lagi</button>
+    </div>
+</div>
+
+<script>
+    // Update slider value display
+    document.getElementById('speedRate').addEventListener('input', function() {
+        document.getElementById('speedValue').textContent = this.value + 'x';
+    });
+
+    document.getElementById('pauseRate').addEventListener('input', function() {
+        document.getElementById('pauseValue').textContent = this.value + ' detik';
+    });
+
+    // Data Soal
+    const set1Data = [
+        { text: "³√(2197)", speech: "Akar pangkat tiga dari dua ribu seratus sembilan puluh tujuh", expected: 13 },
+        { text: "+ 42", speech: "Ditambah empat puluh dua", expected: 55 },
+        { text: ": ½", speech: "Dibagi satu per dua", expected: 110 },
+        { text: "+ 502", speech: "Ditambah lima ratus dua", expected: 612 },
+        { text: "- (-13)", speech: "Dikurangi negatif tiga belas", expected: 625 },
+        { text: "√...", speech: "Diakarkan", expected: 25 },
+        { text: "x 40", speech: "Dikali empat puluh", expected: 1000 },
+        { text: "- 775", speech: "Dikurangi tujuh ratus tujuh puluh lima", expected: 225 },
+        { text: "x 4", speech: "Dikali empat", expected: 900 },
+        { text: "+ 2⁵", speech: "Ditambah dua pangkat lima", expected: 932 }
+    ];
+
+    const set2Data = [
+        { text: "712 + 215", speech: "Tujuh ratus dua belas ditambah dua ratus lima belas", expected: 927 },
+        { text: "- 3³", speech: "Dikurangi tiga pangkat tiga", expected: 900 },
+        { text: "√...", speech: "Diakarkan", expected: 30 },
+        { text: "x 12", speech: "Dikali dua belas", expected: 360 },
+        { text: ": 6", speech: "Dibagi enam", expected: 60 },
+        { text: "x 1,2", speech: "Dikali satu koma dua", expected: 72 },
+        { text: "- (-27)", speech: "Dikurangi negatif dua puluh tujuh", expected: 99 },
+        { text: "+ 701", speech: "Ditambah tujuh ratus satu", expected: 800 },
+        { text: "x ⅛", speech: "Dikali satu per delapan", expected: 100 }, // Asumsi gambar menunjukkan x 1/8
+        { text: "+ 269", speech: "Ditambah dua ratus enam puluh sembilan", expected: 369 }
+    ];
+
+    let currentIndex = 0;
+    let isSet1Turn = true; // true = set 1, false = set 2
+
+    function speakText(text, callback) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = parseFloat(document.getElementById('speedRate').value);
+            
+            utterance.onend = () => {
+                const pauseMs = parseFloat(document.getElementById('pauseRate').value) * 1000;
+                setTimeout(callback, pauseMs); // Jeda dinamis berdasarkan pengaturan
+            };
+            
+            utterance.onerror = (e) => {
+                console.error("Speech error", e);
+                callback(); // Lanjut aja kalau error
+            };
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Maaf, browser Anda tidak mendukung fitur Text-to-Speech.");
+            callback();
+        }
+    }
+
+    function startGame() {
+        // Reset UI
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('answerSection').style.display = 'none';
+        document.getElementById('pembahasanSection').style.display = 'none';
+        document.getElementById('op-set1').textContent = "?";
+        document.getElementById('op-set2').textContent = "?";
+        currentIndex = 0;
+        isSet1Turn = true;
+
+        // Batalin antrean suara yang mungkin masih ada
+        window.speechSynthesis.cancel();
+        
+        playNextTurn();
+    }
+
+    function playNextTurn() {
+        const showText = document.getElementById('showText').checked;
+        const box1 = document.getElementById('set1-box');
+        const box2 = document.getElementById('set2-box');
+
+        if (currentIndex >= set1Data.length) {
+            // Selesai semua
+            box1.classList.remove('active');
+            box2.classList.remove('active');
+            document.getElementById('op-set1').textContent = "Selesai!";
+            document.getElementById('op-set2').textContent = "Selesai!";
+            
+            // Tampilkan Form Input
+            document.getElementById('answerSection').style.display = 'block';
+            return;
+        }
+
+        if (isSet1Turn) {
+            // Giliran Set 1
+            box1.classList.add('active');
+            box2.classList.remove('active');
+            
+            const data = set1Data[currentIndex];
+            if(showText) document.getElementById('op-set1').textContent = data.text;
+            else document.getElementById('op-set1').textContent = "🔊...";
+
+            let textToSpeak = data.speech;
+
+            speakText(textToSpeak, () => {
+                isSet1Turn = false;
+                playNextTurn();
+            });
+
+        } else {
+            // Giliran Set 2
+            box1.classList.remove('active');
+            box2.classList.add('active');
+            
+            const data = set2Data[currentIndex];
+            if(showText) document.getElementById('op-set2').textContent = data.text;
+            else document.getElementById('op-set2').textContent = "🔊...";
+
+            let textToSpeak = data.speech;
+            
+            speakText(textToSpeak, () => {
+                isSet1Turn = true;
+                currentIndex++;
+                playNextTurn();
+            });
+        }
+    }
+
+    function replayAudio() {
+        document.getElementById('answerSection').style.display = 'none';
+        document.getElementById('feedbackResult').innerHTML = "";
+        document.getElementById('op-set1').textContent = "?";
+        document.getElementById('op-set2').textContent = "?";
+        currentIndex = 0;
+        isSet1Turn = true;
+        
+        window.speechSynthesis.cancel();
+        playNextTurn();
+    }
+
+    function checkAnswers() {
+        const ans1 = parseInt(document.getElementById('ans1').value);
+        const ans2 = parseInt(document.getElementById('ans2').value);
+        
+        const correct1 = set1Data[set1Data.length - 1].expected;
+        const correct2 = set2Data[set2Data.length - 1].expected;
+
+        let feedbackHTML = "";
+        
+        if(ans1 === correct1 && ans2 === correct2) {
+            feedbackHTML = "<span class='correct'>🎉 LUAR BIASA! Kedua set dijawab dengan tepat! Anda jagoan Mental Math!</span>";
+        } else if (ans1 === correct1 || ans2 === correct2) {
+            feedbackHTML = "<span>👍 Bagus! Satu set benar. Mari kita lihat pembahasannya untuk set yang masih keliru.</span>";
+        } else {
+            feedbackHTML = "<span class='wrong'>Gapapa, terus berlatih! Yuk kita cek pembahasannya bersama.</span>";
+        }
+
+        document.getElementById('feedbackResult').innerHTML = feedbackHTML;
+        
+        generatePembahasan(ans1, correct1, ans2, correct2);
+    }
+
+    function generatePembahasan(ans1, correct1, ans2, correct2) {
+        document.getElementById('pembahasanSection').style.display = 'block';
+        const tbody = document.getElementById('pembahasanBody');
+        tbody.innerHTML = "";
+
+        for(let i=0; i<set1Data.length; i++) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>Langkah ${i+1}</td>
+                <td style="font-family: monospace; font-size: 1.1em;">${set1Data[i].text}</td>
+                <td><strong>${set1Data[i].expected}</strong></td>
+                <td style="font-family: monospace; font-size: 1.1em;">${set2Data[i].text}</td>
+                <td><strong>${set2Data[i].expected}</strong></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Row untuk perbandingan jawaban user
+        const trFinal = document.createElement('tr');
+        trFinal.style.backgroundColor = '#ffffcc';
+        trFinal.innerHTML = `
+            <td><strong>Jawabanmu:</strong></td>
+            <td></td>
+            <td class="${ans1 === correct1 ? 'correct' : 'wrong'}">${ans1 || '-'}</td>
+            <td></td>
+            <td class="${ans2 === correct2 ? 'correct' : 'wrong'}">${ans2 || '-'}</td>
+        `;
+        tbody.appendChild(trFinal);
+    }
+
+    function resetGame() {
+        document.getElementById('ans1').value = "";
+        document.getElementById('ans2').value = "";
+        document.getElementById('feedbackResult').innerHTML = "";
+        document.getElementById('startBtn').disabled = false;
+        
+        // Hide sections
+        document.getElementById('answerSection').style.display = 'none';
+        document.getElementById('pembahasanSection').style.display = 'none';
+        
+        document.getElementById('op-set1').textContent = "?";
+        document.getElementById('op-set2').textContent = "?";
+        
+        window.scrollTo(0, 0);
+    }
+</script>
+
+</body>
+</html>
