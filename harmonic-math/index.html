@@ -333,7 +333,7 @@
     
     <div class="info-box">
         <strong>📚 Konsep Pembelajaran:</strong> Melatih <i>split attention</i> (konsentrasi ganda) dan kecepatan komputasi mental aritmetika tanpa alat bantu.<br>
-        <strong>🎮 Cara Bermain:</strong> Dengarkan operasi hitung yang dibacakan secara bergantian (Set 1 lalu Set 2). Simpan hasilnya di ingatanmu, lalu ikuti instruksi operasi berikutnya. Masukkan hasil akhir untuk kedua set setelah suara selesai!
+        <strong>🎮 Cara Bermain:</strong> Dengarkan operasi hitung yang dibacakan secara bergantian. 👩 Suara Perempuan untuk <strong>Set 1</strong>, dan 👨 Suara Laki-laki untuk <strong>Set 2</strong>. Simpan hasilnya di ingatanmu, lalu ikuti instruksi operasi berikutnya!
     </div>
 
     <!-- AREA SETUP & MENU AWAL -->
@@ -398,11 +398,11 @@
 
         <div class="game-area">
             <div class="set-box" id="set1-box">
-                <h2 style="color: var(--set1-color);">SET 1</h2>
+                <h2 style="color: var(--set1-color);">SET 1 👩</h2>
                 <div class="current-operation" id="op-set1">?</div>
             </div>
             <div class="set-box" id="set2-box">
-                <h2 style="color: var(--set2-color);">SET 2</h2>
+                <h2 style="color: var(--set2-color);">SET 2 👨</h2>
                 <div class="current-operation" id="op-set2">?</div>
             </div>
         </div>
@@ -497,6 +497,47 @@
     let isSet1Turn = true;
     let currentUtterance = null;
 
+    // --- MANAJEMEN SUARA LAKI-LAKI & PEREMPUAN ---
+    let voiceSet1 = null;
+    let voiceSet2 = null;
+    let pitchSet1 = 1.1; // Nada default/agak tinggi (Perempuan)
+    let pitchSet2 = 0.5; // Nada direndahkan drastis (Laki-laki)
+
+    function initVoices() {
+        if (!('speechSynthesis' in window)) return;
+        
+        let voices = window.speechSynthesis.getVoices();
+        if(voices.length === 0) return;
+
+        // Cari suara berbahasa Indonesia
+        let idVoices = voices.filter(v => v.lang.includes('id') || v.lang.includes('ID'));
+
+        if(idVoices.length >= 2) {
+            // Jika ada lebih dari 1, coba tebak dari namanya (Male/Female/Andika/Gadis)
+            let maleVoice = idVoices.find(v => v.name.toLowerCase().match(/male|andika|pria/));
+            let femaleVoice = idVoices.find(v => v.name.toLowerCase().match(/female|gadis|wanita/));
+            
+            voiceSet1 = femaleVoice || idVoices[0]; // Set 1: Perempuan
+            voiceSet2 = maleVoice || idVoices[1];   // Set 2: Laki-laki
+            
+            // Jika suara beda tapi jenisnya ga jelas, tetap mainkan pitch untuk amannya
+            if(!maleVoice) pitchSet2 = 0.5; 
+            else pitchSet2 = 1.0; // Kalau sudah ketemu cowok asli, pitchnya normal saja
+        } else if (idVoices.length === 1) {
+            // Jika hanya 1 suara (misal Google Bahasa Indonesia), andalkan pitch
+            voiceSet1 = idVoices[0];
+            voiceSet2 = idVoices[0];
+            pitchSet2 = 0.5; // Rendahkan nada untuk cowok
+        }
+    }
+    
+    // Inisialisasi suara saat halaman dimuat
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = initVoices;
+        initVoices(); // Panggil sekali jaga-jaga
+    }
+
+    // Navigasi Menu
     function toggleCustomSection() {
         const customSection = document.getElementById('custom-section');
         customSection.style.display = customSection.style.display === 'block' ? 'none' : 'block';
@@ -660,10 +701,20 @@
     }
 
     // Audio & Game Logic
-    function speakText(text, callback) {
+    function speakText(text, isSet1, callback) {
         if ('speechSynthesis' in window) {
             currentUtterance = new SpeechSynthesisUtterance(text);
             currentUtterance.lang = 'id-ID';
+            
+            // Atur Suara & Nada berdasarkan Set yang sedang main
+            if(isSet1) {
+                if(voiceSet1) currentUtterance.voice = voiceSet1;
+                currentUtterance.pitch = pitchSet1;
+            } else {
+                if(voiceSet2) currentUtterance.voice = voiceSet2;
+                currentUtterance.pitch = pitchSet2;
+            }
+
             currentUtterance.rate = parseFloat(document.getElementById('speedRate').value);
             
             currentUtterance.onend = () => {
@@ -723,7 +774,8 @@
                 if(showText) document.getElementById('op-set1').textContent = data.text;
                 else document.getElementById('op-set1').textContent = "🔊...";
 
-                speakText(data.speech, () => {
+                // Panggil dengan flag true (Set 1 / Perempuan)
+                speakText(data.speech, true, () => {
                     isSet1Turn = false;
                     playNextTurn();
                 });
@@ -742,7 +794,8 @@
                 if(showText) document.getElementById('op-set2').textContent = data.text;
                 else document.getElementById('op-set2').textContent = "🔊...";
 
-                speakText(data.speech, () => {
+                // Panggil dengan flag false (Set 2 / Laki-laki)
+                speakText(data.speech, false, () => {
                     isSet1Turn = true;
                     currentIndex++;
                     playNextTurn();
