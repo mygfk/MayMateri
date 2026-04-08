@@ -53,6 +53,88 @@
             font-size: 0.95rem;
         }
 
+        /* Setup Area Styles */
+        #setup-area {
+            display: block; /* Tampil pertama kali */
+        }
+
+        .menu-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .custom-section {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px dashed #ccc;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .custom-instructions {
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 15px;
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        
+        .custom-instructions code {
+            background-color: #bbdefb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+
+        .textarea-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .textarea-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .textarea-box label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #fffde7;
+        }
+        
+        textarea:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+        }
+
+        /* Main Game Area Styles */
+        #main-game-area {
+            display: none; /* Sembunyi sampai menu dipilih */
+        }
+
         .controls {
             background-color: #E3F2FD;
             padding: 20px;
@@ -104,6 +186,24 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            box-shadow: 0 5px 0 #1565C0;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #1976D2;
+        }
+
+        .btn-success {
+            background-color: #4CAF50;
+            box-shadow: 0 5px 0 #2E7D32;
+        }
+
+        .btn-success:hover {
+            background-color: #43A047;
+        }
 
         .game-area {
             display: flex;
@@ -142,6 +242,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            word-break: break-word;
         }
 
         .answer-section {
@@ -209,6 +310,7 @@
             font-size: 1.5rem;
             font-weight: bold;
             margin-top: 20px;
+            text-align: center;
         }
 
         /* Responsive */
@@ -234,73 +336,118 @@
         <strong>🎮 Cara Bermain:</strong> Dengarkan operasi hitung yang dibacakan secara bergantian (Set 1 lalu Set 2). Simpan hasilnya di ingatanmu, lalu ikuti instruksi operasi berikutnya. Masukkan hasil akhir untuk kedua set setelah suara selesai!
     </div>
 
-    <div class="controls">
-        <div class="slider-container">
-            <label for="speedRate">Kecepatan Suara:</label>
-            <input type="range" id="speedRate" min="0.5" max="2" value="1" step="0.1">
-            <span id="speedValue">1.0x</span>
+    <!-- AREA SETUP & MENU AWAL -->
+    <div id="setup-area">
+        <h2>Pilih Mode Permainan</h2>
+        <div class="menu-buttons">
+            <button onclick="startDefaultMode()">🚀 Gunakan Soal Bawaan</button>
+            <button onclick="toggleCustomSection()" class="btn-secondary">⚙️ Buat Soal Sendiri</button>
         </div>
-        <div class="slider-container">
-            <label for="pauseRate">Jeda Antar Operasi:</label>
-            <input type="range" id="pauseRate" min="0.5" max="5" value="1" step="0.5">
-            <span id="pauseValue">1.0 detik</span>
-        </div>
-        <div>
-            <input type="checkbox" id="showText" checked>
-            <label for="showText" style="font-weight: bold;">Tampilkan Teks Operasi (Hilangkan centang untuk mode murni mendengarkan)</label>
-        </div>
-        <button id="startBtn" onclick="startGame()">🔊 Mulai Dengarkan</button>
-    </div>
 
-    <div class="game-area">
-        <div class="set-box" id="set1-box">
-            <h2 style="color: var(--set1-color);">SET 1</h2>
-            <div class="current-operation" id="op-set1">?</div>
-        </div>
-        <div class="set-box" id="set2-box">
-            <h2 style="color: var(--set2-color);">SET 2</h2>
-            <div class="current-operation" id="op-set2">?</div>
-        </div>
-    </div>
-
-    <div class="answer-section" id="answerSection">
-        <h2>Masukkan Jawaban Akhirmu!</h2>
-        <div class="inputs">
-            <div class="input-group">
-                <label for="ans1" style="color: var(--set1-color);">Hasil SET 1</label>
-                <input type="number" id="ans1" placeholder="...">
+        <div id="custom-section" class="custom-section">
+            <div class="custom-instructions">
+                <strong>Cara Membuat Soal Custom (Auto-Parsing):</strong><br>
+                Ketik operasi murni satu per baris. Sistem otomatis menghitung subtotal & suaranya!<br><br>
+                <em>Panduan Cepat:</em><br>
+                • <strong>Operasi dasar:</strong> <code>+ 42</code>, <code>- 13</code>, <code>x 4</code>, <code>: 2</code><br>
+                • <strong>Pecahan & Desimal:</strong> <code>: 1/2</code>, <code>x 1,2</code><br>
+                • <strong>Bilangan Negatif:</strong> <code>- -13</code> (Dikurangi negatif 13)<br>
+                • <strong>Pangkat:</strong> <code>+ 2^5</code> (Ditambah 2 pangkat 5)<br>
+                • <strong>Akar Angka:</strong> <code>v25</code> (Akar 25), <code>3v8</code> (Akar pangkat 3 dari 8)<br>
+                • <strong>Akar Subtotal:</strong> Ketik huruf <code>v</code> atau <code>3v</code> sendirian di satu baris untuk mengakarkan total hitungan saat ini.
             </div>
-            <div class="input-group">
-                <label for="ans2" style="color: var(--set2-color);">Hasil SET 2</label>
-                <input type="number" id="ans2" placeholder="...">
+            
+            <div class="textarea-container">
+                <div class="textarea-box">
+                    <label for="customSet1Input" style="color: var(--set1-color);">Masukkan Operasi SET 1:</label>
+                    <textarea id="customSet1Input" spellcheck="false" placeholder="3v2197&#10;+ 42&#10;: 1/2&#10;+ 502&#10;- -13&#10;v&#10;x 40&#10;- 775&#10;x 4&#10;+ 2^5"></textarea>
+                </div>
+                <div class="textarea-box">
+                    <label for="customSet2Input" style="color: var(--set2-color);">Masukkan Operasi SET 2:</label>
+                    <textarea id="customSet2Input" spellcheck="false" placeholder="712&#10;+ 215&#10;- 3^3&#10;v&#10;x 12&#10;: 6&#10;x 1,2&#10;- -27&#10;+ 701&#10;x 1/8&#10;+ 269"></textarea>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="startCustomMode()" class="btn-success">✅ Terapkan & Mulai Main</button>
             </div>
         </div>
-        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="checkAnswers()" style="background-color: #4CAF50; box-shadow: 0 5px 0 #2E7D32;">Cek Jawaban ✔️</button>
-            <button onclick="replayAudio()" style="background-color: var(--secondary); box-shadow: 0 5px 0 #1565C0;">🔄 Dengarkan Ulang</button>
-        </div>
-        <div id="feedbackResult" class="feedback"></div>
     </div>
 
-    <div class="pembahasan" id="pembahasanSection">
-        <h2>📝 Pembahasan Langkah demi Langkah</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Langkah</th>
-                        <th style="color: var(--set1-color);">Operasi SET 1</th>
-                        <th>Sub-total 1</th>
-                        <th style="color: var(--set2-color);">Operasi SET 2</th>
-                        <th>Sub-total 2</th>
-                    </tr>
-                </thead>
-                <tbody id="pembahasanBody">
-                    <!-- Diisi lewat JS -->
-                </tbody>
-            </table>
+    <!-- AREA GAMEPLAY UTAMA -->
+    <div id="main-game-area">
+        <div class="controls">
+            <div class="slider-container">
+                <label for="speedRate">Kecepatan Suara:</label>
+                <input type="range" id="speedRate" min="0.5" max="2" value="1" step="0.1">
+                <span id="speedValue">1.0x</span>
+            </div>
+            <div class="slider-container">
+                <label for="pauseRate">Jeda Antar Operasi:</label>
+                <input type="range" id="pauseRate" min="0.5" max="5" value="1" step="0.5">
+                <span id="pauseValue">1.0 detik</span>
+            </div>
+            <div>
+                <input type="checkbox" id="showText" checked>
+                <label for="showText" style="font-weight: bold;">Tampilkan Teks Operasi (Hilangkan centang untuk mode auditori murni)</label>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button id="startBtn" onclick="startGame()">🔊 Mulai Dengarkan</button>
+                <button onclick="backToMenu()" style="background-color: #757575; box-shadow: 0 5px 0 #424242; padding: 10px 20px; font-size: 1rem;">Kembali ke Menu</button>
+            </div>
         </div>
-        <button onclick="resetGame()" style="margin-top: 20px; background-color: var(--secondary); box-shadow: 0 5px 0 #1565C0;">🔄 Main Lagi</button>
+
+        <div class="game-area">
+            <div class="set-box" id="set1-box">
+                <h2 style="color: var(--set1-color);">SET 1</h2>
+                <div class="current-operation" id="op-set1">?</div>
+            </div>
+            <div class="set-box" id="set2-box">
+                <h2 style="color: var(--set2-color);">SET 2</h2>
+                <div class="current-operation" id="op-set2">?</div>
+            </div>
+        </div>
+
+        <div class="answer-section" id="answerSection">
+            <h2 style="text-align: center;">Masukkan Jawaban Akhirmu!</h2>
+            <div class="inputs">
+                <div class="input-group">
+                    <label for="ans1" style="color: var(--set1-color);">Hasil SET 1</label>
+                    <input type="number" id="ans1" placeholder="...">
+                </div>
+                <div class="input-group">
+                    <label for="ans2" style="color: var(--set2-color);">Hasil SET 2</label>
+                    <input type="number" id="ans2" placeholder="...">
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="checkAnswers()" class="btn-success">Cek Jawaban ✔️</button>
+                <button onclick="replayAudio()" class="btn-secondary">🔄 Dengarkan Ulang</button>
+            </div>
+            <div id="feedbackResult" class="feedback"></div>
+        </div>
+
+        <div class="pembahasan" id="pembahasanSection">
+            <h2>📝 Pembahasan Langkah demi Langkah</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Langkah</th>
+                            <th style="color: var(--set1-color);">Operasi SET 1</th>
+                            <th>Sub-total 1</th>
+                            <th style="color: var(--set2-color);">Operasi SET 2</th>
+                            <th>Sub-total 2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pembahasanBody">
+                        <!-- Diisi lewat JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="resetGame()" class="btn-secondary">🔄 Main Ulang Soal Ini</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -314,53 +461,223 @@
         document.getElementById('pauseValue').textContent = this.value + ' detik';
     });
 
-    // Data Soal
-    const set1Data = [
-        { text: "³√(2197)", speech: "Akar pangkat tiga dari dua ribu seratus sembilan puluh tujuh", expected: 13 },
-        { text: "+ 42", speech: "Ditambah empat puluh dua", expected: 55 },
-        { text: ": ½", speech: "Dibagi satu per dua", expected: 110 },
-        { text: "+ 502", speech: "Ditambah lima ratus dua", expected: 612 },
-        { text: "- (-13)", speech: "Dikurangi negatif tiga belas", expected: 625 },
+    // Data Soal Default
+    const defaultSet1Data = [
+        { text: "³√(2197)", speech: "Akar pangkat tiga dari 2197", expected: 13 },
+        { text: "+ 42", speech: "Ditambah 42", expected: 55 },
+        { text: ": ½", speech: "Dibagi 1 per 2", expected: 110 },
+        { text: "+ 502", speech: "Ditambah 502", expected: 612 },
+        { text: "- (-13)", speech: "Dikurangi negatif 13", expected: 625 },
         { text: "√...", speech: "Diakarkan", expected: 25 },
-        { text: "x 40", speech: "Dikali empat puluh", expected: 1000 },
-        { text: "- 775", speech: "Dikurangi tujuh ratus tujuh puluh lima", expected: 225 },
-        { text: "x 4", speech: "Dikali empat", expected: 900 },
-        { text: "+ 2⁵", speech: "Ditambah dua pangkat lima", expected: 932 }
+        { text: "x 40", speech: "Dikali 40", expected: 1000 },
+        { text: "- 775", speech: "Dikurangi 775", expected: 225 },
+        { text: "x 4", speech: "Dikali 4", expected: 900 },
+        { text: "+ 2⁵", speech: "Ditambah 2 pangkat 5", expected: 932 }
     ];
 
-    const set2Data = [
-        { text: "712 + 215", speech: "Tujuh ratus dua belas ditambah dua ratus lima belas", expected: 927 },
-        { text: "- 3³", speech: "Dikurangi tiga pangkat tiga", expected: 900 },
+    const defaultSet2Data = [
+        { text: "712", speech: "Tujuh ratus dua belas", expected: 712 },
+        { text: "+ 215", speech: "Ditambah 215", expected: 927 },
+        { text: "- 3³", speech: "Dikurangi 3 pangkat 3", expected: 900 },
         { text: "√...", speech: "Diakarkan", expected: 30 },
-        { text: "x 12", speech: "Dikali dua belas", expected: 360 },
-        { text: ": 6", speech: "Dibagi enam", expected: 60 },
-        { text: "x 1,2", speech: "Dikali satu koma dua", expected: 72 },
-        { text: "- (-27)", speech: "Dikurangi negatif dua puluh tujuh", expected: 99 },
-        { text: "+ 701", speech: "Ditambah tujuh ratus satu", expected: 800 },
-        { text: "x ⅛", speech: "Dikali satu per delapan", expected: 100 }, // Asumsi gambar menunjukkan x 1/8
-        { text: "+ 269", speech: "Ditambah dua ratus enam puluh sembilan", expected: 369 }
+        { text: "x 12", speech: "Dikali 12", expected: 360 },
+        { text: ": 6", speech: "Dibagi 6", expected: 60 },
+        { text: "x 1,2", speech: "Dikali 1 koma 2", expected: 72 },
+        { text: "- (-27)", speech: "Dikurangi negatif 27", expected: 99 },
+        { text: "+ 701", speech: "Ditambah 701", expected: 800 },
+        { text: "x ⅛", speech: "Dikali 1 per 8", expected: 100 },
+        { text: "+ 269", speech: "Ditambah 269", expected: 369 }
     ];
+
+    // Variabel state
+    let activeSet1Data = [];
+    let activeSet2Data = [];
 
     let currentIndex = 0;
-    let isSet1Turn = true; // true = set 1, false = set 2
+    let isSet1Turn = true;
+    let currentUtterance = null;
 
+    function toggleCustomSection() {
+        const customSection = document.getElementById('custom-section');
+        customSection.style.display = customSection.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function startDefaultMode() {
+        activeSet1Data = JSON.parse(JSON.stringify(defaultSet1Data));
+        activeSet2Data = JSON.parse(JSON.stringify(defaultSet2Data));
+        enterGame();
+    }
+
+    function startCustomMode() {
+        const raw1 = document.getElementById('customSet1Input').value;
+        const raw2 = document.getElementById('customSet2Input').value;
+
+        try {
+            activeSet1Data = parseCustomTextAuto(raw1);
+            activeSet2Data = parseCustomTextAuto(raw2);
+            
+            if(activeSet1Data.length === 0 || activeSet2Data.length === 0) {
+                throw new Error("Data Set 1 dan Set 2 tidak boleh kosong.");
+            }
+            
+            enterGame();
+        } catch (error) {
+            alert("Kesalahan Parsing: \n" + error.message);
+        }
+    }
+
+    // Fungsi Auto Parsing Canggih
+    function parseCustomTextAuto(rawText) {
+        if (!rawText.trim()) return [];
+        const lines = rawText.trim().split('\n');
+        const parsedData = [];
+        let runTotal = 0;
+
+        // Fungsi bantu formatting
+        const toSuperscript = (str) => {
+            const map = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+            return str.split('').map(c => map[c] || c).join('');
+        };
+        const formatFraction = (n, d) => {
+            const map = {'1/2':'½','1/3':'⅓','2/3':'⅔','1/4':'¼','3/4':'¾','1/5':'⅕','1/6':'⅙','1/8':'⅛'};
+            return map[`${n}/${d}`] || `${n}/${d}`;
+        };
+        const parseNum = (str) => parseFloat(str.replace(/[(),]/g, (m) => m === ',' ? '.' : '').trim());
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
+
+            let text = "";
+            let speech = "";
+            let lowerLine = line.toLowerCase();
+
+            // Cek jika perintah hanya akar tunggal "v" atau "3v"
+            if (lowerLine === 'v' || lowerLine === 'sqrt' || lowerLine === 'akar') {
+                runTotal = Math.sqrt(Math.max(0, runTotal));
+                text = "√...";
+                speech = "Diakarkan";
+            } else if (lowerLine === '3v' || lowerLine === 'cbrt') {
+                runTotal = Math.cbrt(runTotal);
+                text = "³√...";
+                speech = "Diakar pangkat tiga";
+            } else {
+                // Regex memisahkan operator (+, -, x, *, /, :) dan nilainya
+                let match = line.match(/^([+\-x*\/:]?)\s*(.+)$/i);
+                if (!match) throw new Error(`Format baris ke-${i+1} tidak dikenali: ${line}`);
+
+                let op = match[1].toLowerCase();
+                let valStr = match[2];
+                let valLower = valStr.toLowerCase();
+
+                let opValue = 0;
+                let textOperand = valStr;
+                let speechOperand = valStr;
+
+                // Cek jenis nilai operand (Pangkat, Akar, Pecahan, Desimal)
+                if (valLower.startsWith('3v') || valLower.startsWith('cbrt') || valLower.startsWith('³√')) {
+                    let numStr = valLower.replace(/^(3v|cbrt|³√\()?/, '').replace(/\)$/, '').trim();
+                    opValue = Math.cbrt(parseNum(numStr));
+                    textOperand = `³√(${numStr})`;
+                    speechOperand = `akar pangkat tiga dari ${numStr.replace('-', 'negatif ')}`;
+                } else if (valLower.startsWith('v') || valLower.startsWith('sqrt') || valLower.startsWith('√')) {
+                    let numStr = valLower.replace(/^(v|sqrt|√\()?/, '').replace(/\)$/, '').trim();
+                    opValue = Math.sqrt(parseNum(numStr));
+                    textOperand = `√(${numStr})`;
+                    speechOperand = `akar dari ${numStr.replace('-', 'negatif ')}`;
+                } else if (valLower.includes('^')) {
+                    let parts = valLower.split('^');
+                    opValue = Math.pow(parseNum(parts[0]), parseNum(parts[1]));
+                    textOperand = `${parts[0]}${toSuperscript(parts[1])}`;
+                    speechOperand = `${parts[0].replace('-', 'negatif ')} pangkat ${parts[1].replace('-', 'negatif ')}`;
+                } else if (valLower.includes('/')) {
+                    let parts = valLower.split('/');
+                    opValue = parseNum(parts[0]) / parseNum(parts[1]);
+                    textOperand = formatFraction(parts[0], parts[1]);
+                    speechOperand = `${parts[0].replace('-', 'negatif ')} per ${parts[1].replace('-', 'negatif ')}`;
+                } else {
+                    opValue = parseNum(valLower);
+                    // Tambahkan kurung tutup untuk minus agar rapi: cth + (-13)
+                    textOperand = (valStr.includes('-') && i > 0 && op !== '') ? `(${valStr})` : valStr;
+                    speechOperand = valStr.replace('-', 'negatif ').replace('.', ' koma ').replace(',', ' koma ');
+                }
+
+                if (isNaN(opValue)) throw new Error(`Angka tidak valid pada baris ke-${i+1}: ${line}`);
+
+                // Aplikasikan Operator ke Subtotal
+                if (i === 0 || op === '') {
+                    // Kasus langkah pertama
+                    if (i === 0 && op === '-') {
+                        opValue = -opValue;
+                        textOperand = "-" + textOperand;
+                        speechOperand = "negatif " + speechOperand;
+                    }
+                    runTotal = opValue;
+                    text = textOperand;
+                    speech = speechOperand;
+                } else if (op === '+') {
+                    runTotal += opValue;
+                    text = `+ ${textOperand}`;
+                    speech = `ditambah ${speechOperand}`;
+                } else if (op === '-') {
+                    runTotal -= opValue;
+                    text = `- ${textOperand}`;
+                    speech = `dikurangi ${speechOperand}`;
+                } else if (op === 'x' || op === '*') {
+                    runTotal *= opValue;
+                    text = `x ${textOperand}`;
+                    speech = `dikali ${speechOperand}`;
+                } else if (op === '/' || op === ':') {
+                    runTotal /= opValue;
+                    text = `: ${textOperand}`;
+                    speech = `dibagi ${speechOperand}`;
+                }
+            }
+
+            // Pembulatan untuk menghindari masalah floating point javascript (cth: 0.3000000004)
+            runTotal = Math.round(runTotal * 10000) / 10000;
+
+            parsedData.push({
+                text: text,
+                speech: speech,
+                expected: runTotal
+            });
+        }
+        return parsedData;
+    }
+
+    function enterGame() {
+        document.getElementById('setup-area').style.display = 'none';
+        document.getElementById('main-game-area').style.display = 'block';
+        resetGame();
+    }
+
+    function backToMenu() {
+        window.speechSynthesis.cancel();
+        document.getElementById('setup-area').style.display = 'block';
+        document.getElementById('main-game-area').style.display = 'none';
+        resetGame();
+    }
+
+    // Audio & Game Logic
     function speakText(text, callback) {
         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID';
-            utterance.rate = parseFloat(document.getElementById('speedRate').value);
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'id-ID';
+            currentUtterance.rate = parseFloat(document.getElementById('speedRate').value);
             
-            utterance.onend = () => {
+            currentUtterance.onend = () => {
                 const pauseMs = parseFloat(document.getElementById('pauseRate').value) * 1000;
-                setTimeout(callback, pauseMs); // Jeda dinamis berdasarkan pengaturan
+                setTimeout(callback, pauseMs); 
             };
             
-            utterance.onerror = (e) => {
+            currentUtterance.onerror = (e) => {
                 console.error("Speech error", e);
-                callback(); // Lanjut aja kalau error
+                const pauseMs = parseFloat(document.getElementById('pauseRate').value) * 1000;
+                setTimeout(callback, pauseMs); 
             };
 
-            window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(currentUtterance);
         } else {
             alert("Maaf, browser Anda tidak mendukung fitur Text-to-Speech.");
             callback();
@@ -368,7 +685,6 @@
     }
 
     function startGame() {
-        // Reset UI
         document.getElementById('startBtn').disabled = true;
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('pembahasanSection').style.display = 'none';
@@ -377,10 +693,8 @@
         currentIndex = 0;
         isSet1Turn = true;
 
-        // Batalin antrean suara yang mungkin masih ada
         window.speechSynthesis.cancel();
-        
-        playNextTurn();
+        setTimeout(playNextTurn, 250);
     }
 
     function playNextTurn() {
@@ -388,50 +702,57 @@
         const box1 = document.getElementById('set1-box');
         const box2 = document.getElementById('set2-box');
 
-        if (currentIndex >= set1Data.length) {
-            // Selesai semua
+        const maxSteps = Math.max(activeSet1Data.length, activeSet2Data.length);
+
+        if (currentIndex >= maxSteps) {
             box1.classList.remove('active');
             box2.classList.remove('active');
             document.getElementById('op-set1').textContent = "Selesai!";
             document.getElementById('op-set2').textContent = "Selesai!";
             
-            // Tampilkan Form Input
             document.getElementById('answerSection').style.display = 'block';
             return;
         }
 
         if (isSet1Turn) {
-            // Giliran Set 1
             box1.classList.add('active');
             box2.classList.remove('active');
             
-            const data = set1Data[currentIndex];
-            if(showText) document.getElementById('op-set1').textContent = data.text;
-            else document.getElementById('op-set1').textContent = "🔊...";
+            if(currentIndex < activeSet1Data.length) {
+                const data = activeSet1Data[currentIndex];
+                if(showText) document.getElementById('op-set1').textContent = data.text;
+                else document.getElementById('op-set1').textContent = "🔊...";
 
-            let textToSpeak = data.speech;
-
-            speakText(textToSpeak, () => {
+                speakText(data.speech, () => {
+                    isSet1Turn = false;
+                    playNextTurn();
+                });
+            } else {
+                document.getElementById('op-set1').textContent = "-";
                 isSet1Turn = false;
                 playNextTurn();
-            });
+            }
 
         } else {
-            // Giliran Set 2
             box1.classList.remove('active');
             box2.classList.add('active');
             
-            const data = set2Data[currentIndex];
-            if(showText) document.getElementById('op-set2').textContent = data.text;
-            else document.getElementById('op-set2').textContent = "🔊...";
+            if(currentIndex < activeSet2Data.length) {
+                const data = activeSet2Data[currentIndex];
+                if(showText) document.getElementById('op-set2').textContent = data.text;
+                else document.getElementById('op-set2').textContent = "🔊...";
 
-            let textToSpeak = data.speech;
-            
-            speakText(textToSpeak, () => {
+                speakText(data.speech, () => {
+                    isSet1Turn = true;
+                    currentIndex++;
+                    playNextTurn();
+                });
+            } else {
+                document.getElementById('op-set2').textContent = "-";
                 isSet1Turn = true;
                 currentIndex++;
                 playNextTurn();
-            });
+            }
         }
     }
 
@@ -444,29 +765,32 @@
         isSet1Turn = true;
         
         window.speechSynthesis.cancel();
-        playNextTurn();
+        setTimeout(playNextTurn, 250); 
     }
 
     function checkAnswers() {
-        const ans1 = parseInt(document.getElementById('ans1').value);
-        const ans2 = parseInt(document.getElementById('ans2').value);
+        const ans1Str = document.getElementById('ans1').value;
+        const ans2Str = document.getElementById('ans2').value;
         
-        const correct1 = set1Data[set1Data.length - 1].expected;
-        const correct2 = set2Data[set2Data.length - 1].expected;
+        const correct1 = activeSet1Data.length > 0 ? activeSet1Data[activeSet1Data.length - 1].expected : null;
+        const correct2 = activeSet2Data.length > 0 ? activeSet2Data[activeSet2Data.length - 1].expected : null;
+
+        const isAns1Correct = ans1Str !== "" && parseFloat(ans1Str) === correct1;
+        const isAns2Correct = ans2Str !== "" && parseFloat(ans2Str) === correct2;
 
         let feedbackHTML = "";
         
-        if(ans1 === correct1 && ans2 === correct2) {
+        if(isAns1Correct && isAns2Correct) {
             feedbackHTML = "<span class='correct'>🎉 LUAR BIASA! Kedua set dijawab dengan tepat! Anda jagoan Mental Math!</span>";
-        } else if (ans1 === correct1 || ans2 === correct2) {
+        } else if (isAns1Correct || isAns2Correct) {
             feedbackHTML = "<span>👍 Bagus! Satu set benar. Mari kita lihat pembahasannya untuk set yang masih keliru.</span>";
         } else {
-            feedbackHTML = "<span class='wrong'>Gapapa, terus berlatih! Yuk kita cek pembahasannya bersama.</span>";
+            feedbackHTML = "<span class='wrong'>Belum tepat, ayo terus berlatih! Yuk kita cek pembahasannya bersama.</span>";
         }
 
         document.getElementById('feedbackResult').innerHTML = feedbackHTML;
         
-        generatePembahasan(ans1, correct1, ans2, correct2);
+        generatePembahasan(ans1Str, correct1, ans2Str, correct2);
     }
 
     function generatePembahasan(ans1, correct1, ans2, correct2) {
@@ -474,27 +798,35 @@
         const tbody = document.getElementById('pembahasanBody');
         tbody.innerHTML = "";
 
-        for(let i=0; i<set1Data.length; i++) {
+        const maxSteps = Math.max(activeSet1Data.length, activeSet2Data.length);
+
+        for(let i=0; i < maxSteps; i++) {
+            const data1 = activeSet1Data[i] || { text: "-", expected: "-" };
+            const data2 = activeSet2Data[i] || { text: "-", expected: "-" };
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>Langkah ${i+1}</td>
-                <td style="font-family: monospace; font-size: 1.1em;">${set1Data[i].text}</td>
-                <td><strong>${set1Data[i].expected}</strong></td>
-                <td style="font-family: monospace; font-size: 1.1em;">${set2Data[i].text}</td>
-                <td><strong>${set2Data[i].expected}</strong></td>
+                <td style="font-family: monospace; font-size: 1.1em;">${data1.text}</td>
+                <td><strong>${data1.expected}</strong></td>
+                <td style="font-family: monospace; font-size: 1.1em;">${data2.text}</td>
+                <td><strong>${data2.expected}</strong></td>
             `;
             tbody.appendChild(tr);
         }
 
-        // Row untuk perbandingan jawaban user
         const trFinal = document.createElement('tr');
         trFinal.style.backgroundColor = '#ffffcc';
+        
+        const check1 = (ans1 !== "" && parseFloat(ans1) === correct1) ? 'correct' : 'wrong';
+        const check2 = (ans2 !== "" && parseFloat(ans2) === correct2) ? 'correct' : 'wrong';
+
         trFinal.innerHTML = `
             <td><strong>Jawabanmu:</strong></td>
             <td></td>
-            <td class="${ans1 === correct1 ? 'correct' : 'wrong'}">${ans1 || '-'}</td>
+            <td class="${check1}">${ans1 !== "" ? ans1 : '-'}</td>
             <td></td>
-            <td class="${ans2 === correct2 ? 'correct' : 'wrong'}">${ans2 || '-'}</td>
+            <td class="${check2}">${ans2 !== "" ? ans2 : '-'}</td>
         `;
         tbody.appendChild(trFinal);
     }
@@ -505,14 +837,11 @@
         document.getElementById('feedbackResult').innerHTML = "";
         document.getElementById('startBtn').disabled = false;
         
-        // Hide sections
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('pembahasanSection').style.display = 'none';
         
         document.getElementById('op-set1').textContent = "?";
         document.getElementById('op-set2').textContent = "?";
-        
-        window.scrollTo(0, 0);
     }
 </script>
 
