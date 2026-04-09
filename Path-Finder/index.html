@@ -3,935 +3,722 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rute Misteri — Memori Spasial</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Game Memori Spasial - Arah Mata Angin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg:       #080c14;
-            --surface:  #0e1520;
-            --panel:    #131c2c;
-            --border:   #1e2d44;
-            --accent:   #00e5ff;
-            --accent2:  #7c3aed;
-            --green:    #00e676;
-            --red:      #ff1744;
-            --yellow:   #ffd600;
-            --text:     #d0e4f7;
-            --muted:    #4a6180;
-            --glow:     rgba(0,229,255,.18);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Syne', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Animated mesh background */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 10% 10%, rgba(0,229,255,.05) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 80% at 90% 90%, rgba(124,58,237,.07) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Scanline texture */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0,0,0,.08) 2px,
-                rgba(0,0,0,.08) 4px
-            );
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 780px;
-            margin: 0 auto;
-            padding: 2rem 1rem 4rem;
-        }
-
-        /* ── HEADER ── */
-        .site-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        .site-header .eyebrow {
-            font-family: 'Space Mono', monospace;
-            font-size: .72rem;
-            letter-spacing: .2em;
-            color: var(--accent);
-            text-transform: uppercase;
-            margin-bottom: .5rem;
-        }
-        .site-header h1 {
-            font-size: clamp(2rem, 6vw, 3.2rem);
-            font-weight: 800;
-            line-height: 1.1;
-            background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .site-header p {
-            color: var(--muted);
-            font-size: .95rem;
-            margin-top: .5rem;
-        }
-
-        /* ── SCREENS ── */
-        .screen { display: none; animation: fadeUp .35s ease both; }
-        .screen.active { display: block; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ── CARD ── */
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 1rem;
-        }
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: .25rem;
-        }
-        .card-sub {
-            color: var(--muted);
-            font-size: .88rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* ── INTRO SCREEN ── */
-        .how-to-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: .9rem;
-            margin-bottom: 2rem;
-        }
-        .how-to-list li {
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-        }
-        .how-to-list .icon {
-            font-size: 1.4rem;
-            flex-shrink: 0;
-            line-height: 1;
-        }
-        .how-to-list .txt strong {
-            color: var(--text);
-            display: block;
-            margin-bottom: .2rem;
-        }
-        .how-to-list .txt span {
-            color: var(--muted);
-            font-size: .88rem;
-            line-height: 1.5;
-        }
-        .how-to-list .txt em { color: var(--accent); font-style: normal; }
-
-        .mode-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        @media (max-width: 500px) { .mode-grid { grid-template-columns: 1fr; } }
-
-        .mode-card {
-            background: var(--panel);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: border-color .2s, transform .2s, box-shadow .2s;
-            text-align: center;
-        }
-        .mode-card:hover {
-            transform: translateY(-3px);
-        }
-        .mode-card.visual { border-color: var(--accent); box-shadow: 0 0 24px rgba(0,229,255,.12); }
-        .mode-card.visual:hover { box-shadow: 0 0 40px rgba(0,229,255,.25); }
-        .mode-card.mental { border-color: var(--accent2); box-shadow: 0 0 24px rgba(124,58,237,.12); }
-        .mode-card.mental:hover { box-shadow: 0 0 40px rgba(124,58,237,.25); }
-
-        .mode-card .mode-icon { font-size: 2.5rem; margin-bottom: .75rem; }
-        .mode-card .mode-name { font-size: 1.1rem; font-weight: 700; }
-        .mode-card.visual .mode-name { color: var(--accent); }
-        .mode-card.mental .mode-name { color: #a78bfa; }
-        .mode-card .mode-desc { color: var(--muted); font-size: .82rem; margin-top: .35rem; }
-
-        /* ── MEMORIZE SCREEN ── */
-        .audio-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.5rem 0;
-        }
-
-        .audio-orb {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 40% 35%, #00e5ff33, #00e5ff08);
-            border: 2px solid var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            transition: transform .2s, box-shadow .2s;
-            box-shadow: 0 0 30px rgba(0,229,255,.15);
-        }
-        .audio-orb.speaking {
-            box-shadow: 0 0 60px rgba(0,229,255,.5), 0 0 120px rgba(0,229,255,.15);
-            transform: scale(1.08);
-            animation: pulse-ring 1s ease-in-out infinite;
-        }
-        @keyframes pulse-ring {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,.4), 0 0 60px rgba(0,229,255,.3); }
-            50% { box-shadow: 0 0 0 16px rgba(0,229,255,0), 0 0 60px rgba(0,229,255,.5); }
-        }
-
-        /* Step bar */
-        .step-bar-wrap { width: 100%; max-width: 360px; }
-        .step-bar-label {
-            display: flex;
-            justify-content: space-between;
-            font-family: 'Space Mono', monospace;
-            font-size: .78rem;
-            color: var(--muted);
-            margin-bottom: .5rem;
-        }
-        .step-bar-label span:last-child { color: var(--accent); }
-        .step-bar-track {
-            height: 6px;
-            background: var(--border);
-            border-radius: 99px;
-            overflow: hidden;
-        }
-        .step-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #a78bfa);
-            border-radius: 99px;
-            width: 0%;
-            transition: width .3s ease;
-        }
-
-        .spoken-word {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.2rem;
-            color: var(--yellow);
-            min-height: 2rem;
-            letter-spacing: .05em;
-        }
-
-        /* ── BUTTONS ── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: .5rem;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            padding: .85rem 2rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all .2s;
-            letter-spacing: .02em;
-        }
-        .btn-primary {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 20px rgba(0,229,255,.3);
-        }
-        .btn-primary:hover {
-            background: #33ecff;
-            box-shadow: 0 0 35px rgba(0,229,255,.5);
-            transform: translateY(-2px);
-        }
-        .btn-success {
-            background: var(--green);
-            color: #000;
-            box-shadow: 0 0 20px rgba(0,230,118,.3);
-        }
-        .btn-success:hover {
-            box-shadow: 0 0 35px rgba(0,230,118,.5);
-            transform: translateY(-2px);
-        }
-        .btn-ghost {
-            background: var(--panel);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-        /* ── RECALL HEADER BAR ── */
-        .recall-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: .75rem;
-            margin-bottom: 1.25rem;
-        }
-        .recall-bar .label-group { flex: 1; }
-        .recall-bar .label-group .title { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
-        .recall-bar .label-group .sub { color: var(--muted); font-size: .82rem; }
-
-        .step-badge {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: .5rem 1rem;
-            text-align: center;
-            font-family: 'Space Mono', monospace;
-        }
-        .step-badge .badge-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
-        .step-badge .badge-value { font-size: 1.5rem; font-weight: 700; color: var(--yellow); line-height: 1.2; }
-
-        /* ── GRID ── */
+        /* Custom styles untuk Grid */
         .game-grid {
             display: grid;
-            grid-template-columns: 28px repeat(14, minmax(0, 1fr));
-            gap: 2px;
-            background: var(--border);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
+            grid-template-columns: 30px repeat(14, minmax(20px, 1fr));
+            gap: 1px;
+            background-color: #333;
+            border: 2px solid #555;
             padding: 2px;
+            margin: 0 auto;
+            max-width: 600px;
         }
-
+        @media (min-width: 768px) {
+            .game-grid {
+                grid-template-columns: 40px repeat(14, minmax(30px, 1fr));
+            }
+        }
         .grid-header {
-            background: var(--panel);
-            color: var(--muted);
-            font-family: 'Space Mono', monospace;
-            font-size: .62rem;
-            font-weight: 700;
+            color: white;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            aspect-ratio: 1;
+            font-size: 0.8rem;
+            background-color: #111;
         }
-
         .grid-cell {
-            background: #0a1120;
-            aspect-ratio: 1;
+            background-color: #000;
+            aspect-ratio: 1 / 1;
             position: relative;
-            transition: background .15s;
         }
-        .grid-cell:hover { background: #111b2e; }
-
+        /* Style untuk lingkaran jalur */
         .path-node {
             position: absolute;
-            inset: 8%;
+            inset: 10%;
+            background: radial-gradient(circle, #00d2ff 0%, #007bb5 100%);
             border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 5px rgba(0, 210, 255, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: popIn .25s cubic-bezier(.175,.885,.32,1.275) both;
+            color: black;
+            font-weight: bold;
+            animation: popIn 0.3s ease-out forwards;
         }
-        .path-node.trail {
-            background: radial-gradient(circle, rgba(0,229,255,.3), rgba(0,229,255,.08));
-            border: 1px solid rgba(0,229,255,.4);
-            color: rgba(0,229,255,.85);
-            font-size: 1rem;
-        }
-        .path-node.start-trail {
-            background: radial-gradient(circle, rgba(255,68,68,.3), rgba(255,68,68,.08));
-            border: 1px solid rgba(255,68,68,.5);
-            color: rgba(255,68,68,.9);
-            font-size: 1rem;
-        }
-        .path-node.avatar {
-            background: radial-gradient(circle at 38% 35%, rgba(0,229,255,.5), rgba(0,229,255,.15));
-            border: 1.5px solid var(--accent);
-            box-shadow: 0 0 10px rgba(0,229,255,.5);
-            font-size: .9rem;
-            flex-direction: column;
-            gap: 0;
-        }
-        .path-node.finish-node {
-            background: radial-gradient(circle at 38% 35%, rgba(0,230,118,.4), rgba(0,230,118,.1));
-            border: 1.5px solid var(--green);
-            box-shadow: 0 0 12px rgba(0,230,118,.5);
-            font-size: .9rem;
-            flex-direction: column;
-        }
-
+        .path-node.start { border-color: #ff4444; }
+        .path-node.finish { border-color: #44ff44; }
+        .path-node.ujian-mode { background: radial-gradient(circle, #b155ff 0%, #7b1fa2 100%); box-shadow: 0 0 5px rgba(177, 85, 255, 0.8); }
+        
         @keyframes popIn {
-            from { transform: scale(0); opacity: 0; }
-            to   { transform: scale(1); opacity: 1; }
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
-        /* ── ABSTRACT HINT ── */
-        .abstract-stage {
-            text-align: center;
-            padding: 2.5rem 1rem;
+        /* Animasi getar untuk jawaban salah */
+        .shake {
+            animation: shakeX 0.4s;
         }
-        .abstract-stage .big-icon { font-size: 4rem; margin-bottom: 1rem; }
-        .abstract-stage h3 { font-size: 1.5rem; font-weight: 700; color: #a78bfa; margin-bottom: .5rem; }
-        .abstract-stage p { color: var(--muted); font-size: .92rem; line-height: 1.6; }
-        .abstract-stage strong { color: var(--text); }
-
-        /* ── CONTROLS ── */
-        .controls-wrap {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: .75rem;
-            margin-top: 1rem;
-        }
-
-        .ctrl-btn {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: .9rem;
-            padding: 1rem .5rem;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: .4rem;
-            transition: all .15s;
-        }
-        .ctrl-btn .ctrl-icon { font-size: 1.5rem; }
-        .ctrl-btn .ctrl-label { font-size: .75rem; color: var(--muted); }
-        .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,.05); }
-        .ctrl-btn:active { transform: scale(.96); }
-        .ctrl-btn.forward:hover { border-color: var(--green); color: var(--green); background: rgba(0,230,118,.05); }
-
-        /* Shake */
-        .shake { animation: shakeX .4s ease; }
         @keyframes shakeX {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
         }
 
-        /* ── FEEDBACK ── */
-        .feedback-bar {
-            text-align: center;
-            min-height: 2rem;
-            padding: .5rem;
-            font-size: .9rem;
-            font-weight: 600;
-            color: var(--red);
-            font-family: 'Space Mono', monospace;
-        }
-        .feedback-bar.ok { color: var(--green); }
-
-        /* ── COORDINATE INPUT ── */
-        .coord-view {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        .coord-view h3 { font-size: 1.5rem; font-weight: 700; color: var(--green); margin-bottom: .5rem; }
-        .coord-view p { color: var(--muted); margin-bottom: 1.5rem; }
-        .coord-selects {
+        /* Styling Form Radio */
+        .radio-label {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: .75rem;
-            margin-bottom: 1.5rem;
-        }
-        .coord-selects select {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'Space Mono', monospace;
-            font-size: 1.1rem;
-            font-weight: 700;
-            padding: .6rem 1rem;
-            border-radius: 8px;
-            outline: none;
+            gap: 10px;
             cursor: pointer;
-            transition: border-color .2s;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
         }
-        .coord-selects select:focus { border-color: var(--accent); }
-        .coord-selects .dash { font-size: 1.5rem; color: var(--muted); }
-        .coord-feedback { min-height: 1.5rem; font-size: .88rem; font-weight: 700; color: var(--red); margin-top: .75rem; }
-
-        /* ── WIN SCREEN ── */
-        .win-stage {
-            text-align: center;
-            padding: 2.5rem 1rem;
-        }
-        .win-trophy { font-size: 5rem; margin-bottom: 1rem; animation: float 2s ease-in-out infinite; }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .win-stage h2 { font-size: 2.5rem; font-weight: 800; color: var(--yellow); margin-bottom: .75rem; }
-        .win-stage p { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; max-width: 380px; margin-inline: auto; line-height: 1.6; }
-
-        /* ── UTILITY ── */
-        .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mt-1 { margin-top: .5rem; }
-        .mt-2 { margin-top: 1rem; }
+        .radio-label:hover { background: rgba(255,255,255,0.1); }
+        input[type="radio"] { accent-color: #00d2ff; transform: scale(1.2); }
     </style>
 </head>
-<body>
-<div class="wrapper">
+<body class="bg-gray-900 text-white min-h-screen font-sans selection:bg-cyan-500 selection:text-white pb-10">
 
-    <!-- HEADER -->
-    <header class="site-header">
-        <p class="eyebrow">Latihan Kognitif</p>
-        <h1>Rute Misteri</h1>
-        <p>Latih memori auditori & spasialmu dengan mengingat instruksi arah</p>
-    </header>
+    <div class="max-w-4xl mx-auto p-4 pt-8">
+        
+        <!-- Header Pembelajaran -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2">Ekspedisi Mata Angin</h1>
+            <p class="text-gray-300">Dengarkan instruksi arah mata angin dan jumlah langkahnya, lalu bangun rute peta-mu!</p>
+        </div>
 
-    <!-- ── SCREEN 1: INTRO ── -->
-    <div id="screen-intro" class="screen active">
-        <div class="card">
-            <p class="card-title">Cara Bermain</p>
-            <p class="card-sub">Dua fase, satu misi: ingat semua langkah & rekonstruksi rutenya.</p>
-            <ul class="how-to-list">
-                <li>
-                    <span class="icon">📍</span>
-                    <div class="txt">
-                        <strong>Tujuan</strong>
-                        <span>Ingat <em>30 instruksi arah audio</em> dan reproduksi jalur yang benar di peta.</span>
-                    </div>
-                </li>
-                <li>
-                    <span class="icon">👂</span>
-                    <div class="txt">
-                        <strong>Fase 1 — Hafalkan</strong>
-                        <span>Dengarkan satu per satu instruksi dalam bahasa Inggris: <em>Go forward · Turn right · Turn left</em>. Bayangkan dirimu berjalan di grid.</span>
-                    </div>
-                </li>
-                <li>
-                    <span class="icon">🗺️</span>
-                    <div class="txt">
-                        <strong>Fase 2 — Rekonstruksi</strong>
-                        <span>Reproduksi jalur dari ingatan menggunakan tombol arah. Pilih mode sesuai gaya belajarmu.</span>
-                    </div>
-                </li>
-            </ul>
-
-            <div class="mode-grid">
-                <div class="mode-card visual" onclick="startGame('grid')" role="button" tabindex="0">
-                    <div class="mode-icon">🗺️</div>
-                    <div class="mode-name">Mode Grid</div>
-                    <div class="mode-desc">Visualisasi pictorial — lihat jalurmu terbentuk di peta</div>
+        <!-- SCREEN 1: Setup & Intro -->
+        <div id="screen-intro" class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl block text-center">
+            <h2 class="text-2xl font-bold text-yellow-400 mb-4">Pengaturan Permainan</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-3xl mx-auto mb-8">
+                <!-- Visual Mode Selection -->
+                <div class="bg-gray-900 p-5 rounded-lg border border-gray-600">
+                    <h3 class="text-cyan-400 font-bold mb-3 border-b border-gray-700 pb-2">1. Visualisasi (CPA)</h3>
+                    <label class="radio-label">
+                        <input type="radio" name="vmode" value="grid" checked> 
+                        <div><strong class="text-white">Mode Grid (Pictorial)</strong><br><span class="text-xs text-gray-400">Jalur terbentuk nyata di atas papan koordinat</span></div>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="vmode" value="abstract"> 
+                        <div><strong class="text-white">Mode Abstrak (Mental)</strong><br><span class="text-xs text-gray-400">Peta disembunyikan. Latih pemetaan di dalam kepalamu!</span></div>
+                    </label>
                 </div>
-                <div class="mode-card mental" onclick="startGame('abstract')" role="button" tabindex="0">
-                    <div class="mode-icon">🧠</div>
-                    <div class="mode-name">Mode Abstrak</div>
-                    <div class="mode-desc">Mental mapping murni — bayangkan sendiri di dalam kepala</div>
+
+                <!-- Rules Mode Selection -->
+                <div class="bg-gray-900 p-5 rounded-lg border border-gray-600">
+                    <h3 class="text-yellow-400 font-bold mb-3 border-b border-gray-700 pb-2">2. Evaluasi / Aturan</h3>
+                    <label class="radio-label">
+                        <input type="radio" name="prule" value="latihan" checked> 
+                        <div><strong class="text-white">Latihan Mandiri</strong><br><span class="text-xs text-gray-400">Tanpa batas, salah langkah langsung diberitahu</span></div>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="prule" value="nyawa"> 
+                        <div><strong class="text-white">Tantangan (3 Nyawa) ❤️</strong><br><span class="text-xs text-gray-400">Kesalahan mengurangi nyawa. Nyawa habis = Ulangi</span></div>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="prule" value="ujian"> 
+                        <div><strong class="text-white">Evaluasi (Ujian) 📝</strong><br><span class="text-xs text-gray-400">Jalankan semua rute tanpa interupsi, skor dihitung di akhir</span></div>
+                    </label>
+                </div>
+
+                <!-- Mode Level Selection -->
+                <div class="bg-gray-900 p-5 rounded-lg border border-gray-600 md:col-span-2">
+                    <h3 class="text-green-400 font-bold mb-3 border-b border-gray-700 pb-2">3. Mode Level & Kreator</h3>
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                        <label class="radio-label flex-1">
+                            <input type="radio" name="levelmode" value="preset" checked onchange="toggleCustomMode()"> 
+                            <div><strong class="text-white">Preset (Bawaan)</strong><br><span class="text-xs text-gray-400">Gunakan rute standar (10 instruksi)</span></div>
+                        </label>
+                        <label class="radio-label flex-1">
+                            <input type="radio" name="levelmode" value="custom" onchange="toggleCustomMode()"> 
+                            <div><strong class="text-white">Kustom (Kreator)</strong><br><span class="text-xs text-gray-400">Atur instruksi rute dan langkah sendiri</span></div>
+                        </label>
+                    </div>
+
+                    <!-- Custom Editor -->
+                    <div id="custom-editor" class="hidden p-4 bg-gray-800 rounded-lg border border-gray-700">
+                        <div class="flex items-center gap-4 mb-4">
+                            <label class="text-white font-bold">Jumlah Instruksi:</label>
+                            <input type="number" id="custom-count" min="1" max="15" value="5" class="bg-gray-700 text-white font-bold py-1 px-3 rounded border border-gray-500 w-20 text-center" onchange="renderCustomInputs()">
+                        </div>
+                        <div id="custom-list" class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- Input list dik-generate lewat JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <button onclick="startGame()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-12 rounded-full text-xl transition duration-200 transform hover:scale-105 shadow-[0_0_15px_rgba(0,210,255,0.5)]">
+                Mulai Bermain
+            </button>
         </div>
-    </div>
 
-    <!-- ── SCREEN 2: MEMORIZE ── -->
-    <div id="screen-memorize" class="screen">
-        <div class="card">
-            <p class="card-title">Fase 1 — Hafalkan Urutan</p>
-            <p class="card-sub">Dengarkan satu per satu. Kamu mulai di <strong style="color:var(--accent)">A7</strong> menghadap <strong style="color:var(--accent)">Utara ↑</strong></p>
+        <!-- SCREEN 2: Memorize (Audio) -->
+        <div id="screen-memorize" class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl text-center hidden">
+            <h2 class="text-2xl font-bold text-cyan-400 mb-2">Fase 1: Hafalkan Urutan</h2>
+            <p class="text-gray-400 mb-6">Dengarkan baik-baik instruksi mata angin ini.<br>Posisimu saat ini ada di <strong class="text-white">A7</strong>.</p>
+            
+            <div class="text-6xl text-cyan-500 mb-4" id="audio-icon">🔊</div>
+            
+            <div class="text-xl font-bold text-white mb-8 bg-gray-900 inline-block px-6 py-2 rounded-full border border-gray-600">
+                Instruksi: <span id="step-counter" class="text-cyan-400">0</span> / <span id="total-instructions">0</span>
+            </div>
 
-            <div class="audio-stage">
-                <div class="audio-orb" id="audio-orb">🔊</div>
-
-                <div class="step-bar-wrap">
-                    <div class="step-bar-label">
-                        <span>Progress</span>
-                        <span id="step-counter-text">0 / 30</span>
-                    </div>
-                    <div class="step-bar-track">
-                        <div class="step-bar-fill" id="step-bar-fill"></div>
-                    </div>
-                </div>
-
-                <button id="btn-play-audio" class="btn btn-primary" onclick="playNextAudio()">
-                    ▶ Putar Instruksi
+            <div class="flex justify-center gap-4">
+                <button id="btn-play-audio" onclick="playNextAudio()" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-4 px-10 rounded-xl text-xl transition duration-200 shadow-lg">
+                    Putar Instruksi Selanjutnya
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- ── SCREEN 3: RECALL ── -->
-    <div id="screen-recall" class="screen">
-
-        <div class="card">
-            <div class="recall-bar">
-                <div class="label-group">
-                    <div class="title">Fase 2 — Ingat & Jalankan!</div>
-                    <div class="sub">Mulai dari <strong style="color:var(--accent)">A7</strong> menghadap Utara. Reproduksi jalurnya.</div>
+        <!-- SCREEN 3: Recall (Grid / Abstract) -->
+        <div id="screen-recall" class="hidden">
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-2xl mb-4">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-2xl font-bold text-cyan-400" id="recall-title">Fase 2: Ingat & Jalankan!</h2>
+                        <p class="text-gray-400 text-sm" id="recall-subtitle">Tekan arah panah sebanyak jumlah langkah yang kamu ingat.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <!-- Nyawa Display -->
+                        <div id="lives-display" class="hidden text-2xl tracking-widest bg-gray-900 px-3 py-1 rounded-lg border border-gray-600">
+                            ❤️❤️❤️
+                        </div>
+                        <div class="bg-gray-900 px-4 py-2 rounded-lg border border-gray-600 text-center">
+                            <div class="text-xs text-gray-400 uppercase">Total Langkah</div>
+                            <div class="text-2xl font-bold text-yellow-400"><span id="recall-counter">0</span>/<span id="total-steps">0</span></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="step-badge">
-                    <div class="badge-label">Langkah</div>
-                    <div class="badge-value"><span id="recall-counter">0</span><span style="color:var(--muted);font-size:1rem">/30</span></div>
+
+                <!-- Mode Abstrak Hint -->
+                <div id="abstract-hint" class="hidden text-center py-10">
+                    <div class="text-6xl mb-4">🧠</div>
+                    <h3 class="text-2xl font-bold text-purple-400 mb-2">Mode Mental Mapping Aktif</h3>
+                    <p class="text-gray-300">Bayangkan peta koordinat di kepalamu.<br>Mulai dari <strong>A7</strong>, tekan tombol untuk berjalan secara mental!</p>
+                </div>
+
+                <!-- Game Grid Container -->
+                <div id="grid-container" class="game-grid rounded-lg overflow-hidden relative">
+                    <!-- Grid akan diisi via JavaScript -->
+                </div>
+                
+                <!-- Input Koordinat Akhir (Khusus Mode Abstrak) -->
+                <div id="coordinate-input-view" class="hidden text-center py-8">
+                    <h3 class="text-2xl font-bold text-green-400 mb-4">Langkah Selesai! 🎉</h3>
+                    <p class="text-gray-300 mb-6">Tebak di koordinat manakah kamu berada saat ini?</p>
+                    <div class="flex justify-center items-center gap-4 mb-6">
+                        <select id="final-col" class="bg-gray-700 text-white text-xl font-bold py-2 px-4 rounded-lg border border-gray-600 focus:outline-none focus:border-cyan-500">
+                            <option value="1">A</option><option value="2">B</option><option value="3">C</option><option value="4">D</option><option value="5">E</option><option value="6">F</option><option value="7">G</option><option value="8">H</option><option value="9">I</option><option value="10">J</option><option value="11">K</option><option value="12">L</option><option value="13">M</option><option value="14">N</option>
+                        </select>
+                        <span class="text-2xl font-bold">-</span>
+                        <select id="final-row" class="bg-gray-700 text-white text-xl font-bold py-2 px-4 rounded-lg border border-gray-600 focus:outline-none focus:border-cyan-500">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option>
+                        </select>
+                    </div>
+                    <button onclick="checkCoordinateOrSubmit()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-8 rounded-full text-lg transition duration-200">
+                        Cek Posisi Akhir
+                    </button>
+                    <div id="coord-feedback" class="mt-4 text-red-400 font-bold h-6"></div>
+                </div>
+
+                <!-- Submit Button (Khusus Mode Ujian - Grid) -->
+                <div id="submit-ujian-container" class="hidden text-center py-6">
+                    <p class="text-gray-300 mb-4">Semua langkah telah dimasukkan ke dalam peta.</p>
+                    <button onclick="calculateUjianScore()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-10 rounded-full text-xl transition duration-200 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                        Kumpulkan & Lihat Skor
+                    </button>
                 </div>
             </div>
 
-            <!-- Abstract hint -->
-            <div id="abstract-hint" class="abstract-stage hidden">
-                <div class="big-icon">🧠</div>
-                <h3>Mode Mental Mapping</h3>
-                <p>Bayangkan grid di dalam kepalamu.<br>Kamu mulai di <strong>A7 menghadap Utara ↑</strong><br>Tekan urutan langkah yang benar, lalu tebak koordinat akhirmu!</p>
-            </div>
-
-            <!-- Game Grid -->
-            <div id="grid-container" class="game-grid"></div>
-
-            <!-- Coordinate input (abstract mode end) -->
-            <div id="coordinate-input-view" class="coord-view hidden">
-                <h3>Urutan Selesai! 🎉</h3>
-                <p>Di koordinat manakah posisi akhirmu?</p>
-                <div class="coord-selects">
-                    <select id="final-col">
-                        <option value="1">A</option><option value="2">B</option><option value="3">C</option>
-                        <option value="4">D</option><option value="5">E</option><option value="6">F</option>
-                        <option value="7">G</option><option value="8">H</option><option value="9">I</option>
-                        <option value="10">J</option><option value="11">K</option><option value="12">L</option>
-                        <option value="13">M</option><option value="14">N</option>
-                    </select>
-                    <span class="dash">—</span>
-                    <select id="final-row">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                        <option value="13">13</option><option value="14">14</option>
-                    </select>
+            <!-- Controls (Bottom) -->
+            <div id="controls-container" class="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-4">
+                <div class="text-center mb-3 text-gray-400 text-sm">Contoh: Jika "Utara 2 Langkah", tekan tombol ⬆️ Utara 2 kali berturut-turut.</div>
+                <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto" id="controls">
+                    <div></div> <!-- Kosong Kiri Atas -->
+                    <button onclick="handlePlayerMove('N')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg flex flex-col items-center justify-center transition duration-200 active:scale-95 shadow-[0_4px_0_#1d4ed8] active:shadow-none active:translate-y-1">
+                        <span class="text-3xl mb-1">⬆️</span>
+                        <span class="text-xs uppercase tracking-wider">Utara</span>
+                    </button>
+                    <div></div> <!-- Kosong Kanan Atas -->
+                    
+                    <button onclick="handlePlayerMove('W')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg flex flex-col items-center justify-center transition duration-200 active:scale-95 shadow-[0_4px_0_#1d4ed8] active:shadow-none active:translate-y-1">
+                        <span class="text-3xl mb-1">⬅️</span>
+                        <span class="text-xs uppercase tracking-wider">Barat</span>
+                    </button>
+                    <button onclick="handlePlayerMove('S')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg flex flex-col items-center justify-center transition duration-200 active:scale-95 shadow-[0_4px_0_#1d4ed8] active:shadow-none active:translate-y-1">
+                        <span class="text-3xl mb-1">⬇️</span>
+                        <span class="text-xs uppercase tracking-wider">Selatan</span>
+                    </button>
+                    <button onclick="handlePlayerMove('E')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg flex flex-col items-center justify-center transition duration-200 active:scale-95 shadow-[0_4px_0_#1d4ed8] active:shadow-none active:translate-y-1">
+                        <span class="text-3xl mb-1">➡️</span>
+                        <span class="text-xs uppercase tracking-wider">Timur</span>
+                    </button>
                 </div>
-                <button class="btn btn-primary" onclick="checkCoordinate()">Cek Koordinat</button>
-                <div class="coord-feedback" id="coord-feedback"></div>
             </div>
+            
+            <div id="feedback-msg" class="text-center font-bold h-8 text-red-400 text-lg"></div>
         </div>
 
-        <!-- Controls -->
-        <div class="controls-wrap" id="controls">
-            <button class="ctrl-btn" onclick="handlePlayerMove('left')">
-                <span class="ctrl-icon">⬅️</span>
-                <span class="ctrl-label">Belok Kiri</span>
-            </button>
-            <button class="ctrl-btn forward" onclick="handlePlayerMove('forward')">
-                <span class="ctrl-icon">⬆️</span>
-                <span class="ctrl-label">Maju</span>
-            </button>
-            <button class="ctrl-btn" onclick="handlePlayerMove('right')">
-                <span class="ctrl-icon">➡️</span>
-                <span class="ctrl-label">Belok Kanan</span>
+        <!-- SCREEN 4: Game Over -->
+        <div id="screen-gameover" class="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl text-center hidden">
+            <div class="text-6xl mb-4">💀</div>
+            <h2 class="text-4xl font-bold text-red-500 mb-4">Game Over!</h2>
+            <p class="text-xl text-gray-300 mb-8">Nyawamu habis. Perhatikan kembali arah mata angin dan jumlah langkahnya.</p>
+            <button onclick="location.reload()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-200">
+                Coba Lagi
             </button>
         </div>
 
-        <div class="feedback-bar" id="feedback-msg"></div>
-    </div>
-
-    <!-- ── SCREEN 4: WIN ── -->
-    <div id="screen-win" class="screen">
-        <div class="card">
-            <div class="win-stage">
-                <div class="win-trophy">🏆</div>
-                <h2>Luar Biasa!</h2>
-                <p>Kamu berhasil mengingat 30 urutan spasial dengan sempurna dan menemukan koordinat akhir!</p>
-                <button class="btn btn-success" onclick="location.reload()">↺ Main Lagi</button>
+        <!-- SCREEN 5: Result / Win -->
+        <div id="screen-result" class="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl text-center hidden">
+            <div id="result-emoji" class="text-6xl mb-4">🏆</div>
+            <h2 id="result-title" class="text-4xl font-bold text-green-400 mb-4">Luar Biasa!</h2>
+            <p id="result-desc" class="text-xl text-gray-300 mb-6">Kamu berhasil mengingat rute arah mata angin dengan sempurna!</p>
+            
+            <!-- Skor (Khusus Mode Ujian) -->
+            <div id="score-container" class="hidden mb-8">
+                <div class="text-sm text-gray-400 uppercase tracking-wider mb-2">Skor Ketepatan Langkah</div>
+                <div class="text-6xl font-black text-yellow-400"><span id="final-score">0</span><span class="text-3xl text-gray-500" id="final-total-score">/26</span></div>
             </div>
+
+            <button onclick="location.reload()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-200">
+                Main Lagi
+            </button>
         </div>
+
     </div>
 
-</div>
+    <script>
+        // === DATA INSTRUKSI DEFAULT ===
+        const defaultInstructions = [
+            { dir: 'N', steps: 2, label: 'Utara' },
+            { dir: 'E', steps: 3, label: 'Timur' },
+            { dir: 'S', steps: 2, label: 'Selatan' },
+            { dir: 'E', steps: 2, label: 'Timur' },
+            { dir: 'N', steps: 3, label: 'Utara' },
+            { dir: 'E', steps: 4, label: 'Timur' },
+            { dir: 'S', steps: 4, label: 'Selatan' },
+            { dir: 'E', steps: 2, label: 'Timur' },
+            { dir: 'S', steps: 2, label: 'Selatan' },
+            { dir: 'E', steps: 2, label: 'Timur' }
+        ];
 
-<script>
-    // ── PATH DATA ──
-    const pathData = [
-        { action: 'forward', dx: 0, dy: -1, head: 'N' },
-        { action: 'right',   dx: 1, dy: 0,  head: 'E' },
-        { action: 'left',    dx: 0, dy: -1, head: 'N' },
-        { action: 'forward', dx: 0, dy: -1, head: 'N' },
-        { action: 'right',   dx: 1, dy: 0,  head: 'E' },
-        { action: 'forward', dx: 1, dy: 0,  head: 'E' },
-        { action: 'right',   dx: 0, dy: 1,  head: 'S' },
-        { action: 'left',    dx: 1, dy: 0,  head: 'E' },
-        { action: 'right',   dx: 0, dy: 1,  head: 'S' },
-        { action: 'left',    dx: 1, dy: 0,  head: 'E' },
-        { action: 'right',   dx: 0, dy: 1,  head: 'S' },
-        { action: 'forward', dx: 0, dy: 1,  head: 'S' },
-        { action: 'forward', dx: 0, dy: 1,  head: 'S' },
-        { action: 'left',    dx: 1, dy: 0,  head: 'E' },
-        { action: 'forward', dx: 1, dy: 0,  head: 'E' },
-        { action: 'left',    dx: 0, dy: -1, head: 'N' },
-        { action: 'forward', dx: 0, dy: -1, head: 'N' },
-        { action: 'forward', dx: 0, dy: -1, head: 'N' },
-        { action: 'right',   dx: 1, dy: 0,  head: 'E' },
-        { action: 'forward', dx: 1, dy: 0,  head: 'E' },
-        { action: 'left',    dx: 0, dy: -1, head: 'N' },
-        { action: 'right',   dx: 1, dy: 0,  head: 'E' },
-        { action: 'right',   dx: 0, dy: 1,  head: 'S' },
-        { action: 'forward', dx: 0, dy: 1,  head: 'S' },
-        { action: 'forward', dx: 0, dy: 1,  head: 'S' },
-        { action: 'left',    dx: 1, dy: 0,  head: 'E' },
-        { action: 'right',   dx: 0, dy: 1,  head: 'S' },
-        { action: 'forward', dx: 0, dy: 1,  head: 'S' },
-        { action: 'left',    dx: 1, dy: 0,  head: 'E' },
-        { action: 'forward', dx: 1, dy: 0,  head: 'E' }
-    ];
+        // State Variabel Dinamis
+        let activeInstructions = [];
+        let pathData = [];
+        let targetFinalCol = 14; 
+        let targetFinalRow = 10;
 
-    // ── STATE ──
-    let currentAudioStep = 0;
-    let currentRecallStep = 0;
-    let gameMode = 'grid';
-    let playerX = 1;
-    let playerY = 7;
-    let playerHeading = 'N';
-    const synth = window.speechSynthesis;
+        // State Permainan
+        let currentAudioStep = 0;
+        let currentRecallStep = 0;
+        
+        let gameMode = 'grid'; 
+        let playRule = 'latihan'; 
+        let lives = 3;
+        let playerSequence = []; 
+        
+        // Posisi Awal: A7
+        let playerX = 1;
+        let playerY = 7;
 
-    const arrowSymbols = { N: '↑', E: '→', S: '↓', W: '←' };
-    const emojiArrows  = { N: '⬆️', E: '➡️', S: '⬇️', W: '⬅️' };
+        const synth = window.speechSynthesis;
 
-    const actionLabels = {
-        forward: 'GO FORWARD',
-        right:   'TURN RIGHT',
-        left:    'TURN LEFT'
-    };
-
-    // ── SCREEN MANAGEMENT ──
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const el = document.getElementById(id);
-        el.classList.add('active');
-    }
-
-    function startGame(mode) {
-        gameMode = mode;
-        showScreen('screen-memorize');
-    }
-
-    // ── AUDIO PHASE ──
-    function playNextAudio() {
-        if (currentAudioStep >= pathData.length) {
-            startRecallPhase();
-            return;
-        }
-
-        const action = pathData[currentAudioStep].action;
-        const textMap = { forward: 'Go forward', right: 'Turn right', left: 'Turn left' };
-        const text = textMap[action];
-
-        if (synth.speaking) synth.cancel();
-
-        const utt = new SpeechSynthesisUtterance(text);
-        utt.lang = 'en-US';
-        utt.rate = 1.0;
-
-        const orb = document.getElementById('audio-orb');
-        const word = document.getElementById('spoken-word');
-
-        utt.onstart = () => orb.classList.add('speaking');
-        utt.onend   = () => orb.classList.remove('speaking');
-
-        synth.speak(utt);
-
-        currentAudioStep++;
-        document.getElementById('step-counter-text').textContent = `${currentAudioStep} / 30`;
-        document.getElementById('step-bar-fill').style.width = `${(currentAudioStep / 30) * 100}%`;
-
-        if (currentAudioStep === pathData.length) {
-            const btn = document.getElementById('btn-play-audio');
-            btn.textContent = '✓ Mulai Tantangan!';
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-success');
-        }
-    }
-
-    // ── RECALL PHASE ──
-    function startRecallPhase() {
-        showScreen('screen-recall');
-
-        if (gameMode === 'grid') {
-            document.getElementById('grid-container').classList.remove('hidden');
-            document.getElementById('abstract-hint').classList.add('hidden');
-            generateGrid();
-            renderAvatarCell(1, 7, true, 'N');
-        } else {
-            document.getElementById('grid-container').classList.add('hidden');
-            document.getElementById('abstract-hint').classList.remove('hidden');
-        }
-    }
-
-    // ── GRID GENERATION ──
-    function generateGrid() {
-        const container = document.getElementById('grid-container');
-        container.innerHTML = '';
-        const cols = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
-
-        // corner
-        appendCell(container, 'grid-header', '');
-        // column headers
-        cols.forEach(c => appendCell(container, 'grid-header', c));
-
-        for (let row = 1; row <= 14; row++) {
-            appendCell(container, 'grid-header', row);
-            for (let col = 1; col <= 14; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                cell.id = `cell-${col}-${row}`;
-                container.appendChild(cell);
+        // Mode Kreator UI Functions
+        function toggleCustomMode() {
+            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
+            const customEditor = document.getElementById('custom-editor');
+            if (isCustom) {
+                customEditor.classList.remove('hidden');
+                renderCustomInputs();
+            } else {
+                customEditor.classList.add('hidden');
             }
         }
-    }
 
-    function appendCell(parent, cls, text) {
-        const el = document.createElement('div');
-        el.className = cls;
-        el.textContent = text;
-        parent.appendChild(el);
-    }
+        function renderCustomInputs() {
+            let count = parseInt(document.getElementById('custom-count').value);
+            if (count < 1) count = 1;
+            if (count > 20) count = 20; // Batasan wajar agar memori anak tidak terlalu lelah
+            
+            const list = document.getElementById('custom-list');
+            list.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                list.innerHTML += `
+                    <div class="flex items-center gap-2 bg-gray-700 p-3 rounded custom-row shadow-sm border border-gray-600">
+                        <span class="text-cyan-400 font-bold w-6 text-right">${i+1}.</span>
+                        <select class="custom-dir flex-1 bg-gray-900 text-white border border-gray-500 rounded px-2 py-2 focus:border-cyan-400 focus:outline-none">
+                            <option value="N">⬆️ Utara</option>
+                            <option value="E">➡️ Timur</option>
+                            <option value="S">⬇️ Selatan</option>
+                            <option value="W">⬅️ Barat</option>
+                        </select>
+                        <input type="number" class="custom-steps bg-gray-900 text-white font-bold border border-gray-500 rounded px-2 py-2 w-20 text-center focus:border-cyan-400 focus:outline-none" min="1" max="14" value="2">
+                        <span class="text-gray-300 text-sm">langkah</span>
+                    </div>
+                `;
+            }
+        }
 
-    function renderAvatarCell(col, row, isStart, heading) {
-        const cell = document.getElementById(`cell-${col}-${row}`);
-        if (!cell) return;
-        cell.innerHTML = '';
+        function showScreen(screenId) {
+            ['screen-intro', 'screen-memorize', 'screen-recall', 'screen-gameover', 'screen-result'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById(screenId).classList.add('block');
+        }
 
-        const node = document.createElement('div');
-        node.className = `path-node avatar`;
+        function startGame() {
+            gameMode = document.querySelector('input[name="vmode"]:checked').value;
+            playRule = document.querySelector('input[name="prule"]:checked').value;
+            
+            // Proses pengambilan instruksi (Default atau Custom)
+            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
+            activeInstructions = [];
+            
+            if (isCustom) {
+                const rows = document.querySelectorAll('.custom-row');
+                rows.forEach(row => {
+                    const dir = row.querySelector('.custom-dir').value;
+                    const steps = parseInt(row.querySelector('.custom-steps').value) || 1;
+                    const label = dir === 'N' ? 'Utara' : dir === 'S' ? 'Selatan' : dir === 'E' ? 'Timur' : 'Barat';
+                    activeInstructions.push({ dir, steps, label });
+                });
+            } else {
+                activeInstructions = defaultInstructions.slice();
+            }
 
-        const emoji = document.createElement('span');
-        emoji.style.fontSize = '1rem';
-        emoji.textContent = '🧍';
+            // Memecah instruksi gabungan menjadi langkah-langkah tunggal
+            pathData = [];
+            let finalX = 1; let finalY = 7; // Semua permainan selalu dimulai di A7
+            
+            activeInstructions.forEach(inst => {
+                for (let i = 0; i < inst.steps; i++) {
+                    let dx = 0, dy = 0;
+                    if (inst.dir === 'N') dy = -1;
+                    if (inst.dir === 'S') dy = 1;
+                    if (inst.dir === 'E') dx = 1;
+                    if (inst.dir === 'W') dx = -1;
+                    pathData.push({ action: inst.dir, dx: dx, dy: dy });
+                    
+                    // Kalkulasi posisi akhir rute (dengan batasan peta 14x14)
+                    finalX += dx; finalY += dy;
+                    finalX = Math.max(1, Math.min(14, finalX));
+                    finalY = Math.max(1, Math.min(14, finalY));
+                }
+            });
+            
+            // Simpan posisi dinamis untuk evaluasi mode Abstrak
+            targetFinalCol = finalX;
+            targetFinalRow = finalY;
 
-        const arrow = document.createElement('span');
-        arrow.style.fontSize = '.8rem';
-        arrow.textContent = emojiArrows[heading];
+            // Update info di UI (Fase Audio & Fase Main)
+            document.getElementById('total-instructions').innerText = activeInstructions.length;
+            document.getElementById('total-steps').innerText = pathData.length;
+            document.getElementById('final-total-score').innerText = `/${pathData.length}`;
 
-        node.appendChild(emoji);
-        node.appendChild(arrow);
-        cell.appendChild(node);
-    }
+            // Reset state
+            currentAudioStep = 0;
+            currentRecallStep = 0;
+            playerSequence = [];
+            lives = 3;
+            playerX = 1;
+            playerY = 7;
+            
+            // Reset UI Audio Button
+            const btn = document.getElementById('btn-play-audio');
+            btn.innerText = "Putar Instruksi Pertama";
+            btn.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
+            btn.classList.remove('bg-green-500', 'hover:bg-green-400');
+            document.getElementById('step-counter').innerText = '0';
 
-    function renderTrailCell(col, row, isStart, heading) {
-        const cell = document.getElementById(`cell-${col}-${row}`);
-        if (!cell) return;
-        cell.innerHTML = '';
+            showScreen('screen-memorize');
+        }
 
-        const node = document.createElement('div');
-        node.className = `path-node ${isStart ? 'start-trail' : 'trail'}`;
-        node.textContent = arrowSymbols[heading];
-        cell.appendChild(node);
-    }
+        function playNextAudio() {
+            if (currentAudioStep >= activeInstructions.length) {
+                startRecallPhase();
+                return;
+            }
 
-    function renderFinishCell(col, row, heading) {
-        const cell = document.getElementById(`cell-${col}-${row}`);
-        if (!cell) return;
-        cell.innerHTML = '';
+            const inst = activeInstructions[currentAudioStep];
+            // Menggunakan bahasa indonesia
+            let textToSpeak = `Arah ${inst.label}, ${inst.steps} langkah`;
 
-        const node = document.createElement('div');
-        node.className = 'path-node finish-node';
+            if (synth.speaking) synth.cancel();
 
-        const icon = document.createElement('span');
-        icon.style.fontSize = '1rem';
-        icon.textContent = '🏁';
+            const utterThis = new SpeechSynthesisUtterance(textToSpeak);
+            utterThis.lang = 'id-ID'; 
+            utterThis.rate = 0.9; // Sedikit dilambatkan agar jelas
+            
+            utterThis.onstart = () => { document.getElementById('audio-icon').classList.add('scale-125', 'text-yellow-400'); };
+            utterThis.onend = () => { document.getElementById('audio-icon').classList.remove('scale-125', 'text-yellow-400'); };
 
-        node.appendChild(icon);
-        cell.appendChild(node);
-    }
+            synth.speak(utterThis);
 
-    // ── PLAYER MOVE ──
-    function handlePlayerMove(actionInput) {
-        if (currentRecallStep >= pathData.length) return;
+            currentAudioStep++;
+            document.getElementById('step-counter').innerText = currentAudioStep;
 
-        const correct = pathData[currentRecallStep];
-        const feedback = document.getElementById('feedback-msg');
+            if (currentAudioStep === activeInstructions.length) {
+                const btn = document.getElementById('btn-play-audio');
+                btn.innerText = "Mulai Bergerak Sekarang!";
+                btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                btn.classList.add('bg-green-500', 'hover:bg-green-400');
+            }
+        }
 
-        if (actionInput === correct.action) {
-            feedback.textContent = '';
-            feedback.className = 'feedback-bar';
-
-            const isStart  = currentRecallStep === 0;
-            const newHead  = correct.head;
+        function startRecallPhase() {
+            showScreen('screen-recall');
+            
+            if (playRule === 'nyawa') {
+                document.getElementById('lives-display').classList.remove('hidden');
+                updateLivesUI();
+            }
+            if (playRule === 'ujian') {
+                document.getElementById('recall-title').innerText = "Mode Evaluasi";
+                document.getElementById('recall-subtitle').innerText = "Masukkan seluruh langkahmu tanpa bantuan koreksi.";
+            }
 
             if (gameMode === 'grid') {
-                renderTrailCell(playerX, playerY, isStart, newHead);
-            }
-
-            playerX += correct.dx;
-            playerY += correct.dy;
-            playerHeading = newHead;
-            currentRecallStep++;
-
-            document.getElementById('recall-counter').textContent = currentRecallStep;
-
-            const isFinish = currentRecallStep === pathData.length;
-
-            if (isFinish) {
-                if (gameMode === 'grid') {
-                    renderFinishCell(playerX, playerY, playerHeading);
-                    setTimeout(() => showScreen('screen-win'), 900);
-                } else {
-                    document.getElementById('controls').classList.add('hidden');
-                    document.getElementById('abstract-hint').classList.add('hidden');
-                    document.getElementById('coordinate-input-view').classList.remove('hidden');
-                }
+                document.getElementById('grid-container').classList.remove('hidden');
+                document.getElementById('abstract-hint').classList.add('hidden');
+                generateGrid();
+                updateCell(playerX, playerY, 'start-avatar', 'N');
             } else {
-                if (gameMode === 'grid') {
-                    renderAvatarCell(playerX, playerY, false, playerHeading);
+                document.getElementById('grid-container').classList.add('hidden');
+                document.getElementById('abstract-hint').classList.remove('hidden');
+            }
+        }
+
+        function generateGrid() {
+            const container = document.getElementById('grid-container');
+            container.innerHTML = '';
+            const columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
+
+            const corner = document.createElement('div'); corner.className = 'grid-header'; container.appendChild(corner);
+            columns.forEach(col => {
+                const colHeader = document.createElement('div');
+                colHeader.className = 'grid-header'; colHeader.innerText = col;
+                container.appendChild(colHeader);
+            });
+
+            for (let row = 1; row <= 14; row++) {
+                const rowHeader = document.createElement('div');
+                rowHeader.className = 'grid-header'; rowHeader.innerText = row;
+                container.appendChild(rowHeader);
+
+                for (let col = 1; col <= 14; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell'; cell.id = `cell-${col}-${row}`;
+                    container.appendChild(cell);
                 }
             }
-        } else {
-            feedback.textContent = '❌ Langkah salah — coba ingat ulang!';
-            feedback.className = 'feedback-bar';
-            const ctrl = document.getElementById('controls');
-            ctrl.classList.remove('shake');
-            void ctrl.offsetWidth;
-            ctrl.classList.add('shake');
         }
-    }
 
-    // ── COORDINATE CHECK ──
-    function checkCoordinate() {
-        const col = parseInt(document.getElementById('final-col').value);
-        const row = parseInt(document.getElementById('final-row').value);
-        const fb  = document.getElementById('coord-feedback');
+        const arrowSymbols = { 'N': '↑', 'E': '→', 'S': '↓', 'W': '←' };
+        const emojiArrows = { 'N': '⬆️', 'E': '➡️', 'S': '⬇️', 'W': '⬅️' };
 
-        if (col === playerX && row === playerY) {
-            showScreen('screen-win');
-        } else {
-            fb.textContent = '❌ Belum tepat. Bayangkan ulang arah terakhirmu!';
-            fb.classList.remove('shake');
-            void fb.offsetWidth;
-            fb.classList.add('shake');
+        function updateCell(col, row, type, heading) {
+            const cell = document.getElementById(`cell-${col}-${row}`);
+            if (!cell) return;
+            
+            cell.innerHTML = '';
+            const node = document.createElement('div');
+            node.className = `path-node ${playRule === 'ujian' && type !== 'start-avatar' ? 'ujian-mode' : ''}`;
+            const span = document.createElement('span');
+
+            // Kita tampilkan panah statis berdasarkan arah pergerakan absolut
+            let arrowContent = `<div class="flex flex-col items-center leading-none mt-1"><span class="text-[14px]">🧍</span><span class="text-[10px] -mt-1 font-black">${emojiArrows[heading] || ''}</span></div>`;
+
+            if (type === 'start-avatar') {
+                node.classList.add('start');
+                const label = document.createElement('div');
+                label.className = 'absolute -left-12 text-red-500 text-sm font-bold'; label.innerText = 'Start';
+                node.appendChild(label);
+                span.innerHTML = arrowContent;
+            } 
+            else if (type === 'avatar') {
+                span.innerHTML = arrowContent;
+            } 
+            else if (type === 'start-path') {
+                node.classList.add('start');
+                span.innerText = arrowSymbols[heading];
+            } 
+            else if (type === 'finish') {
+                node.classList.add('finish');
+                span.innerText = arrowSymbols[heading];
+            } 
+            else { 
+                span.innerText = arrowSymbols[heading];
+            }
+
+            node.appendChild(span);
+            cell.appendChild(node);
         }
-    }
-</script>
+
+        function updateLivesUI() {
+            let hearts = "";
+            for(let i=0; i<3; i++) hearts += (i < lives) ? "❤️" : "🖤";
+            document.getElementById('lives-display').innerText = hearts;
+        }
+
+        function getSimulatedPosition(x, y, action) {
+            let nx = x, ny = y;
+            if(action==='N') ny -= 1; 
+            if(action==='S') ny += 1;
+            if(action==='E') nx += 1; 
+            if(action==='W') nx -= 1;
+            
+            nx = Math.max(1, Math.min(14, nx));
+            ny = Math.max(1, Math.min(14, ny));
+            return {nx, ny};
+        }
+
+        function handlePlayerMove(actionInput) {
+            if (currentRecallStep >= pathData.length) return;
+
+            const feedbackMsg = document.getElementById('feedback-msg');
+            const controlsContainer = document.getElementById('controls-container');
+
+            // MODE UJIAN
+            if (playRule === 'ujian') {
+                playerSequence.push(actionInput);
+                feedbackMsg.innerText = ""; 
+                
+                if (gameMode === 'grid') {
+                    const {nx, ny} = getSimulatedPosition(playerX, playerY, actionInput);
+                    const isStartCell = (currentRecallStep === 0);
+                    
+                    updateCell(playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
+                    playerX = nx; playerY = ny; 
+                    updateCell(playerX, playerY, 'avatar', actionInput);
+                }
+                
+                currentRecallStep++;
+                document.getElementById('recall-counter').innerText = currentRecallStep;
+                
+                if (currentRecallStep === pathData.length) {
+                    controlsContainer.classList.add('hidden');
+                    if (gameMode === 'abstract') {
+                        document.getElementById('coordinate-input-view').classList.remove('hidden');
+                    } else {
+                        document.getElementById('submit-ujian-container').classList.remove('hidden');
+                    }
+                }
+                return;
+            }
+
+            // MODE LATIHAN & NYAWA
+            const correctMove = pathData[currentRecallStep];
+            
+            if (actionInput === correctMove.action) {
+                // Jawaban Benar
+                feedbackMsg.innerText = "";
+                
+                if (gameMode === 'grid') {
+                    const isStartCell = (currentRecallStep === 0);
+                    updateCell(playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
+                }
+
+                playerX += correctMove.dx;
+                playerY += correctMove.dy;
+                
+                currentRecallStep++;
+                document.getElementById('recall-counter').innerText = currentRecallStep;
+
+                const isFinish = (currentRecallStep === pathData.length);
+                
+                if (isFinish) {
+                    if (gameMode === 'grid') {
+                        updateCell(playerX, playerY, 'finish', actionInput);
+                        setTimeout(() => showScreen('screen-result'), 800);
+                    } else {
+                        controlsContainer.classList.add('hidden');
+                        document.getElementById('coordinate-input-view').classList.remove('hidden');
+                    }
+                } else {
+                    if (gameMode === 'grid') {
+                        updateCell(playerX, playerY, 'avatar', actionInput); // Arah panah avatar ke arah langkah tadi
+                    }
+                }
+                
+            } else {
+                // Jawaban Salah
+                controlsContainer.classList.remove('shake');
+                void controlsContainer.offsetWidth; 
+                controlsContainer.classList.add('shake');
+                
+                if (playRule === 'nyawa') {
+                    lives--;
+                    updateLivesUI();
+                    if (lives <= 0) {
+                        setTimeout(() => showScreen('screen-gameover'), 500);
+                        return;
+                    }
+                    feedbackMsg.innerText = `❌ Salah arah! Sisa nyawa: ${lives}`;
+                } else {
+                    feedbackMsg.innerText = "❌ Langkah Salah! Perhatikan kembali jumlah langkah dan arahnya.";
+                }
+            }
+        }
+
+        function calculateUjianScore(isAbstractAndCorrectCoord = null) {
+            let correctCount = 0;
+            for(let i=0; i<pathData.length; i++) {
+                if(playerSequence[i] === pathData[i].action) {
+                    correctCount++;
+                }
+            }
+            
+            document.getElementById('result-emoji').innerText = "📝";
+            document.getElementById('result-title').innerText = "Hasil Evaluasi";
+            document.getElementById('result-title').classList.replace('text-green-400', 'text-purple-400');
+            
+            let desc = "Kamu telah merekonstruksi rute ingatanmu.";
+            if (isAbstractAndCorrectCoord !== null) {
+                desc += isAbstractAndCorrectCoord ? " <strong>Tebakan koordinat akhirmu TEPAT!</strong>" : " <strong class='text-red-400'>Tebakan koordinat akhirmu SALAH!</strong>";
+            }
+            document.getElementById('result-desc').innerHTML = desc;
+            
+            document.getElementById('score-container').classList.remove('hidden');
+            document.getElementById('final-score').innerText = correctCount;
+
+            showScreen('screen-result');
+        }
+
+        function checkCoordinateOrSubmit() {
+            const colIndex = parseInt(document.getElementById('final-col').value);
+            const rowIndex = parseInt(document.getElementById('final-row').value);
+            
+            // Posisi Finish dievaluasi secara dinamis berdasarkan path rute kustom
+            const isCoordCorrect = (colIndex === targetFinalCol && rowIndex === targetFinalRow); 
+            
+            if (playRule === 'ujian') {
+                calculateUjianScore(isCoordCorrect);
+            } else {
+                if (isCoordCorrect) {
+                    showScreen('screen-result');
+                } else {
+                    const feedbackMsg = document.getElementById('coord-feedback');
+                    feedbackMsg.innerText = "❌ Koordinat belum tepat. Hitung kembali pergeseran absolutmu!";
+                    feedbackMsg.classList.remove('shake');
+                    void feedbackMsg.offsetWidth;
+                    feedbackMsg.classList.add('shake');
+                }
+            }
+        }
+    </script>
 </body>
 </html>
