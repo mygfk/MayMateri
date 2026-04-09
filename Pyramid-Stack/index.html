@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>100 Kombinasi Berlian Cerah</title>
+<style>
+    :root {
+        /* Palet Warna Super Cerah & Ramah Anak */
+        --c-merah: #FF1744;   /* Merah Cerah / Pinkish Red */
+        --c-kuning: #FFEA00;  /* Kuning Lemon */
+        --c-biru: #00E5FF;    /* Biru Cyan Terang */
+        --c-hijau: #00E676;   /* Hijau Neon/Terang */
+        
+        --bg-color: #F8F9FA;
+        --text-color: #333;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    h1 { 
+        text-align: center; 
+        color: #2C3E50; 
+        font-size: 28px; 
+        margin-bottom: 10px;
+    }
+
+    .info-box {
+        background-color: #E3F2FD;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #29B6F6;
+        margin-bottom: 30px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .info-box h3 { margin-top: 0; color: #0277BD; }
+
+    .control-panel {
+        text-align: center;
+        margin: 20px 0 40px 0;
+    }
+
+    button {
+        background-color: #FF4081;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+        transition: all 0.2s ease;
+    }
+
+    button:hover { 
+        background-color: #F50057; 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 64, 129, 0.5);
+    }
+    
+    button:active { 
+        transform: scale(0.95); 
+    }
+
+    /* Pengaturan Grid dengan Jarak yang Lebar dan Koordinat */
+    .grid-container {
+        display: grid;
+        /* Mengunci 11 kolom: 1 untuk label angka (40px), 10 untuk berlian (1fr) */
+        grid-template-columns: 40px repeat(10, 1fr);
+        gap: 25px 15px; /* Penyesuaian jarak */
+        justify-items: center;
+        align-items: center;
+        padding: 20px 0;
+        overflow-x: auto; /* Memungkinkan geser ke kanan-kiri di layar HP */
+    }
+
+    /* Gaya untuk label koordinat (Huruf dan Angka) */
+    .coord-label {
+        font-weight: bold;
+        color: #0277BD;
+        font-size: 16px;
+        font-family: monospace;
+        background-color: #E1F5FE;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .diamond-wrapper {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: crosshair;
+    }
+
+    .diamond-wrapper:hover {
+        transform: scale(1.6);
+        z-index: 100;
+    }
+
+    /* Lapisan Berlian (Belah Ketupat) */
+    .layer {
+        position: absolute;
+        transform: rotate(45deg);
+        transform-origin: center;
+        border: 1px solid rgba(0,0,0,0.15); /* Batas tipis agar warna cerah tidak menyatu */
+        box-sizing: border-box;
+    }
+
+    /* Presisi 4 Lapis */
+    .layer-1 { width: 56px; height: 56px; top: 2px; left: 2px; }
+    .layer-2 { width: 40px; height: 40px; top: 10px; left: 10px; }
+    .layer-3 { width: 24px; height: 24px; top: 18px; left: 18px; }
+    .layer-4 { width: 8px; height: 8px; top: 26px; left: 26px; }
+
+    /* Garis Silang Tipis Tengah */
+    .cross-lines {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none; /* Agar tidak mengganggu hover */
+    }
+    .cross-lines::before, .cross-lines::after {
+        content: '';
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+    /* Garis Vertikal */
+    .cross-lines::before {
+        width: 1px;
+        height: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    /* Garis Horizontal */
+    .cross-lines::after {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* Animasi Muncul */
+    @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .diamond-wrapper {
+        animation: fadeInScale 0.5s ease backwards;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kombinatorika 100 Berlian</h1>
+    
+    <div class="info-box">
+        <h3>Halo Anak-Anak Hebat! 🌟</h3>
+        <p>Mari belajar tentang <strong>Peluang dan Kombinasi</strong>. Di bawah ini kita akan membuat pola berlian menggunakan aturan perkalian.</p>
+        <p><strong>Aturan Pembuatan Berlian:</strong><br>
+        1. Ada 4 pilihan warna cerah yang tersedia.<br>
+        2. Berlian memiliki 4 lapisan (dari luar ke dalam).<br>
+        3. <strong>Syarat Penting:</strong> Warna pada lapisan yang saling menempel tidak boleh sama persis!</p>
+        <p><em>Bisakah kalian menemukan warna favorit kalian dari 100 kombinasi unik di bawah ini? Sentuh/arahkan kursor pada berlian untuk melihatnya lebih dekat!</em></p>
+    </div>
+
+    <div class="control-panel">
+        <button onclick="generateDiamonds()">Acak 100 Berlian Baru!</button>
+        <p style="margin-top: 15px; color: #7F8C8D; font-size: 14px;" id="counter-text">Memuat kombinasi...</p>
+    </div>
+
+    <div class="grid-container" id="grid"></div>
+
+</div>
+
+<script>
+    // Palet Warna Cerah
+    const colors = ['#FF1744', '#FFEA00', '#00E5FF', '#00E676']; 
+
+    function generateDiamonds() {
+        let combinations = [];
+
+        // Logika Kombinatorika 4 Lapisan
+        for(let l1 of colors) {
+            for(let l2 of colors) {
+                if(l1 === l2) continue; // Lapis 2 tidak boleh sama dengan Lapis 1
+                for(let l3 of colors) {
+                    if(l2 === l3) continue; // Lapis 3 tidak boleh sama dengan Lapis 2
+                    for(let l4 of colors) {
+                        if(l3 === l4) continue; // Lapis 4 tidak boleh sama dengan Lapis 3
+                        
+                        // Jika lolos semua syarat, simpan kombinasinya
+                        combinations.push({l1, l2, l3, l4});
+                    }
+                }
+            }
+        }
+
+        // Acak urutan array (Algoritma Fisher-Yates Shuffle)
+        for (let i = combinations.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [combinations[i], combinations[j]] = [combinations[j], combinations[i]];
+        }
+
+        // Ambil 100 dari total 108 kombinasi
+        const selected = combinations.slice(0, 100);
+        const grid = document.getElementById('grid');
+        grid.innerHTML = ''; // Bersihkan grid sebelumnya
+
+        // --- RENDER DENGAN KOORDINAT GRID (A-J, 1-10) ---
+
+        // 1. Sudut kiri atas kosong
+        const emptyCorner = document.createElement('div');
+        grid.appendChild(emptyCorner);
+
+        // 2. Baris Header Kolom (Huruf A-J)
+        const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        columns.forEach(letter => {
+            const label = document.createElement('div');
+            label.className = 'coord-label';
+            label.innerText = letter;
+            grid.appendChild(label);
+        });
+
+        // 3. Render Baris Angka dan Berlian
+        let diamondIndex = 0;
+        for (let row = 1; row <= 10; row++) {
+            // Label baris angka (1-10) di sisi kiri
+            const rowLabel = document.createElement('div');
+            rowLabel.className = 'coord-label';
+            rowLabel.innerText = row;
+            grid.appendChild(rowLabel);
+
+            // Render 10 Berlian untuk baris ini
+            for (let col = 0; col < 10; col++) {
+                const item = selected[diamondIndex];
+                const wrapper = document.createElement('div');
+                wrapper.className = 'diamond-wrapper';
+                // Tooltip sekarang menunjukkan posisi koordinat yang tepat
+                wrapper.title = `Posisi ${columns[col]}${row} (Kombinasi #${diamondIndex + 1})`;
+                wrapper.style.animationDelay = `${diamondIndex * 0.01}s`;
+
+                const layer1 = document.createElement('div');
+                layer1.className = 'layer layer-1';
+                layer1.style.backgroundColor = item.l1;
+
+                const layer2 = document.createElement('div');
+                layer2.className = 'layer layer-2';
+                layer2.style.backgroundColor = item.l2;
+
+                const layer3 = document.createElement('div');
+                layer3.className = 'layer layer-3';
+                layer3.style.backgroundColor = item.l3;
+
+                const layer4 = document.createElement('div');
+                layer4.className = 'layer layer-4';
+                layer4.style.backgroundColor = item.l4;
+
+                const crossLines = document.createElement('div');
+                crossLines.className = 'cross-lines';
+
+                // Masukkan lapisan dari yang paling besar ke paling kecil
+                wrapper.appendChild(layer1);
+                wrapper.appendChild(layer2);
+                wrapper.appendChild(layer3);
+                wrapper.appendChild(layer4);
+                wrapper.appendChild(crossLines); 
+
+                grid.appendChild(wrapper);
+                diamondIndex++;
+            }
+        }
+
+        document.getElementById('counter-text').innerText = `Menampilkan 100 dari ${combinations.length} kemungkinan kombinasi.`;
+    }
+
+    // Jalankan pertama kali saat halaman dibuka
+    window.onload = generateDiamonds;
+</script>
+
+</body>
+</html>
