@@ -22,13 +22,24 @@
                 grid-template-columns: 40px repeat(14, minmax(30px, 1fr));
             }
         }
+        /* Grid lebih kecil khusus untuk Mode Kreator */
+        .creator-grid {
+            max-width: 100%;
+            grid-template-columns: 20px repeat(14, minmax(15px, 1fr));
+        }
+        @media (min-width: 768px) {
+            .creator-grid {
+                grid-template-columns: 25px repeat(14, minmax(20px, 1fr));
+            }
+        }
+
         .grid-header {
             color: white;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             background-color: #111;
         }
         .grid-cell {
@@ -54,6 +65,7 @@
         .path-node.start { border-color: #ff4444; }
         .path-node.finish { border-color: #44ff44; }
         .path-node.ujian-mode { background: radial-gradient(circle, #b155ff 0%, #7b1fa2 100%); box-shadow: 0 0 5px rgba(177, 85, 255, 0.8); }
+        .path-node.creator-mode { background: radial-gradient(circle, #ffca28 0%, #f57f17 100%); box-shadow: 0 0 5px rgba(255, 202, 40, 0.8); border-color: #fff; }
         
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
@@ -158,24 +170,54 @@
                         </label>
                         <label class="radio-label flex-1">
                             <input type="radio" name="levelmode" value="custom" onchange="toggleCustomMode()"> 
-                            <div><strong class="text-white">Kustom (Kreator)</strong><br><span class="text-xs text-gray-400">Atur instruksi rute dan langkah sendiri</span></div>
+                            <div><strong class="text-white">Kustom (Kreator Peta)</strong><br><span class="text-xs text-gray-400">Gambar rute langsung di atas papan peta</span></div>
                         </label>
                     </div>
 
-                    <!-- Custom Editor -->
+                    <!-- Custom Editor (Grid Based) -->
                     <div id="custom-editor" class="hidden p-4 bg-gray-800 rounded-lg border border-gray-700">
-                        <div class="flex items-center gap-4 mb-4">
-                            <label class="text-white font-bold">Jumlah Instruksi:</label>
-                            <input type="number" id="custom-count" min="1" max="15" value="5" class="bg-gray-700 text-white font-bold py-1 px-3 rounded border border-gray-500 w-20 text-center" onchange="renderCustomInputs()">
+                        <h4 class="text-cyan-400 font-bold mb-2 text-center text-lg">Studio Peta Kustom</h4>
+                        <p class="text-sm text-gray-300 text-center mb-4">Gunakan tombol panah di bawah peta untuk menggambar jalur impianmu! (Mulai dari A7)</p>
+                        
+                        <!-- Mini Grid untuk Creator -->
+                        <div class="overflow-x-auto pb-4">
+                            <div id="creator-grid-container" class="game-grid creator-grid rounded-lg relative">
+                                <!-- Grid Creator akan digenerate via JS -->
+                            </div>
                         </div>
-                        <div id="custom-list" class="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                            <!-- Input list dik-generate lewat JS -->
+
+                        <!-- Kontrol Gambar Rute -->
+                        <div class="flex flex-col items-center gap-4 mt-2">
+                            <div class="grid grid-cols-3 gap-2 w-[180px]">
+                                <div></div>
+                                <button type="button" onclick="addCreatorStep('N')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition active:scale-95 text-xl">⬆️</button>
+                                <div></div>
+                                <button type="button" onclick="addCreatorStep('W')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition active:scale-95 text-xl">⬅️</button>
+                                <button type="button" onclick="addCreatorStep('S')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition active:scale-95 text-xl">⬇️</button>
+                                <button type="button" onclick="addCreatorStep('E')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition active:scale-95 text-xl">➡️</button>
+                            </div>
+                            
+                            <div class="flex gap-4 w-full justify-center mt-2">
+                                <button type="button" onclick="undoCreatorStep()" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition text-sm">
+                                    <span>↩️</span> Undo Langkah
+                                </button>
+                                <button type="button" onclick="resetCreatorGrid()" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition text-sm">
+                                    <span>🗑️</span> Hapus Peta
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Pesan Feedback Kreator -->
+                        <div id="creator-feedback" class="text-red-400 font-bold text-center mt-3 h-5 text-sm"></div>
+                        <div class="bg-gray-900 mt-3 p-3 rounded text-center border border-gray-700">
+                            <span class="text-xs text-gray-400 uppercase block mb-1">Rangkuman Instruksi Sistem:</span>
+                            <span id="creator-summary" class="text-yellow-400 font-bold text-sm">Belum ada rute tergambar.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button onclick="startGame()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-12 rounded-full text-xl transition duration-200 transform hover:scale-105 shadow-[0_0_15px_rgba(0,210,255,0.5)]">
+            <button id="btn-start-game" onclick="startGame()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-12 rounded-full text-xl transition duration-200 transform hover:scale-105 shadow-[0_0_15px_rgba(0,210,255,0.5)]">
                 Mulai Bermain
             </button>
         </div>
@@ -238,8 +280,10 @@
                 </div>
 
                 <!-- Game Grid Container -->
-                <div id="grid-container" class="game-grid rounded-lg overflow-hidden relative">
-                    <!-- Grid akan diisi via JavaScript -->
+                <div class="overflow-x-auto pb-4">
+                    <div id="main-grid-container" class="game-grid rounded-lg relative">
+                        <!-- Grid akan diisi via JavaScript -->
+                    </div>
                 </div>
                 
                 <!-- Input Koordinat Akhir (Khusus Mode Abstrak) -->
@@ -329,6 +373,13 @@
     </div>
 
     <script>
+        // === KONFIGURASI GLOBAL & HELPER ===
+        const arrowSymbols = { 'N': '↑', 'E': '→', 'S': '↓', 'W': '←' };
+        const emojiArrows = { 'N': '⬆️', 'E': '➡️', 'S': '⬇️', 'W': '⬅️' };
+        function getDirLabel(dir) {
+            return dir === 'N' ? 'Utara' : dir === 'S' ? 'Selatan' : dir === 'E' ? 'Timur' : 'Barat';
+        }
+
         // === DATA INSTRUKSI DEFAULT ===
         const defaultInstructions = [
             { dir: 'N', steps: 2, label: 'Utara' },
@@ -343,249 +394,31 @@
             { dir: 'E', steps: 2, label: 'Timur' }
         ];
 
-        // State Variabel Dinamis
+        // === STATE KREATOR PETA ===
+        let creatorPath = []; // Array pergerakan tunggal misal ['N', 'N', 'E']
+        let creatorX = 1;     // Posisi awal kreator (A7)
+        let creatorY = 7;
+        let isCreatorInitialized = false;
+
+        // === STATE PERMAINAN UTAMA ===
         let activeInstructions = [];
         let pathData = [];
         let targetFinalCol = 14; 
         let targetFinalRow = 10;
-
-        // State Permainan
         let currentAudioStep = 0;
         let currentRecallStep = 0;
-        let isPlayingAudio = false; // Flag untuk mencegah double klik saat audio main
-        
+        let isPlayingAudio = false; 
         let gameMode = 'grid'; 
         let playRule = 'latihan'; 
         let lives = 3;
         let playerSequence = []; 
-        
-        // Posisi Awal: A7
         let playerX = 1;
         let playerY = 7;
-
         const synth = window.speechSynthesis;
 
-        // Mode Kreator UI Functions
-        function toggleCustomMode() {
-            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
-            const customEditor = document.getElementById('custom-editor');
-            if (isCustom) {
-                customEditor.classList.remove('hidden');
-                renderCustomInputs();
-            } else {
-                customEditor.classList.add('hidden');
-            }
-        }
-
-        function renderCustomInputs() {
-            let count = parseInt(document.getElementById('custom-count').value);
-            if (count < 1) count = 1;
-            if (count > 20) count = 20; // Batasan wajar agar memori anak tidak terlalu lelah
-            
-            const list = document.getElementById('custom-list');
-            list.innerHTML = '';
-            
-            for (let i = 0; i < count; i++) {
-                list.innerHTML += `
-                    <div class="flex items-center gap-2 bg-gray-700 p-3 rounded custom-row shadow-sm border border-gray-600">
-                        <span class="text-cyan-400 font-bold w-6 text-right">${i+1}.</span>
-                        <select class="custom-dir flex-1 bg-gray-900 text-white border border-gray-500 rounded px-2 py-2 focus:border-cyan-400 focus:outline-none">
-                            <option value="N">⬆️ Utara</option>
-                            <option value="E">➡️ Timur</option>
-                            <option value="S">⬇️ Selatan</option>
-                            <option value="W">⬅️ Barat</option>
-                        </select>
-                        <input type="number" class="custom-steps bg-gray-900 text-white font-bold border border-gray-500 rounded px-2 py-2 w-20 text-center focus:border-cyan-400 focus:outline-none" min="1" max="14" value="2">
-                        <span class="text-gray-300 text-sm">langkah</span>
-                    </div>
-                `;
-            }
-        }
-
-        function showScreen(screenId) {
-            ['screen-intro', 'screen-memorize', 'screen-recall', 'screen-gameover', 'screen-result'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
-            document.getElementById(screenId).classList.add('block');
-        }
-
-        function startGame() {
-            gameMode = document.querySelector('input[name="vmode"]:checked').value;
-            playRule = document.querySelector('input[name="prule"]:checked').value;
-            
-            // Proses pengambilan instruksi (Default atau Custom)
-            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
-            activeInstructions = [];
-            
-            if (isCustom) {
-                const rows = document.querySelectorAll('.custom-row');
-                rows.forEach(row => {
-                    const dir = row.querySelector('.custom-dir').value;
-                    const steps = parseInt(row.querySelector('.custom-steps').value) || 1;
-                    const label = dir === 'N' ? 'Utara' : dir === 'S' ? 'Selatan' : dir === 'E' ? 'Timur' : 'Barat';
-                    activeInstructions.push({ dir, steps, label });
-                });
-            } else {
-                activeInstructions = defaultInstructions.slice();
-            }
-
-            // Memecah instruksi gabungan menjadi langkah-langkah tunggal
-            pathData = [];
-            let finalX = 1; let finalY = 7; // Semua permainan selalu dimulai di A7
-            
-            activeInstructions.forEach(inst => {
-                for (let i = 0; i < inst.steps; i++) {
-                    let dx = 0, dy = 0;
-                    if (inst.dir === 'N') dy = -1;
-                    if (inst.dir === 'S') dy = 1;
-                    if (inst.dir === 'E') dx = 1;
-                    if (inst.dir === 'W') dx = -1;
-                    pathData.push({ action: inst.dir, dx: dx, dy: dy });
-                    
-                    // Kalkulasi posisi akhir rute (dengan batasan peta 14x14)
-                    finalX += dx; finalY += dy;
-                    finalX = Math.max(1, Math.min(14, finalX));
-                    finalY = Math.max(1, Math.min(14, finalY));
-                }
-            });
-            
-            // Simpan posisi dinamis untuk evaluasi mode Abstrak
-            targetFinalCol = finalX;
-            targetFinalRow = finalY;
-
-            // Update info di UI (Fase Audio & Fase Main)
-            document.getElementById('total-instructions').innerText = activeInstructions.length;
-            document.getElementById('total-steps').innerText = pathData.length;
-            document.getElementById('final-total-score').innerText = `/${pathData.length}`;
-
-            // Reset state
-            currentAudioStep = 0;
-            currentRecallStep = 0;
-            playerSequence = [];
-            lives = 3;
-            playerX = 1;
-            playerY = 7;
-            isPlayingAudio = false;
-            if (synth.speaking) synth.cancel();
-            
-            // Reset UI Audio Button
-            const btn = document.getElementById('btn-play-audio');
-            btn.innerText = "Putar Instruksi Suara";
-            btn.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
-            btn.classList.remove('bg-green-500', 'hover:bg-green-400', 'opacity-50', 'cursor-not-allowed');
-            btn.disabled = false;
-            btn.onclick = playNextAudio; // Kembalikan fungsionalitas memutar audio
-            document.getElementById('step-counter').innerText = '0';
-
-            showScreen('screen-memorize');
-        }
-
-        // --- FUNGSI BARU: PEMUTARAN AUDIO BERKELOMPOK (CHUNKING) ---
-        function playNextAudio() {
-            if (isPlayingAudio || currentAudioStep >= activeInstructions.length) {
-                return;
-            }
-
-            // Ambil pengaturan batch size
-            const batchSetting = document.getElementById('audio-batch-size').value;
-            const sisaInstruksi = activeInstructions.length - currentAudioStep;
-            const batchCount = batchSetting === 'all' ? sisaInstruksi : Math.min(parseInt(batchSetting), sisaInstruksi);
-            
-            // Buat antrean instruksi untuk diputar
-            let queue = [];
-            for (let i = 0; i < batchCount; i++) {
-                queue.push(activeInstructions[currentAudioStep + i]);
-            }
-            
-            if (queue.length > 0) {
-                isPlayingAudio = true;
-                const btn = document.getElementById('btn-play-audio');
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                btn.innerText = "Sedang Memutar...";
-                
-                playUtteranceQueue(queue, 0);
-            }
-        }
-
-        function playUtteranceQueue(queue, index) {
-            // Base case: antrean selesai
-            if (index >= queue.length) {
-                isPlayingAudio = false;
-                const btn = document.getElementById('btn-play-audio');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                
-                // Cek jika seluruh instruksi game sudah selesai dibacakan
-                if (currentAudioStep >= activeInstructions.length) {
-                    btn.innerText = "Mulai Bergerak Sekarang!";
-                    btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-                    btn.classList.add('bg-green-500', 'hover:bg-green-400');
-                    // Ubah fungsi tombol untuk lanjut ke fase recall
-                    btn.onclick = startRecallPhase; 
-                } else {
-                    btn.innerText = "Putar Instruksi Selanjutnya";
-                }
-                return;
-            }
-
-            const inst = queue[index];
-            let textToSpeak = `Arah ${inst.label}, ${inst.steps} langkah`;
-
-            const utterThis = new SpeechSynthesisUtterance(textToSpeak);
-            utterThis.lang = 'id-ID'; 
-            
-            // Ambil setting kecepatan bicara secara realtime
-            const speedSetting = parseFloat(document.getElementById('audio-speed').value);
-            utterThis.rate = speedSetting; 
-            
-            utterThis.onstart = () => { 
-                document.getElementById('audio-icon').classList.add('scale-125', 'text-yellow-400'); 
-            };
-            
-            utterThis.onend = () => { 
-                document.getElementById('audio-icon').classList.remove('scale-125', 'text-yellow-400');
-                
-                currentAudioStep++;
-                document.getElementById('step-counter').innerText = currentAudioStep;
-                
-                // Beri jeda 500ms agar otak anak bisa mencerna info sebelumnya
-                setTimeout(() => {
-                    playUtteranceQueue(queue, index + 1);
-                }, 500);
-            };
-
-            synth.speak(utterThis);
-        }
-        // -------------------------------------------------------------
-
-        function startRecallPhase() {
-            if (synth.speaking) synth.cancel(); // Pastikan suara mati saat pindah layar
-            showScreen('screen-recall');
-            
-            if (playRule === 'nyawa') {
-                document.getElementById('lives-display').classList.remove('hidden');
-                updateLivesUI();
-            }
-            if (playRule === 'ujian') {
-                document.getElementById('recall-title').innerText = "Mode Evaluasi";
-                document.getElementById('recall-subtitle').innerText = "Masukkan seluruh langkahmu tanpa bantuan koreksi.";
-            }
-
-            if (gameMode === 'grid') {
-                document.getElementById('grid-container').classList.remove('hidden');
-                document.getElementById('abstract-hint').classList.add('hidden');
-                generateGrid();
-                updateCell(playerX, playerY, 'start-avatar', 'N');
-            } else {
-                document.getElementById('grid-container').classList.add('hidden');
-                document.getElementById('abstract-hint').classList.remove('hidden');
-            }
-        }
-
-        function generateGrid() {
-            const container = document.getElementById('grid-container');
+        // === FUNGSI GRID BUILDER & UPDATER ===
+        function generateGrid(containerId) {
+            const container = document.getElementById(containerId);
             container.innerHTML = '';
             const columns = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
 
@@ -603,31 +436,35 @@
 
                 for (let col = 1; col <= 14; col++) {
                     const cell = document.createElement('div');
-                    cell.className = 'grid-cell'; cell.id = `cell-${col}-${row}`;
+                    cell.className = 'grid-cell'; 
+                    cell.id = `cell-${containerId}-${col}-${row}`;
                     container.appendChild(cell);
                 }
             }
         }
 
-        const arrowSymbols = { 'N': '↑', 'E': '→', 'S': '↓', 'W': '←' };
-        const emojiArrows = { 'N': '⬆️', 'E': '➡️', 'S': '⬇️', 'W': '⬅️' };
-
-        function updateCell(col, row, type, heading) {
-            const cell = document.getElementById(`cell-${col}-${row}`);
+        function updateCell(containerId, col, row, type, heading) {
+            const cell = document.getElementById(`cell-${containerId}-${col}-${row}`);
             if (!cell) return;
             
             cell.innerHTML = '';
             const node = document.createElement('div');
-            node.className = `path-node ${playRule === 'ujian' && type !== 'start-avatar' ? 'ujian-mode' : ''}`;
+            
+            // Tambahkan kelas mode khusus
+            let modeClass = '';
+            if(playRule === 'ujian' && type !== 'start-avatar' && containerId === 'main-grid-container') modeClass = 'ujian-mode';
+            if(containerId === 'creator-grid-container') modeClass = 'creator-mode';
+            
+            node.className = `path-node ${modeClass}`;
             const span = document.createElement('span');
 
-            // Kita tampilkan panah statis berdasarkan arah pergerakan absolut
             let arrowContent = `<div class="flex flex-col items-center leading-none mt-1"><span class="text-[14px]">🧍</span><span class="text-[10px] -mt-1 font-black">${emojiArrows[heading] || ''}</span></div>`;
 
             if (type === 'start-avatar') {
                 node.classList.add('start');
                 const label = document.createElement('div');
-                label.className = 'absolute -left-12 text-red-500 text-sm font-bold'; label.innerText = 'Start';
+                label.className = 'absolute -left-10 md:-left-12 text-red-500 text-xs md:text-sm font-bold bg-gray-900 px-1 rounded'; 
+                label.innerText = 'Start';
                 node.appendChild(label);
                 span.innerHTML = arrowContent;
             } 
@@ -648,6 +485,320 @@
 
             node.appendChild(span);
             cell.appendChild(node);
+        }
+
+        // === FUNGSI KREATOR PETA (CUSTOM MODE) ===
+        function toggleCustomMode() {
+            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
+            const customEditor = document.getElementById('custom-editor');
+            if (isCustom) {
+                customEditor.classList.remove('hidden');
+                if (!isCreatorInitialized) {
+                    generateGrid('creator-grid-container');
+                    resetCreatorGrid();
+                    isCreatorInitialized = true;
+                }
+            } else {
+                customEditor.classList.add('hidden');
+                document.getElementById('creator-feedback').innerText = '';
+            }
+            validateStartButton();
+        }
+
+        function renderCreatorPath() {
+            // Bersihkan isi grid kreator secara cepat dengan regenerate strukturnya
+            generateGrid('creator-grid-container');
+            
+            let cx = 1, cy = 7;
+            
+            // Jika belum ada path, gambar avatar di Start
+            if (creatorPath.length === 0) {
+                updateCell('creator-grid-container', cx, cy, 'start-avatar', 'N');
+                updateCreatorSummary();
+                return;
+            }
+
+            // Mulai render jejak
+            for(let i = 0; i < creatorPath.length; i++) {
+                let dir = creatorPath[i];
+                let isStartCell = (i === 0);
+                
+                // Gambar ekor di cell saat ini sebelum melangkah
+                updateCell('creator-grid-container', cx, cy, isStartCell ? 'start-path' : 'path', dir);
+                
+                // Maju 1 langkah
+                if(dir==='N') cy--; if(dir==='S') cy++; if(dir==='E') cx++; if(dir==='W') cx--;
+                
+                // Gambar kepala/avatar di posisi baru
+                let isLast = (i === creatorPath.length - 1);
+                if(isLast) {
+                    updateCell('creator-grid-container', cx, cy, 'avatar', dir);
+                } else {
+                    updateCell('creator-grid-container', cx, cy, 'path', creatorPath[i+1]); // Panah arah jalan berikutnya
+                }
+            }
+            creatorX = cx;
+            creatorY = cy;
+            updateCreatorSummary();
+            validateStartButton();
+        }
+
+        function addCreatorStep(dir) {
+            const fb = document.getElementById('creator-feedback');
+            
+            // Hitung kandidat posisi berikutnya
+            let nx = creatorX, ny = creatorY;
+            if(dir==='N') ny--; if(dir==='S') ny++; if(dir==='E') nx++; if(dir==='W') nx--;
+            
+            // Validasi tabrak tembok (Grid Boundary 14x14)
+            if(nx < 1 || nx > 14 || ny < 1 || ny > 14) {
+                fb.innerText = "❌ Oups! Mentok di batas peta. Coba arah lain.";
+                return;
+            }
+            
+            // Validasi rute menabrak jalurnya sendiri (Self-intersection)
+            // Ini bisa jadi fitur atau larangan. Untuk simplifikasi memori anak, rute sebaiknya tidak ruwet.
+            // Biarkan saja bisa menimpa, karena ini melatih mapping abstrak juga.
+            
+            fb.innerText = "";
+            creatorPath.push(dir);
+            creatorX = nx;
+            creatorY = ny;
+            renderCreatorPath();
+        }
+
+        function undoCreatorStep() {
+            if(creatorPath.length > 0) {
+                creatorPath.pop();
+                document.getElementById('creator-feedback').innerText = "";
+                renderCreatorPath();
+            }
+        }
+
+        function resetCreatorGrid() {
+            creatorPath = [];
+            creatorX = 1;
+            creatorY = 7;
+            document.getElementById('creator-feedback').innerText = "";
+            renderCreatorPath();
+        }
+
+        function compileCreatorInstructions() {
+            if(creatorPath.length === 0) return [];
+            
+            let instructions = [];
+            let currentDir = creatorPath[0];
+            let count = 1;
+            
+            for(let i = 1; i < creatorPath.length; i++) {
+                if(creatorPath[i] === currentDir) {
+                    count++;
+                } else {
+                    instructions.push({ dir: currentDir, steps: count, label: getDirLabel(currentDir) });
+                    currentDir = creatorPath[i];
+                    count = 1;
+                }
+            }
+            // Push sisanya
+            instructions.push({ dir: currentDir, steps: count, label: getDirLabel(currentDir) });
+            return instructions;
+        }
+
+        function updateCreatorSummary() {
+            const sumEl = document.getElementById('creator-summary');
+            if(creatorPath.length === 0) {
+                sumEl.innerText = "Belum ada rute tergambar.";
+                return;
+            }
+            const compiled = compileCreatorInstructions();
+            let sumText = compiled.map(ins => `${ins.steps} ${ins.label}`).join(" ➔ ");
+            sumEl.innerText = sumText;
+        }
+
+        function validateStartButton() {
+            const btn = document.getElementById('btn-start-game');
+            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
+            
+            if (isCustom && creatorPath.length === 0) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerText = "Gambar Rute Dahulu!";
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerText = "Mulai Bermain";
+            }
+        }
+
+        // === FUNGSI KONTROL LAYAR ===
+        function showScreen(screenId) {
+            ['screen-intro', 'screen-memorize', 'screen-recall', 'screen-gameover', 'screen-result'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById(screenId).classList.add('block');
+        }
+
+        // === INISIALISASI GAME ===
+        function startGame() {
+            gameMode = document.querySelector('input[name="vmode"]:checked').value;
+            playRule = document.querySelector('input[name="prule"]:checked').value;
+            
+            // Proses pengambilan instruksi (Default atau Custom via Grid)
+            const isCustom = document.querySelector('input[name="levelmode"]:checked').value === 'custom';
+            activeInstructions = [];
+            
+            if (isCustom) {
+                activeInstructions = compileCreatorInstructions();
+                if(activeInstructions.length === 0) return; // Penjaga keamanan ekstra
+            } else {
+                activeInstructions = defaultInstructions.slice();
+            }
+
+            // Memecah instruksi gabungan menjadi langkah-langkah tunggal untuk divalidasi player
+            pathData = [];
+            let finalX = 1; let finalY = 7; 
+            
+            activeInstructions.forEach(inst => {
+                for (let i = 0; i < inst.steps; i++) {
+                    let dx = 0, dy = 0;
+                    if (inst.dir === 'N') dy = -1;
+                    if (inst.dir === 'S') dy = 1;
+                    if (inst.dir === 'E') dx = 1;
+                    if (inst.dir === 'W') dx = -1;
+                    pathData.push({ action: inst.dir, dx: dx, dy: dy });
+                    
+                    finalX += dx; finalY += dy;
+                    finalX = Math.max(1, Math.min(14, finalX));
+                    finalY = Math.max(1, Math.min(14, finalY));
+                }
+            });
+            
+            targetFinalCol = finalX;
+            targetFinalRow = finalY;
+
+            // Update info di UI Main
+            document.getElementById('total-instructions').innerText = activeInstructions.length;
+            document.getElementById('total-steps').innerText = pathData.length;
+            document.getElementById('final-total-score').innerText = `/${pathData.length}`;
+
+            // Reset state game
+            currentAudioStep = 0;
+            currentRecallStep = 0;
+            playerSequence = [];
+            lives = 3;
+            playerX = 1;
+            playerY = 7;
+            isPlayingAudio = false;
+            if (synth.speaking) synth.cancel();
+            
+            // Reset UI Audio Button
+            const btnAudio = document.getElementById('btn-play-audio');
+            btnAudio.innerText = "Putar Instruksi Suara";
+            btnAudio.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
+            btnAudio.classList.remove('bg-green-500', 'hover:bg-green-400', 'opacity-50', 'cursor-not-allowed');
+            btnAudio.disabled = false;
+            btnAudio.onclick = playNextAudio; 
+            document.getElementById('step-counter').innerText = '0';
+
+            showScreen('screen-memorize');
+        }
+
+        // === FUNGSI AUDIO BERKELOMPOK (CHUNKING) ===
+        function playNextAudio() {
+            if (isPlayingAudio || currentAudioStep >= activeInstructions.length) {
+                return;
+            }
+
+            const batchSetting = document.getElementById('audio-batch-size').value;
+            const sisaInstruksi = activeInstructions.length - currentAudioStep;
+            const batchCount = batchSetting === 'all' ? sisaInstruksi : Math.min(parseInt(batchSetting), sisaInstruksi);
+            
+            let queue = [];
+            for (let i = 0; i < batchCount; i++) {
+                queue.push(activeInstructions[currentAudioStep + i]);
+            }
+            
+            if (queue.length > 0) {
+                isPlayingAudio = true;
+                const btn = document.getElementById('btn-play-audio');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerText = "Sedang Memutar...";
+                
+                playUtteranceQueue(queue, 0);
+            }
+        }
+
+        function playUtteranceQueue(queue, index) {
+            if (index >= queue.length) {
+                isPlayingAudio = false;
+                const btn = document.getElementById('btn-play-audio');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                if (currentAudioStep >= activeInstructions.length) {
+                    btn.innerText = "Mulai Bergerak Sekarang!";
+                    btn.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                    btn.classList.add('bg-green-500', 'hover:bg-green-400');
+                    btn.onclick = startRecallPhase; 
+                } else {
+                    btn.innerText = "Putar Instruksi Selanjutnya";
+                }
+                return;
+            }
+
+            const inst = queue[index];
+            let textToSpeak = `Arah ${inst.label}, ${inst.steps} langkah`;
+
+            const utterThis = new SpeechSynthesisUtterance(textToSpeak);
+            utterThis.lang = 'id-ID'; 
+            
+            const speedSetting = parseFloat(document.getElementById('audio-speed').value);
+            utterThis.rate = speedSetting; 
+            
+            utterThis.onstart = () => { 
+                document.getElementById('audio-icon').classList.add('scale-125', 'text-yellow-400'); 
+            };
+            
+            utterThis.onend = () => { 
+                document.getElementById('audio-icon').classList.remove('scale-125', 'text-yellow-400');
+                
+                currentAudioStep++;
+                document.getElementById('step-counter').innerText = currentAudioStep;
+                
+                // Jeda 500ms agar memori kerja tidak kewalahan
+                setTimeout(() => {
+                    playUtteranceQueue(queue, index + 1);
+                }, 500);
+            };
+
+            synth.speak(utterThis);
+        }
+
+        // === FUNGSI FASE MENGINGAT (RECALL PHASE) ===
+        function startRecallPhase() {
+            if (synth.speaking) synth.cancel(); 
+            showScreen('screen-recall');
+            
+            if (playRule === 'nyawa') {
+                document.getElementById('lives-display').classList.remove('hidden');
+                updateLivesUI();
+            }
+            if (playRule === 'ujian') {
+                document.getElementById('recall-title').innerText = "Mode Evaluasi";
+                document.getElementById('recall-subtitle').innerText = "Masukkan seluruh langkahmu tanpa bantuan koreksi.";
+            }
+
+            if (gameMode === 'grid') {
+                document.getElementById('main-grid-container').classList.remove('hidden');
+                document.getElementById('abstract-hint').classList.add('hidden');
+                generateGrid('main-grid-container');
+                updateCell('main-grid-container', playerX, playerY, 'start-avatar', 'N');
+            } else {
+                document.getElementById('main-grid-container').classList.add('hidden');
+                document.getElementById('abstract-hint').classList.remove('hidden');
+            }
         }
 
         function updateLivesUI() {
@@ -683,9 +834,9 @@
                     const {nx, ny} = getSimulatedPosition(playerX, playerY, actionInput);
                     const isStartCell = (currentRecallStep === 0);
                     
-                    updateCell(playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
+                    updateCell('main-grid-container', playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
                     playerX = nx; playerY = ny; 
-                    updateCell(playerX, playerY, 'avatar', actionInput);
+                    updateCell('main-grid-container', playerX, playerY, 'avatar', actionInput);
                 }
                 
                 currentRecallStep++;
@@ -711,7 +862,7 @@
                 
                 if (gameMode === 'grid') {
                     const isStartCell = (currentRecallStep === 0);
-                    updateCell(playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
+                    updateCell('main-grid-container', playerX, playerY, isStartCell ? 'start-path' : 'path', actionInput);
                 }
 
                 playerX += correctMove.dx;
@@ -724,7 +875,7 @@
                 
                 if (isFinish) {
                     if (gameMode === 'grid') {
-                        updateCell(playerX, playerY, 'finish', actionInput);
+                        updateCell('main-grid-container', playerX, playerY, 'finish', actionInput);
                         setTimeout(() => showScreen('screen-result'), 800);
                     } else {
                         controlsContainer.classList.add('hidden');
@@ -732,7 +883,7 @@
                     }
                 } else {
                     if (gameMode === 'grid') {
-                        updateCell(playerX, playerY, 'avatar', actionInput); // Arah panah avatar ke arah langkah tadi
+                        updateCell('main-grid-container', playerX, playerY, 'avatar', actionInput);
                     }
                 }
                 
@@ -756,6 +907,7 @@
             }
         }
 
+        // === FUNGSI EVALUASI AKHIR ===
         function calculateUjianScore(isAbstractAndCorrectCoord = null) {
             let correctCount = 0;
             for(let i=0; i<pathData.length; i++) {
@@ -784,7 +936,6 @@
             const colIndex = parseInt(document.getElementById('final-col').value);
             const rowIndex = parseInt(document.getElementById('final-row').value);
             
-            // Posisi Finish dievaluasi secara dinamis berdasarkan path rute kustom
             const isCoordCorrect = (colIndex === targetFinalCol && rowIndex === targetFinalRow); 
             
             if (playRule === 'ujian') {
