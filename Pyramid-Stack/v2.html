@@ -121,15 +121,32 @@
         max-width: 800px;
     }
 
-    /* Pengaturan Grid Dinamis */
+    /* Pengaturan Grid Dinamis Bertabel */
     .grid-container {
         display: grid;
         /* Kolom diatur dinamis via JS berdasarkan jumlah data */
-        gap: 25px 15px; 
-        justify-items: center;
-        align-items: center;
-        padding: 20px 0;
+        gap: 2px; /* Gap ini akan berfungsi sebagai garis tebal antar sel grid */
+        background-color: #90A4AE; /* Warna garis grid */
+        border: 4px solid #607D8B; /* Bingkai luar tabel */
+        border-radius: 8px;
+        padding: 2px;
+        margin: 20px 0;
         overflow-x: auto; 
+    }
+
+    /* Pengaturan Sel di dalam Grid */
+    .grid-cell {
+        background-color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 10px;
+        min-height: 80px; /* Menjaga sel tetap proporsional meskipun kosong */
+    }
+
+    /* Pengaturan Sel Khusus Header (Koordinat) */
+    .coord-bg {
+        background-color: #ECEFF1;
     }
 
     .coord-label {
@@ -316,19 +333,25 @@
         const cols = Math.min(10, totalItems); // Maksimal 10 kolom
         const rows = Math.ceil(totalItems / cols);
 
-        // Atur Grid dinamis via CSS
-        grid.style.gridTemplateColumns = `40px repeat(${cols}, 1fr)`;
+        // Atur Grid dinamis via CSS (kolom koordinat sedikit lebih lebar untuk margin)
+        grid.style.gridTemplateColumns = `50px repeat(${cols}, 1fr)`;
 
         // 1. Sudut kiri atas kosong
         const emptyCorner = document.createElement('div');
+        emptyCorner.className = 'grid-cell coord-bg';
         grid.appendChild(emptyCorner);
 
         // 2. Baris Header Kolom (Huruf A, B, C...)
         for(let c = 0; c < cols; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell coord-bg';
+            
             const label = document.createElement('div');
             label.className = 'coord-label';
             label.innerText = String.fromCharCode(65 + c); // 65 adalah ASCII untuk 'A'
-            grid.appendChild(label);
+            
+            cell.appendChild(label);
+            grid.appendChild(cell);
         }
 
         // 3. Render Baris dan Berliannya
@@ -339,12 +362,22 @@
         const step = (wrapperSize - innerSize) / (numLayers - 1); 
 
         for (let r = 1; r <= rows; r++) {
+            // Kolom pertama untuk Angka Baris
+            const rowCell = document.createElement('div');
+            rowCell.className = 'grid-cell coord-bg';
+            
             const rowLabel = document.createElement('div');
             rowLabel.className = 'coord-label';
             rowLabel.innerText = r;
-            grid.appendChild(rowLabel);
+            
+            rowCell.appendChild(rowLabel);
+            grid.appendChild(rowCell);
 
+            // Kolom-kolom Berlian
             for (let c = 0; c < cols; c++) {
+                const diamondCell = document.createElement('div');
+                diamondCell.className = 'grid-cell';
+
                 if (diamondIndex < selectedData.length) {
                     const combo = selectedData[diamondIndex];
                     const wrapper = document.createElement('div');
@@ -372,13 +405,11 @@
                     crossLines.className = 'cross-lines';
                     wrapper.appendChild(crossLines); 
 
-                    grid.appendChild(wrapper);
+                    diamondCell.appendChild(wrapper);
                     diamondIndex++;
-                } else {
-                    // Isi sel kosong jika grid tidak terisi penuh di baris terakhir
-                    const emptyCell = document.createElement('div');
-                    grid.appendChild(emptyCell);
                 }
+                
+                grid.appendChild(diamondCell);
             }
         }
     }
