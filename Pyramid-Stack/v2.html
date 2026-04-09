@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eksplorasi Dinamis Berlian Kombinatorika</title>
+<style>
+    :root {
+        /* Palet 5 Warna Cerah */
+        --c-merah: #fa0505;   /* 1. Merah */
+        --c-kuning: #faee05;  /* 2. Kuning */
+        --c-biru: #0905fa;    /* 3. Biru */
+        --c-hijau: #05fa32;   /* 4. Hijau */
+        --c-ungu: #b700ff;    /* 5. Ungu */
+        
+        --bg-color: #F8F9FA;
+        --text-color: #333;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    h1 { 
+        text-align: center; 
+        color: #2C3E50; 
+        font-size: 28px; 
+        margin-bottom: 10px;
+    }
+
+    .info-box {
+        background-color: #E3F2FD;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 6px solid #29B6F6;
+        margin-bottom: 20px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .info-box h3 { margin-top: 0; color: #0277BD; margin-bottom: 10px;}
+
+    /* Panel Pengaturan (Settings) */
+    .settings-panel {
+        background-color: #FFF9C4;
+        border: 2px dashed #FBC02D;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .setting-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-weight: bold;
+        color: #F57F17;
+    }
+
+    .setting-item input {
+        margin-top: 8px;
+        padding: 8px;
+        width: 80px;
+        text-align: center;
+        font-size: 16px;
+        border: 2px solid #FBC02D;
+        border-radius: 8px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    button.btn-generate {
+        background-color: #FF4081;
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 50px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+        transition: all 0.2s ease;
+        margin-top: 10px;
+    }
+
+    button.btn-generate:hover { 
+        background-color: #F50057; 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 64, 129, 0.5);
+    }
+    
+    button.btn-generate:active { transform: scale(0.95); }
+
+    .math-fact {
+        text-align: center;
+        font-size: 16px;
+        color: #27AE60;
+        font-weight: bold;
+        background-color: #E8F8F5;
+        padding: 10px;
+        border-radius: 8px;
+        margin: 15px auto;
+        max-width: 800px;
+    }
+
+    /* Pengaturan Grid Dinamis */
+    .grid-container {
+        display: grid;
+        /* Kolom diatur dinamis via JS berdasarkan jumlah data */
+        gap: 25px 15px; 
+        justify-items: center;
+        align-items: center;
+        padding: 20px 0;
+        overflow-x: auto; 
+    }
+
+    .coord-label {
+        font-weight: bold;
+        color: #0277BD;
+        font-size: 16px;
+        font-family: monospace;
+        background-color: #E1F5FE;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .diamond-wrapper {
+        position: relative;
+        width: 64px;
+        height: 64px;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: crosshair;
+    }
+
+    .diamond-wrapper:hover {
+        transform: scale(1.6);
+        z-index: 100;
+    }
+
+    .layer {
+        position: absolute;
+        transform: rotate(45deg);
+        transform-origin: center;
+        border: 2px solid rgba(0,0,0,0.6); /* Garis batas antar lapisan ditebalkan */
+        box-sizing: border-box;
+    }
+
+    /* Garis Silang Tengah */
+    .cross-lines {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none; 
+    }
+    .cross-lines::before, .cross-lines::after {
+        content: '';
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.6); /* Ditebalkan agar serasi dengan batas lapisan */
+    }
+    .cross-lines::before { width: 2px; height: 100%; left: 50%; transform: translateX(-50%); }
+    .cross-lines::after { width: 100%; height: 2px; top: 50%; transform: translateY(-50%); }
+
+    @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .diamond-wrapper {
+        animation: fadeInScale 0.5s ease backwards;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Laboratorium Kombinasi Berlian</h1>
+    
+    <div class="info-box">
+        <h3>Halo Peneliti Cilik! 🔬🌟</h3>
+        <p>Di lab ini, kamu adalah ilmuwannya! Kamu bisa mengatur sendiri bentuk berlian yang ingin kamu ciptakan.</p>
+        <p><strong>Aturan Bebas Laboratorium:</strong> Warna pada lapisan yang menempel (bersebelahan) <strong>SEKARANG BOLEH SAMA</strong>. Beberapa kombinasi bahkan mungkin hanya menggunakan 1 atau 2 warna saja!</p>
+        <p><em>Tugasmu: Sebelum menekan tombol acak, bisakah kamu menebak ada berapa banyak kombinasi maksimal yang bisa terbentuk dari pengaturanmu?</em></p>
+    </div>
+
+    <!-- Panel Pengaturan Dinamis -->
+    <div class="settings-panel">
+        <div class="setting-item">
+            <label for="input-layers">Jumlah Lapis (3-5)</label>
+            <input type="number" id="input-layers" min="3" max="5" value="4">
+        </div>
+        <div class="setting-item">
+            <label for="input-colors">Jumlah Warna (1-5)</label>
+            <input type="number" id="input-colors" min="1" max="5" value="3">
+        </div>
+        <div class="setting-item">
+            <label for="input-limit">Tampilkan Berapa?</label>
+            <input type="number" id="input-limit" min="1" value="24">
+        </div>
+        <div style="width: 100%; text-align: center;">
+            <button class="btn-generate" onclick="applyAndGenerate()">Terapkan & Buat Berlian!</button>
+        </div>
+    </div>
+
+    <div id="math-fact-container" class="math-fact" style="display: none;"></div>
+
+    <div class="grid-container" id="grid"></div>
+
+</div>
+
+<script>
+    // Palet 5 Warna Maksimal (Merah, Kuning, Biru, Hijau, Ungu)
+    const baseColors = ['#fa0505', '#faee05', '#0905fa', '#05fa32', '#b700ff']; 
+
+    // Fungsi Rekursif untuk mencari kombinasi (Sangat cocok dengan logika Matematika abstrak)
+    function getCombinations(numLayers, numColors) {
+        let results = [];
+        const activeColors = baseColors.slice(0, numColors);
+
+        function backtrack(layerIndex, currentCombo) {
+            // Jika sudah mencapai jumlah lapisan yang diinginkan, simpan kombinasinya
+            if (layerIndex === numLayers) {
+                results.push([...currentCombo]);
+                return;
+            }
+
+            // Coba setiap warna untuk lapisan saat ini
+            for (let c of activeColors) {
+                // Aturan Bebas: Boleh menggunakan warna yang sama dengan lapisan sebelumnya
+                currentCombo.push(c);
+                backtrack(layerIndex + 1, currentCombo); // Cari lapis berikutnya
+                currentCombo.pop(); // Mundur (backtrack) untuk mencoba warna lain
+            }
+        }
+
+        backtrack(0, []); // Mulai pencarian dari lapis ke-0
+        return results;
+    }
+
+    function applyAndGenerate() {
+        // 1. Ambil nilai dari input pengguna dan pastikan batasannya
+        let inputLayers = parseInt(document.getElementById('input-layers').value);
+        let inputColors = parseInt(document.getElementById('input-colors').value);
+        let inputLimit = parseInt(document.getElementById('input-limit').value);
+
+        // Validasi pembatasan
+        if(inputLayers < 3) inputLayers = 3; if(inputLayers > 5) inputLayers = 5;
+        if(inputColors < 1) inputColors = 1; if(inputColors > 5) inputColors = 5;
+        if(inputLimit < 1) inputLimit = 1;
+
+        document.getElementById('input-layers').value = inputLayers;
+        document.getElementById('input-colors').value = inputColors;
+
+        // 2. Dapatkan seluruh kombinasi yang mungkin secara matematis
+        let combinations = getCombinations(inputLayers, inputColors);
+        let maxMathPossibility = combinations.length;
+
+        // 3. Update Fakta Matematika (Jembatan dari Pictorial ke Abstract)
+        const factBox = document.getElementById('math-fact-container');
+        
+        // Rumus eksponensial: Warna ^ Lapis
+        let mathString = `${inputColors}`;
+        for(let i = 1; i < inputLayers; i++) {
+            mathString += ` &times; ${inputColors}`;
+        }
+        factBox.innerHTML = `🧠 <strong>Fakta Matematika:</strong> Total maksimal kombinasi adalah <strong>${maxMathPossibility}</strong>!<br> <em>(Rumus: Tiap lapisan punya ${inputColors} pilihan warna bebas &rarr; ${mathString} = ${maxMathPossibility})</em>`;
+        factBox.style.color = "#27AE60";
+        factBox.style.display = "block";
+
+        // 4. Batasi jumlah yang akan dirender sesuai permintaan, lalu acak
+        let limit = Math.min(inputLimit, maxMathPossibility);
+        document.getElementById('input-limit').value = limit; // update input jika melebihi batas
+
+        for (let i = combinations.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [combinations[i], combinations[j]] = [combinations[j], combinations[i]];
+        }
+        
+        const selected = combinations.slice(0, limit);
+        renderGrid(selected, inputLayers);
+    }
+
+    function renderGrid(selectedData, numLayers) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = ''; 
+
+        if(selectedData.length === 0) return; // Jika kosong, berhenti render
+
+        // Hitung baris dan kolom yang optimal
+        const totalItems = selectedData.length;
+        const cols = Math.min(10, totalItems); // Maksimal 10 kolom
+        const rows = Math.ceil(totalItems / cols);
+
+        // Atur Grid dinamis via CSS
+        grid.style.gridTemplateColumns = `40px repeat(${cols}, 1fr)`;
+
+        // 1. Sudut kiri atas kosong
+        const emptyCorner = document.createElement('div');
+        grid.appendChild(emptyCorner);
+
+        // 2. Baris Header Kolom (Huruf A, B, C...)
+        for(let c = 0; c < cols; c++) {
+            const label = document.createElement('div');
+            label.className = 'coord-label';
+            label.innerText = String.fromCharCode(65 + c); // 65 adalah ASCII untuk 'A'
+            grid.appendChild(label);
+        }
+
+        // 3. Render Baris dan Berliannya
+        let diamondIndex = 0;
+        const wrapperSize = 64; // Ukuran kotak terluar
+        const innerSize = 10;   // Ukuran kotak paling dalam
+        // Hitung selisih jarak antar lapisan agar dinamis
+        const step = (wrapperSize - innerSize) / (numLayers - 1); 
+
+        for (let r = 1; r <= rows; r++) {
+            const rowLabel = document.createElement('div');
+            rowLabel.className = 'coord-label';
+            rowLabel.innerText = r;
+            grid.appendChild(rowLabel);
+
+            for (let c = 0; c < cols; c++) {
+                if (diamondIndex < selectedData.length) {
+                    const combo = selectedData[diamondIndex];
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'diamond-wrapper';
+                    wrapper.title = `Posisi ${String.fromCharCode(65 + c)}${r} (Kombinasi #${diamondIndex + 1})`;
+                    wrapper.style.animationDelay = `${(r+c) * 0.02}s`; 
+
+                    // Gambar lapisan secara dinamis
+                    for(let l = 0; l < numLayers; l++) {
+                        const size = wrapperSize - (l * step);
+                        const offset = (wrapperSize - size) / 2; // Pusatkan
+                        
+                        const layerDiv = document.createElement('div');
+                        layerDiv.className = 'layer';
+                        layerDiv.style.width = `${size}px`;
+                        layerDiv.style.height = `${size}px`;
+                        layerDiv.style.top = `${offset}px`;
+                        layerDiv.style.left = `${offset}px`;
+                        layerDiv.style.backgroundColor = combo[l];
+                        
+                        wrapper.appendChild(layerDiv);
+                    }
+
+                    const crossLines = document.createElement('div');
+                    crossLines.className = 'cross-lines';
+                    wrapper.appendChild(crossLines); 
+
+                    grid.appendChild(wrapper);
+                    diamondIndex++;
+                } else {
+                    // Isi sel kosong jika grid tidak terisi penuh di baris terakhir
+                    const emptyCell = document.createElement('div');
+                    grid.appendChild(emptyCell);
+                }
+            }
+        }
+    }
+
+    // Jalankan dengan settingan awal (4 Lapis, 3 Warna, Tampilkan 24)
+    window.onload = applyAndGenerate;
+</script>
+
+</body>
+</html>
