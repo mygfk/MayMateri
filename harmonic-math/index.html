@@ -392,6 +392,8 @@
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button id="startBtn" onclick="startGame()">🔊 Mulai Dengarkan</button>
+                <button id="pauseBtn" onclick="pauseAudio()" style="display: none; background-color: #FFB300; box-shadow: 0 5px 0 #FF8F00;">⏸️ Jeda (Pause)</button>
+                <button id="resumeBtn" onclick="resumeAudio()" style="display: none; background-color: #00897B; box-shadow: 0 5px 0 #00695C;">▶️ Lanjut (Resume)</button>
                 <button onclick="backToMenu()" style="background-color: #757575; box-shadow: 0 5px 0 #424242; padding: 10px 20px; font-size: 1rem;">Kembali ke Menu</button>
             </div>
         </div>
@@ -496,6 +498,9 @@
     let currentIndex = 0;
     let isSet1Turn = true;
     let currentUtterance = null;
+    let isPaused = false;
+    let currentTimeoutId = null;
+    let storedCallback = null;
 
     // --- MANAJEMEN SUARA LAKI-LAKI & PEREMPUAN ---
     let voiceSet1 = null;
@@ -694,6 +699,7 @@
     }
 
     function backToMenu() {
+        window.speechSynthesis.resume();
         window.speechSynthesis.cancel();
         document.getElementById('setup-area').style.display = 'block';
         document.getElementById('main-game-area').style.display = 'none';
@@ -719,13 +725,23 @@
             
             currentUtterance.onend = () => {
                 const pauseMs = parseFloat(document.getElementById('pauseRate').value) * 1000;
-                setTimeout(callback, pauseMs); 
+                storedCallback = callback;
+                currentTimeoutId = setTimeout(() => {
+                    currentTimeoutId = null;
+                    storedCallback = null;
+                    callback();
+                }, pauseMs); 
             };
             
             currentUtterance.onerror = (e) => {
                 console.error("Speech error", e);
                 const pauseMs = parseFloat(document.getElementById('pauseRate').value) * 1000;
-                setTimeout(callback, pauseMs); 
+                storedCallback = callback;
+                currentTimeoutId = setTimeout(() => {
+                    currentTimeoutId = null;
+                    storedCallback = null;
+                    callback();
+                }, pauseMs); 
             };
 
             window.speechSynthesis.speak(currentUtterance);
@@ -735,15 +751,58 @@
         }
     }
 
+    function pauseAudio() {
+        if (isPaused) return;
+        isPaused = true;
+
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+        }
+
+        if (currentTimeoutId !== null) {
+            clearTimeout(currentTimeoutId);
+            currentTimeoutId = null;
+        }
+
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('resumeBtn').style.display = 'inline-block';
+    }
+
+    function resumeAudio() {
+        if (!isPaused) return;
+        isPaused = false;
+
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+        } else if (storedCallback) {
+            let cb = storedCallback;
+            storedCallback = null;
+            cb();
+        }
+
+        document.getElementById('resumeBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+    }
+
     function startGame() {
-        document.getElementById('startBtn').disabled = true;
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+        document.getElementById('resumeBtn').style.display = 'none';
+
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('pembahasanSection').style.display = 'none';
         document.getElementById('op-set1').textContent = "?";
         document.getElementById('op-set2').textContent = "?";
+        
         currentIndex = 0;
         isSet1Turn = true;
+        isPaused = false;
 
+        if (currentTimeoutId) clearTimeout(currentTimeoutId);
+        currentTimeoutId = null;
+        storedCallback = null;
+
+        window.speechSynthesis.resume();
         window.speechSynthesis.cancel();
         setTimeout(playNextTurn, 250);
     }
@@ -761,6 +820,11 @@
             document.getElementById('op-set1').textContent = "Selesai!";
             document.getElementById('op-set2').textContent = "Selesai!";
             
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('resumeBtn').style.display = 'none';
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('startBtn').disabled = true;
+
             document.getElementById('answerSection').style.display = 'block';
             return;
         }
@@ -814,9 +878,20 @@
         document.getElementById('feedbackResult').innerHTML = "";
         document.getElementById('op-set1').textContent = "?";
         document.getElementById('op-set2').textContent = "?";
+        
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+        document.getElementById('resumeBtn').style.display = 'none';
+
         currentIndex = 0;
         isSet1Turn = true;
+        isPaused = false;
+
+        if (currentTimeoutId) clearTimeout(currentTimeoutId);
+        currentTimeoutId = null;
+        storedCallback = null;
         
+        window.speechSynthesis.resume();
         window.speechSynthesis.cancel();
         setTimeout(playNextTurn, 250); 
     }
@@ -888,8 +963,20 @@
         document.getElementById('ans1').value = "";
         document.getElementById('ans2').value = "";
         document.getElementById('feedbackResult').innerHTML = "";
-        document.getElementById('startBtn').disabled = false;
         
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('resumeBtn').style.display = 'none';
+        
+        isPaused = false;
+        if(currentTimeoutId) clearTimeout(currentTimeoutId);
+        currentTimeoutId = null;
+        storedCallback = null;
+        
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('pembahasanSection').style.display = 'none';
         
