@@ -425,7 +425,7 @@
         <div class="panel-title">// BRIEFING</div>
         <ul class="info-list">
             <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano Tiles).</li>
-            <li>Klik <strong>MULAI</strong>. Perhatikan urutan angka/operasi yang muncul.</li>
+            <li>Klik <strong>MULAI</strong>. Perhatikan urutan angka/operasi beserta <strong>suaranya</strong>.</li>
             <li>Hitung total di kepala secara <strong>Mental Math</strong> terus-menerus.</li>
             <li>Kapanpun siap, tekan <strong>RECALL</strong> untuk berhenti dan menjawab.</li>
             <li>Pilih Level, klik urutan posisi/jalurnya, lalu masukkan total hitunganmu!</li>
@@ -544,6 +544,70 @@
 </div>
 
 <script>
+    // --- SISTEM AUDIO (SYNTHESIZER) ---
+    let audioCtx = null;
+    
+    // Frekuensi nada (Mendekati tangga nada mayor/pentatonik)
+    // Dibuat hingga 25 nada untuk mendukung Grid 5x5
+    const notesFreq = [
+        261.63, 293.66, 329.63, 349.23, 392.00, // Baris 1 atau Lane Piano (C4 - G4)
+        440.00, 493.88, 523.25, 587.33, 659.25, // Baris 2
+        698.46, 783.99, 880.00, 987.77, 1046.50, // Baris 3
+        1174.66, 1318.51, 1396.91, 1567.98, 1760.00, // Baris 4
+        1975.53, 2093.00, 2349.32, 2637.02, 2793.83  // Baris 5
+    ];
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(index) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        // Bentuk gelombang 'triangle' menghasilkan suara yg mirip dentingan retro yang halus
+        osc.type = 'triangle'; 
+        osc.frequency.value = notesFreq[index % notesFreq.length];
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        // Envelope untuk membuat suara memudar perlahan (seperti tuts piano)
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.02); // Attack cepat
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5); // Decay halus
+        
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playErrorTone() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sawtooth'; // Gelombang kasar untuk suara "salah/error"
+        osc.frequency.value = 150; // Frekuensi rendah
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+    // ----------------------------------
+
+
     let sequence = [], currentIndex = 0, highestIndexSeen = 0, intervalId = null;
     let gameState = 'idle', selectedLevel = 1, currentRecallStep = 0;
     let currentGridSize = 3, lives = 3, maxLives = 3, maxSteps = 30;
@@ -714,7 +778,7 @@
     }
 
     function generateSequence() {
-        sequence = []; let lastPos=-1;
+        sequence = []; let lastPos=-1; let lastPos2=-1;
         const mode = document.getElementById('game-mode').value;
         const visualMode = document.getElementById('visual-mode').value;
         
@@ -728,6 +792,11 @@
         const fixedPos3x3 = [0, 8, 2, 6, 4, 1, 7, 5, 2, 8, 3, 0, 6, 1, 4, 7, 3, 5];
         const fixedPos4x4 = [0, 15, 3, 12, 5, 10, 2, 8, 14, 1, 7, 11, 4, 13, 6, 9];
         const fixedPos5x5 = [0, 24, 4, 20, 12, 7, 18, 1, 14, 22, 9, 16, 3, 11, 23, 5];
+        
+        // Pola acak semu untuk Piano Mode 6 agar tidak terlihat urut 0,1,2,0,1,2
+        const fixedPiano3 = [0, 2, 1, 0, 0, 2, 1, 1, 2, 0, 2, 1];
+        const fixedPiano4 = [0, 3, 1, 2, 2, 0, 3, 1, 1, 2, 0, 3];
+        const fixedPiano5 = [0, 4, 1, 3, 2, 2, 0, 4, 1, 3, 4, 2];
 
         if (mode === '5' || mode === '6') {
             const simOps = [
@@ -749,11 +818,19 @@
                         else if (currentGridSize === 4) pos = fixedPos4x4[i % fixedPos4x4.length];
                         else pos = fixedPos5x5[i % fixedPos5x5.length];
                     } else {
-                        // Adapt fixed positions to Piano lanes simply by using modulo
-                        pos = i % totalPositions;
+                        if (currentGridSize === 3) pos = fixedPiano3[i % fixedPiano3.length];
+                        else if (currentGridSize === 4) pos = fixedPiano4[i % fixedPiano4.length];
+                        else pos = fixedPiano5[i % fixedPiano5.length];
                     }
                 } else {
-                    do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos); lastPos=pos;
+                    if (visualMode === 'piano') {
+                        // Piano mode: boleh di lajur yang sama, tapi maksimal 2 kali berturut-turut agar terasa organik
+                        do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
+                    } else {
+                        // Grid mode: sama sekali tidak boleh di kotak yang sama berturut-turut
+                        do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
+                    }
+                    lastPos2=lastPos; lastPos=pos;
                 }
 
                 const op = simOps[i % simOps.length];
@@ -764,7 +841,16 @@
         } else {
             // General generation loop
             for (let i = 0; i < maxSteps; i++) {
-                let pos; do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos); lastPos=pos;
+                let pos; 
+                if (visualMode === 'piano') {
+                    // Piano mode: boleh di lajur yang sama, tapi maksimal 2 kali berturut-turut
+                    do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
+                } else {
+                    // Grid mode: tidak boleh jatuh di kotak yang sama beruntun
+                    do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
+                }
+                lastPos2=lastPos; lastPos=pos;
+                
                 let rawText = customInputs[i] || '';
                 let text = ''; let useLatex = false; let lowerText = rawText.toLowerCase();
 
@@ -838,6 +924,9 @@
     }
 
     function startGame() {
+        // Inisialisasi Audio saat interaksi pertama dengan tombol Main
+        initAudio();
+
         document.getElementById('intro').style.display='none';
         
         let inputSteps = parseInt(document.getElementById('game-steps').value);
@@ -887,6 +976,9 @@
                 setCellContent(cell, item.text, item.useLatex);
                 cell.classList.add('active');
                 
+                // MEMAINKAN NADA AUDIO GRID
+                playTone(item.pos);
+                
                 currentIndex++; 
                 if (currentIndex > highestIndexSeen) highestIndexSeen = currentIndex;
                 updateProgress();
@@ -923,6 +1015,9 @@
                 easing: 'linear',
                 fill: 'forwards'
             });
+
+            // MEMAINKAN NADA AUDIO PIANO TILE KETIKA MUNCUL
+            playTone(item.pos);
 
             currentIndex++; 
             if (currentIndex > highestIndexSeen) highestIndexSeen = currentIndex;
@@ -987,6 +1082,9 @@
         const cell = document.getElementById(cellId);
 
         if (pos===targetPos) {
+            // MEMAINKAN NADA KETIKA RECALL BENAR
+            playTone(targetPos);
+
             cell.classList.add('correct');
             const dot = document.getElementById('dot-'+currentRecallStep);
             if(dot) dot.classList.add('active');
@@ -996,6 +1094,9 @@
             document.getElementById('status-text').textContent=`✓ Sempurna! (${currentRecallStep}/${selectedLevel})`;
             if (currentRecallStep>=selectedLevel) setTimeout(startMathPhase, 450);
         } else {
+            // MEMAINKAN NADA ERROR KETIKA RECALL SALAH
+            playErrorTone();
+
             cell.classList.add('wrong');
             
             if (recallTimerActive) {
@@ -1056,6 +1157,10 @@
         const correctRounded = Math.round(correct * 100) / 100;
 
         if (!isNaN(user) && Math.abs(user - correctRounded) <= 0.01) {
+            // Suara Berhasil (Nada Tinggi Pendek)
+            playTone(15); 
+            setTimeout(() => playTone(17), 150);
+
             if (selectedLevel > highestScore) highestScore = selectedLevel;
             checkpoints.push({level: selectedLevel, total: correctRounded});
 
@@ -1072,6 +1177,8 @@
                 document.getElementById('btn-restart').classList.remove('hidden');
             }
         } else {
+            playErrorTone();
+
             lives--; renderLives(); gameState='end';
             if (lives>0) {
                 document.getElementById('status-text').textContent='Hasil perhitungan kurang tepat.\nCoba lagi dengan Rewatch atau Retry.';
@@ -1087,6 +1194,7 @@
     }
 
     function continueWatching() {
+        initAudio(); // Pastikan API Audio berjalan
         document.getElementById('btn-continue').classList.add('hidden');
         document.getElementById('btn-restart').classList.add('hidden');
         currentIndex = 0; highestIndexSeen = 0; gameState = 'watching';
@@ -1102,6 +1210,7 @@
     }
 
     function rewatchSequence() {
+        initAudio(); // Pastikan API Audio berjalan
         document.getElementById('btn-rewatch').classList.add('hidden');
         document.getElementById('btn-retry').classList.add('hidden');
         document.getElementById('math-area').classList.add('hidden');
@@ -1118,6 +1227,7 @@
     }
 
     function retrySubmit() {
+        initAudio(); // Pastikan API Audio berjalan
         document.getElementById('btn-rewatch').classList.add('hidden');
         document.getElementById('btn-retry').classList.add('hidden');
         document.getElementById('math-area').classList.add('hidden');
