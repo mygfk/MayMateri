@@ -19,6 +19,8 @@
             --neon-red: #ff3860;
             --neon-purple: #b44fff;
             --neon-orange: #ff8c00;
+            --neon-pink: #ff2a85;
+            --neon-cyan: #00ffff;
             --text: #c8e6ff;
             --text-dim: #4a7fa5;
             --cell-bg: #0d1e30;
@@ -364,44 +366,72 @@
         .cross-spawn::after {
             content: 'SPAWN'; font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; font-weight: bold;
         }
+        
+        /* 4 Arah Utama */
         .cross-spawn.dir-0 { 
-            top: 0; left: 50%; transform: translateX(-50%); 
-            width: 100px; height: 25px; 
-            border-top: 5px solid var(--neon-blue); 
-            background: linear-gradient(to bottom, rgba(0,212,255,0.2), transparent); 
-            color: var(--neon-blue); align-items: flex-start; padding-top: 3px; 
-            text-shadow: 0 0 5px var(--neon-blue);
+            top: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 25px; 
+            border-top: 5px solid var(--neon-blue); background: linear-gradient(to bottom, rgba(0,212,255,0.2), transparent); 
+            color: var(--neon-blue); align-items: flex-start; padding-top: 3px; text-shadow: 0 0 5px var(--neon-blue);
         }
         .cross-spawn.dir-1 { 
-            top: 50%; right: 0; transform: translateY(-50%); 
-            width: 25px; height: 100px; 
-            border-right: 5px solid var(--neon-green); 
-            background: linear-gradient(to left, rgba(0,255,157,0.2), transparent); 
-            color: var(--neon-green); justify-content: flex-end; padding-right: 3px;
-            text-shadow: 0 0 5px var(--neon-green);
+            top: 50%; right: 0; transform: translateY(-50%); width: 25px; height: 100px; 
+            border-right: 5px solid var(--neon-green); background: linear-gradient(to left, rgba(0,255,157,0.2), transparent); 
+            color: var(--neon-green); justify-content: flex-end; padding-right: 3px; text-shadow: 0 0 5px var(--neon-green);
         }
         .cross-spawn.dir-1::after { writing-mode: vertical-rl; }
         
         .cross-spawn.dir-2 { 
-            bottom: 0; left: 50%; transform: translateX(-50%); 
-            width: 100px; height: 25px; 
-            border-bottom: 5px solid var(--neon-red); 
-            background: linear-gradient(to top, rgba(255,56,96,0.2), transparent); 
-            color: var(--neon-red); align-items: flex-end; padding-bottom: 3px;
-            text-shadow: 0 0 5px var(--neon-red);
+            bottom: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 25px; 
+            border-bottom: 5px solid var(--neon-red); background: linear-gradient(to top, rgba(255,56,96,0.2), transparent); 
+            color: var(--neon-red); align-items: flex-end; padding-bottom: 3px; text-shadow: 0 0 5px var(--neon-red);
         }
         
         .cross-spawn.dir-3 { 
-            top: 50%; left: 0; transform: translateY(-50%); 
-            width: 25px; height: 100px; 
-            border-left: 5px solid var(--neon-yellow); 
-            background: linear-gradient(to right, rgba(255,229,0,0.2), transparent); 
-            color: var(--neon-yellow); justify-content: flex-start; padding-left: 3px;
-            text-shadow: 0 0 5px var(--neon-yellow);
+            top: 50%; left: 0; transform: translateY(-50%); width: 25px; height: 100px; 
+            border-left: 5px solid var(--neon-yellow); background: linear-gradient(to right, rgba(255,229,0,0.2), transparent); 
+            color: var(--neon-yellow); justify-content: flex-start; padding-left: 3px; text-shadow: 0 0 5px var(--neon-yellow);
         }
         .cross-spawn.dir-3::after { writing-mode: vertical-rl; transform: rotate(180deg); }
 
-        /* --- 3. CROSSROAD (4 ARAH) MODE STYLES --- */
+        /* Tambahan 4 Arah Sudut (Mode 8 Arah) */
+        .cross-spawn.dir-4 { 
+            top: 0; left: 0; width: 50px; height: 50px; 
+            border-top: 5px solid var(--neon-purple); border-left: 5px solid var(--neon-purple); 
+            background: radial-gradient(circle at top left, rgba(180,79,255,0.2), transparent); 
+            color: var(--neon-purple); align-items: flex-start; justify-content: flex-start; 
+            padding: 3px 0 0 3px; text-shadow: 0 0 5px var(--neon-purple); border-top-left-radius: 0;
+        }
+        .cross-spawn.dir-4::after { transform: rotate(-45deg); transform-origin: top left; }
+        
+        .cross-spawn.dir-5 { 
+            top: 0; right: 0; width: 50px; height: 50px; 
+            border-top: 5px solid var(--neon-orange); border-right: 5px solid var(--neon-orange); 
+            background: radial-gradient(circle at top right, rgba(255,140,0,0.2), transparent); 
+            color: var(--neon-orange); align-items: flex-start; justify-content: flex-end; 
+            padding: 3px 3px 0 0; text-shadow: 0 0 5px var(--neon-orange); border-top-right-radius: 0;
+        }
+        .cross-spawn.dir-5::after { transform: rotate(45deg); transform-origin: top right; }
+
+        .cross-spawn.dir-6 { 
+            bottom: 0; right: 0; width: 50px; height: 50px; 
+            border-bottom: 5px solid var(--neon-pink); border-right: 5px solid var(--neon-pink); 
+            background: radial-gradient(circle at bottom right, rgba(255,42,133,0.2), transparent); 
+            color: var(--neon-pink); align-items: flex-end; justify-content: flex-end; 
+            padding: 0 3px 3px 0; text-shadow: 0 0 5px var(--neon-pink); border-bottom-right-radius: 0;
+        }
+        .cross-spawn.dir-6::after { transform: rotate(-45deg); transform-origin: bottom right; }
+
+        .cross-spawn.dir-7 { 
+            bottom: 0; left: 0; width: 50px; height: 50px; 
+            border-bottom: 5px solid var(--neon-cyan); border-left: 5px solid var(--neon-cyan); 
+            background: radial-gradient(circle at bottom left, rgba(0,255,255,0.2), transparent); 
+            color: var(--neon-cyan); align-items: flex-end; justify-content: flex-start; 
+            padding: 0 0 3px 3px; text-shadow: 0 0 5px var(--neon-cyan); border-bottom-left-radius: 0;
+        }
+        .cross-spawn.dir-7::after { transform: rotate(45deg); transform-origin: bottom left; }
+
+
+        /* --- 3. CROSSROAD (4 & 8 ARAH) MODE STYLES --- */
         .crossroad-wrapper {
             position: relative; width: 100%; aspect-ratio: 1; max-height: 480px;
             margin: 0 auto; background: rgba(0, 0, 0, 0.2); border-radius: 8px;
@@ -417,19 +447,19 @@
             border-radius: 8px; display: flex; justify-content: center; align-items: center;
             font-size: clamp(14px, 4vw, 22px); font-weight: 700;
             background: linear-gradient(135deg, #0d2a45, #0a1e35);
-            /* Bayangan & Glow dinamis berdasarkan arahnya */
         }
         
-        /* 0: Top (Neon Blue) */
+        /* Pewarnaan Ubin Crossroad Berdasarkan Arah */
         .cross-tile.dir-0 { border: 2px solid var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,212,255,0.4), inset 0 0 10px rgba(0,212,255,0.1); }
-        /* 1: Right (Neon Green) */
         .cross-tile.dir-1 { border: 2px solid var(--neon-green); color: var(--neon-green); box-shadow: 0 0 15px rgba(0,255,157,0.4), inset 0 0 10px rgba(0,255,157,0.1); }
-        /* 2: Bottom (Neon Red) */
         .cross-tile.dir-2 { border: 2px solid var(--neon-red); color: var(--neon-red); box-shadow: 0 0 15px rgba(255,56,96,0.4), inset 0 0 10px rgba(255,56,96,0.1); }
-        /* 3: Left (Neon Yellow) */
         .cross-tile.dir-3 { border: 2px solid var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255,229,0,0.4), inset 0 0 10px rgba(255,229,0,0.1); }
+        .cross-tile.dir-4 { border: 2px solid var(--neon-purple); color: var(--neon-purple); box-shadow: 0 0 15px rgba(180,79,255,0.4), inset 0 0 10px rgba(180,79,255,0.1); }
+        .cross-tile.dir-5 { border: 2px solid var(--neon-orange); color: var(--neon-orange); box-shadow: 0 0 15px rgba(255,140,0,0.4), inset 0 0 10px rgba(255,140,0,0.1); }
+        .cross-tile.dir-6 { border: 2px solid var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 15px rgba(255,42,133,0.4), inset 0 0 10px rgba(255,42,133,0.1); }
+        .cross-tile.dir-7 { border: 2px solid var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0,255,255,0.4), inset 0 0 10px rgba(0,255,255,0.1); }
 
-        /* Zona Recall 4 Arah */
+        /* Zona Recall (4 atau 8 Arah) */
         .cross-zone {
             position: absolute; display: flex; justify-content: center; align-items: center;
             font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 2px;
@@ -437,7 +467,6 @@
             opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 1000;
             border-radius: 4px; text-transform: uppercase; font-weight: bold;
         }
-        /* Zona akan aktif saat class recall-active diberikan pada wrapper */
         .crossroad-wrapper.recall-active .cross-zone { opacity: 0.15; pointer-events: auto; cursor: pointer; }
         .crossroad-wrapper.recall-active .cross-zone:hover { opacity: 0.5; }
         
@@ -445,6 +474,13 @@
         .cross-zone.right  { top: 0; right: 0; width: 35%; height: 100%; background: linear-gradient(to left, var(--neon-green), transparent); justify-content: flex-end; padding-right: 15px; }
         .cross-zone.bottom { bottom: 0; left: 0; width: 100%; height: 35%; background: linear-gradient(to top, var(--neon-red), transparent); align-items: flex-end; padding-bottom: 15px; }
         .cross-zone.left   { top: 0; left: 0; width: 35%; height: 100%; background: linear-gradient(to right, var(--neon-yellow), transparent); justify-content: flex-start; padding-left: 15px; }
+
+        /* Zona Recall Ekstra (Sudut) - z-index lebih tinggi agar menumpuk di atas zona tepi */
+        .cross-zone.corner { z-index: 1001; font-size: 9px; text-align: center; }
+        .cross-zone.top-left { top: 0; left: 0; width: 35%; height: 35%; background: radial-gradient(circle at top left, var(--neon-purple), transparent); align-items: flex-start; justify-content: flex-start; padding: 15px 0 0 15px; }
+        .cross-zone.top-right { top: 0; right: 0; width: 35%; height: 35%; background: radial-gradient(circle at top right, var(--neon-orange), transparent); align-items: flex-start; justify-content: flex-end; padding: 15px 15px 0 0; }
+        .cross-zone.bottom-right { bottom: 0; right: 0; width: 35%; height: 35%; background: radial-gradient(circle at bottom right, var(--neon-pink), transparent); align-items: flex-end; justify-content: flex-end; padding: 0 15px 15px 0; }
+        .cross-zone.bottom-left { bottom: 0; left: 0; width: 35%; height: 35%; background: radial-gradient(circle at bottom left, var(--neon-cyan), transparent); align-items: flex-end; justify-content: flex-start; padding: 0 0 15px 15px; }
 
         .cross-zone.correct { background: var(--neon-green) !important; opacity: 0.8 !important; }
         .cross-zone.wrong { background: var(--neon-red) !important; opacity: 0.8 !important; animation: wrongShake 0.4s ease; }
@@ -545,7 +581,7 @@
     <div id="intro" class="panel">
         <div class="panel-title">// BRIEFING</div>
         <ul class="info-list">
-            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano / Simpang Empat).</li>
+            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano / Simpang Empat / Delapan).</li>
             <li>Klik <strong>MULAI</strong>. Perhatikan urutan angka/operasi beserta <strong>suaranya</strong>.</li>
             <li>Hitung total di kepala secara <strong>Mental Math</strong> terus-menerus.</li>
             <li>Kapanpun siap, tekan <strong>RECALL</strong> untuk berhenti dan menjawab.</li>
@@ -571,16 +607,17 @@
                     <option value="grid">Grid Matriks (Klasik)</option>
                     <option value="piano">Piano Tiles (Jatuh Satu per Satu)</option>
                     <option value="piano-flow">Piano Tiles (Arus Bertumpuk)</option>
-                    <option value="crossroad" selected>4 Arah (Simpang 4 Bertumpuk)</option>
+                    <option value="crossroad">4 Arah (Simpang 4 Bertumpuk)</option>
+                    <option value="crossroad-8" selected>8 Arah (Simpang 8 Bertumpuk)</option>
                 </select>
             </div>
             
             <div class="setting-group">
-                <label id="grid-size-label">Arah (Tetap 4 Arah)</label>
+                <label id="grid-size-label">Arah</label>
                 <select id="grid-size" disabled>
-                    <option value="4" selected>4 Arah</option>
-                    <option value="4">4 Arah</option>
-                    <option value="4">4 Arah</option>
+                    <option value="8" selected>8 Arah</option>
+                    <option value="8">8 Arah</option>
+                    <option value="8">8 Arah</option>
                 </select>
             </div>
             
@@ -777,12 +814,13 @@
             select.options[1].text = '4 Kolom';
             select.options[2].text = '5 Kolom';
             select.disabled = false;
-        } else if (e.target.value === 'crossroad') {
-            label.textContent = 'Arah (Tetap 4 Arah)';
-            select.options[0].text = '4 Arah';
-            select.options[1].text = '4 Arah';
-            select.options[2].text = '4 Arah';
-            select.value = "4"; // force 4
+        } else if (e.target.value === 'crossroad' || e.target.value === 'crossroad-8') {
+            label.textContent = 'Arah';
+            let dirText = e.target.value === 'crossroad' ? '4 Arah' : '8 Arah';
+            select.options[0].text = dirText;
+            select.options[1].text = dirText;
+            select.options[2].text = dirText;
+            select.value = e.target.value === 'crossroad' ? "4" : "8"; 
             select.disabled = true;
         } else {
             label.textContent = 'Ukuran Grid';
@@ -876,10 +914,10 @@
                 cell.onclick=()=>onCellClick(i);
                 container.appendChild(cell);
             }
-        } else if (visualMode === 'crossroad') {
+        } else if (visualMode.startsWith('crossroad')) {
             container.className = 'crossroad-wrapper';
-            // Buat 4 zona klik untuk sesi Recall dan 4 kotak penanda spawn
-            container.innerHTML = `
+            // Buat 4 zona klik tepi dan penanda spawn utama
+            let html = `
                 <div class="cross-spawn dir-0"></div>
                 <div class="cross-spawn dir-1"></div>
                 <div class="cross-spawn dir-2"></div>
@@ -889,6 +927,20 @@
                 <div class="cross-zone bottom" id="cross-2" onclick="onCellClick(2)">BAWAH</div>
                 <div class="cross-zone left" id="cross-3" onclick="onCellClick(3)">KIRI</div>
             `;
+            // Tambahkan 4 sudut jika mode 8 Arah
+            if (visualMode === 'crossroad-8') {
+                html += `
+                    <div class="cross-spawn dir-4"></div>
+                    <div class="cross-spawn dir-5"></div>
+                    <div class="cross-spawn dir-6"></div>
+                    <div class="cross-spawn dir-7"></div>
+                    <div class="cross-zone corner top-left" id="cross-4" onclick="onCellClick(4)">KIRI<br>ATAS</div>
+                    <div class="cross-zone corner top-right" id="cross-5" onclick="onCellClick(5)">KANAN<br>ATAS</div>
+                    <div class="cross-zone corner bottom-right" id="cross-6" onclick="onCellClick(6)">KANAN<br>BAWAH</div>
+                    <div class="cross-zone corner bottom-left" id="cross-7" onclick="onCellClick(7)">KIRI<br>BAWAH</div>
+                `;
+            }
+            container.innerHTML = html;
         } else {
             // Berlaku untuk 'piano' dan 'piano-flow'
             container.className = 'piano-wrapper' + (visualMode === 'piano-flow' ? ' flow' : '');
@@ -924,6 +976,18 @@
         return parseFloat(s);
     }
 
+    function getCrossroadAnim(pos) {
+        if (pos === 0) return [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 1) return [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 2) return [ {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 3) return [ {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 4) return [ {top: '-25%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 5) return [ {top: '-25%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 6) return [ {top: '125%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
+        if (pos === 7) return [ {top: '125%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+        return [];
+    }
+
     function generateSequence() {
         sequence = []; let lastPos=-1; let lastPos2=-1;
         const mode = document.getElementById('game-mode').value;
@@ -932,7 +996,8 @@
         // Posisi berdasarkan mode
         let totalPositions = (currentGridSize * currentGridSize);
         if (visualMode === 'piano' || visualMode === 'piano-flow') totalPositions = currentGridSize;
-        if (visualMode === 'crossroad') totalPositions = 4; // Tetap 4 arah
+        if (visualMode === 'crossroad') totalPositions = 4;
+        if (visualMode === 'crossroad-8') totalPositions = 8; 
 
         let runTotal = 0;
 
@@ -947,8 +1012,9 @@
         const fixedPiano4 = [0, 3, 1, 2, 2, 0, 3, 1, 1, 2, 0, 3];
         const fixedPiano5 = [0, 4, 1, 3, 2, 2, 0, 4, 1, 3, 4, 2];
 
-        // Untuk crossroad kita buat urutan rotasi simpel untuk Mode 6
+        // Urutan rotasi simpel untuk Mode 6 (Simulasi Posisi Tetap)
         const fixedCrossroad = [0, 1, 3, 2, 0, 3, 1, 2, 2, 0, 1, 3];
+        const fixedCrossroad8 = [0, 4, 1, 5, 2, 6, 3, 7, 4, 1, 6, 3];
 
         if (mode === '5' || mode === '6') {
             const simOps = [
@@ -971,13 +1037,15 @@
                         else pos = fixedPos5x5[i % fixedPos5x5.length];
                     } else if (visualMode === 'crossroad') {
                         pos = fixedCrossroad[i % fixedCrossroad.length];
+                    } else if (visualMode === 'crossroad-8') {
+                        pos = fixedCrossroad8[i % fixedCrossroad8.length];
                     } else {
                         if (currentGridSize === 3) pos = fixedPiano3[i % fixedPiano3.length];
                         else if (currentGridSize === 4) pos = fixedPiano4[i % fixedPiano4.length];
                         else pos = fixedPiano5[i % fixedPiano5.length];
                     }
                 } else {
-                    if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode === 'crossroad') {
+                    if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
                         // Boleh di arah yg sama maks 2 kali beruntun
                         do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                     } else {
@@ -995,7 +1063,7 @@
         } else {
             for (let i = 0; i < maxSteps; i++) {
                 let pos; 
-                if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode === 'crossroad') {
+                if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                 } else {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
@@ -1136,8 +1204,8 @@
                 intervalId = setTimeout(playNextInSequence, spawnInterval);
             }, 250);
             
-        } else if (visualMode === 'crossroad') {
-            // MODE 4 ARAH (SIMPANG EMPAT)
+        } else if (visualMode.startsWith('crossroad')) {
+            // MODE SIMPANG (4 ARAH & 8 ARAH)
             if (gameState !== 'watching') return;
             const item = sequence[currentIndex];
             const container = document.getElementById('game-container');
@@ -1158,18 +1226,7 @@
                 inner.textContent = item.text;
             }
 
-            // Atur animasi berdasarkan arah (0: Atas, 1: Kanan, 2: Bawah, 3: Kiri)
-            let animKeyframes;
-            if (item.pos === 0) {
-                animKeyframes = [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
-            } else if (item.pos === 1) {
-                animKeyframes = [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
-            } else if (item.pos === 2) {
-                animKeyframes = [ {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'} ];
-            } else if (item.pos === 3) {
-                animKeyframes = [ {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'} ];
-            }
-
+            let animKeyframes = getCrossroadAnim(item.pos);
             const fallDuration = 5000; // Selalu bertumpuk / lambat seperti arus
 
             const anim = tile.animate(animKeyframes, {
@@ -1188,8 +1245,8 @@
             // Menghapus tile & membunyikan suara khusus
             setTimeout(() => {
                 if (gameState === 'watching') {
-                    // Gunakan nada spesifik untuk 4 arah: 0, 7, 14, 21 dari daftar frekuensi
-                    const toneIndex = item.pos * 7; 
+                    // Sebarkan tone index untuk menampung 8 arah (0, 3, 6, 9, 12, 15, 18, 21)
+                    const toneIndex = item.pos * 3; 
                     playTone(toneIndex);
                 }
                 if (container.contains(tile)) container.removeChild(tile);
@@ -1289,9 +1346,9 @@
         const visualMode = document.getElementById('visual-mode').value;
         let modeText = 'urutan posisi kotak';
         if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom yang jatuh';
-        if (visualMode === 'crossroad') {
-            modeText = 'arah datangnya (Atas/Bawah/Kiri/Kanan)';
-            // Nyalakan interaksi zona klik untuk mode 4 arah
+        if (visualMode.startsWith('crossroad')) {
+            modeText = 'arah datangnya';
+            // Nyalakan interaksi zona klik untuk mode silang
             document.getElementById('game-container').classList.add('recall-active');
         }
 
@@ -1310,7 +1367,7 @@
         
         let cellId = 'cell-'+pos;
         if (visualMode === 'piano' || visualMode === 'piano-flow') cellId = 'lane-'+pos;
-        if (visualMode === 'crossroad') cellId = 'cross-'+pos;
+        if (visualMode.startsWith('crossroad')) cellId = 'cross-'+pos;
         
         const cell = document.getElementById(cellId);
 
@@ -1320,13 +1377,12 @@
         // Sesuaikan durasi kecepatan dengan saat fase menghafal
         const spawnInterval = parseInt(document.getElementById('game-speed').value) || 2000;
         let animDuration = spawnInterval;
-        if (visualMode === 'piano-flow' || visualMode === 'crossroad') {
+        if (visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
             animDuration = 5000;
         }
 
         if (visualMode === 'piano' || visualMode === 'piano-flow') {
             const fbTile = document.createElement('div');
-            // Hapus override warna correct/wrong, biarkan warna aslinya
             fbTile.className = 'piano-tile';
             cell.appendChild(fbTile);
             
@@ -1339,19 +1395,14 @@
                 if (cell.contains(fbTile)) cell.removeChild(fbTile);
             }, animDuration);
 
-        } else if (visualMode === 'crossroad') {
+        } else if (visualMode.startsWith('crossroad')) {
             const container = document.getElementById('game-container');
             const fbTile = document.createElement('div');
-            // Hapus override warna correct/wrong, biarkan warna sesuai arah (dir-pos)
             fbTile.className = `cross-tile dir-${pos}`;
             fbTile.style.zIndex = globalZIndex++;
             container.appendChild(fbTile);
 
-            let animKeyframes;
-            if (pos === 0) animKeyframes = [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
-            else if (pos === 1) animKeyframes = [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
-            else if (pos === 2) animKeyframes = [ {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'} ];
-            else if (pos === 3) animKeyframes = [ {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+            let animKeyframes = getCrossroadAnim(pos);
 
             fbTile.animate(animKeyframes, { duration: animDuration, easing: 'linear', fill: 'forwards' });
 
@@ -1361,8 +1412,8 @@
         }
 
         if (pos===targetPos) {
-            if(visualMode === 'crossroad') {
-                playTone(targetPos * 7);
+            if(visualMode.startsWith('crossroad')) {
+                playTone(targetPos * 3);
             } else {
                 playTone(targetPos);
             }
@@ -1409,7 +1460,6 @@
         
         document.getElementById('game-area').classList.add('hidden');
         
-        // Matikan interaksi zona crossroad
         if(document.getElementById('game-container')) {
             document.getElementById('game-container').classList.remove('recall-active');
         }
@@ -1532,7 +1582,7 @@
         const visualMode = document.getElementById('visual-mode').value;
         let modeText = 'urutan posisi kotak';
         if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom';
-        if (visualMode === 'crossroad') {
+        if (visualMode.startsWith('crossroad')) {
             modeText = 'arah datangnya';
             document.getElementById('game-container').classList.add('recall-active');
         }
@@ -1552,12 +1602,10 @@
                 c.className='cell';
                 const inner=c.querySelector('.cell-inner'); if(inner) inner.innerHTML='';
             }
-        } else if (visualMode === 'crossroad') {
-            // Hapus semua tile animasi yang masih ada di jalan
+        } else if (visualMode.startsWith('crossroad')) {
             const tiles = document.querySelectorAll('.cross-tile');
             tiles.forEach(t => t.remove());
-            // Reset zone states
-            for (let i=0; i<4; i++) {
+            for (let i=0; i<8; i++) {
                 const z = document.getElementById('cross-'+i);
                 if(z) { z.classList.remove('correct'); z.classList.remove('wrong'); }
             }
