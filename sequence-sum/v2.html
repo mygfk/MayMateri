@@ -261,7 +261,6 @@
         .cell:hover { border-color: rgba(0,212,255,0.4); background: var(--cell-hover); }
         .cell:hover::before { opacity: 1; }
 
-        /* Animation States (Grid) */
         .cell.active {
             background: linear-gradient(135deg,#0d2a45,#0a1e35); border-color: var(--neon-blue);
             box-shadow: 0 0 18px rgba(0,212,255,0.4), inset 0 0 18px rgba(0,212,255,0.08);
@@ -295,12 +294,7 @@
             background: rgba(0, 0, 0, 0.2); border-radius: 8px;
             transition: height 0.3s ease;
         }
-        
-        /* Tambahan tinggi khusus untuk mode Arus (Flow) */
-        .piano-wrapper.flow {
-            height: 500px;
-        }
-
+        .piano-wrapper.flow { height: 500px; }
         .piano-lane {
             flex: 1; border-right: 1px dashed rgba(0,212,255,0.15);
             position: relative; cursor: pointer; transition: background 0.2s, border-color 0.2s;
@@ -320,12 +314,9 @@
             border: 2px solid var(--neon-blue); border-radius: 8px;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 0 15px rgba(0,212,255,0.4), inset 0 0 10px rgba(0,212,255,0.1);
-            color: var(--neon-blue);
-            font-size: clamp(14px, 4vw, 22px);
-            z-index: 5;
+            color: var(--neon-blue); font-size: clamp(14px, 4vw, 22px); z-index: 5;
         }
 
-        /* Recall Highlights for Piano Lanes */
         .piano-lane.correct {
             background: linear-gradient(to top, rgba(0,255,157,0.25), transparent);
             border: 1px solid var(--neon-green); box-shadow: inset 0 -20px 20px rgba(0,255,157,0.1);
@@ -335,6 +326,115 @@
             border: 1px solid var(--neon-red); box-shadow: inset 0 -20px 20px rgba(255,56,96,0.1);
             animation: wrongShake 0.4s ease;
         }
+
+        /* --- SPAWN MARKERS (PENANDA TEMPAT KELUAR) --- */
+        .spawn-marker {
+            position: absolute; top: 0; left: 0; width: 100%; height: 30px;
+            border-top: 5px solid var(--neon-blue);
+            background: linear-gradient(to bottom, rgba(0, 212, 255, 0.15), transparent);
+            pointer-events: none; z-index: 1000;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding-top: 4px;
+        }
+        .spawn-marker::after {
+            content: 'SPAWN'; font-family: 'Orbitron', monospace;
+            font-size: 8px; color: rgba(0, 212, 255, 0.9); letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        .cross-spawn {
+            position: absolute;
+            pointer-events: none; z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .cross-spawn::after {
+            content: 'SPAWN'; font-family: 'Orbitron', monospace; font-size: 7px; letter-spacing: 2px; font-weight: bold;
+        }
+        .cross-spawn.dir-0 { 
+            top: 0; left: 50%; transform: translateX(-50%); 
+            width: 100px; height: 25px; 
+            border-top: 5px solid var(--neon-blue); 
+            background: linear-gradient(to bottom, rgba(0,212,255,0.2), transparent); 
+            color: var(--neon-blue); align-items: flex-start; padding-top: 3px; 
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        .cross-spawn.dir-1 { 
+            top: 50%; right: 0; transform: translateY(-50%); 
+            width: 25px; height: 100px; 
+            border-right: 5px solid var(--neon-green); 
+            background: linear-gradient(to left, rgba(0,255,157,0.2), transparent); 
+            color: var(--neon-green); justify-content: flex-end; padding-right: 3px;
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+        .cross-spawn.dir-1::after { writing-mode: vertical-rl; }
+        
+        .cross-spawn.dir-2 { 
+            bottom: 0; left: 50%; transform: translateX(-50%); 
+            width: 100px; height: 25px; 
+            border-bottom: 5px solid var(--neon-red); 
+            background: linear-gradient(to top, rgba(255,56,96,0.2), transparent); 
+            color: var(--neon-red); align-items: flex-end; padding-bottom: 3px;
+            text-shadow: 0 0 5px var(--neon-red);
+        }
+        
+        .cross-spawn.dir-3 { 
+            top: 50%; left: 0; transform: translateY(-50%); 
+            width: 25px; height: 100px; 
+            border-left: 5px solid var(--neon-yellow); 
+            background: linear-gradient(to right, rgba(255,229,0,0.2), transparent); 
+            color: var(--neon-yellow); justify-content: flex-start; padding-left: 3px;
+            text-shadow: 0 0 5px var(--neon-yellow);
+        }
+        .cross-spawn.dir-3::after { writing-mode: vertical-rl; transform: rotate(180deg); }
+
+        /* --- 3. CROSSROAD (4 ARAH) MODE STYLES --- */
+        .crossroad-wrapper {
+            position: relative; width: 100%; aspect-ratio: 1; max-height: 480px;
+            margin: 0 auto; background: rgba(0, 0, 0, 0.2); border-radius: 8px;
+            overflow: hidden;
+            /* Garis panduan persimpangan (kosmetik) */
+            background-image: 
+                linear-gradient(90deg, transparent 49.5%, rgba(0,212,255,0.1) 49.5%, rgba(0,212,255,0.1) 50.5%, transparent 50.5%),
+                linear-gradient(0deg, transparent 49.5%, rgba(0,212,255,0.1) 49.5%, rgba(0,212,255,0.1) 50.5%, transparent 50.5%);
+        }
+
+        .cross-tile {
+            position: absolute; width: 80px; height: 80px;
+            border-radius: 8px; display: flex; justify-content: center; align-items: center;
+            font-size: clamp(14px, 4vw, 22px); font-weight: 700;
+            background: linear-gradient(135deg, #0d2a45, #0a1e35);
+            /* Bayangan & Glow dinamis berdasarkan arahnya */
+        }
+        
+        /* 0: Top (Neon Blue) */
+        .cross-tile.dir-0 { border: 2px solid var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,212,255,0.4), inset 0 0 10px rgba(0,212,255,0.1); }
+        /* 1: Right (Neon Green) */
+        .cross-tile.dir-1 { border: 2px solid var(--neon-green); color: var(--neon-green); box-shadow: 0 0 15px rgba(0,255,157,0.4), inset 0 0 10px rgba(0,255,157,0.1); }
+        /* 2: Bottom (Neon Red) */
+        .cross-tile.dir-2 { border: 2px solid var(--neon-red); color: var(--neon-red); box-shadow: 0 0 15px rgba(255,56,96,0.4), inset 0 0 10px rgba(255,56,96,0.1); }
+        /* 3: Left (Neon Yellow) */
+        .cross-tile.dir-3 { border: 2px solid var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255,229,0,0.4), inset 0 0 10px rgba(255,229,0,0.1); }
+
+        /* Zona Recall 4 Arah */
+        .cross-zone {
+            position: absolute; display: flex; justify-content: center; align-items: center;
+            font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 2px;
+            color: rgba(255,255,255,0.8);
+            opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 1000;
+            border-radius: 4px; text-transform: uppercase; font-weight: bold;
+        }
+        /* Zona akan aktif saat class recall-active diberikan pada wrapper */
+        .crossroad-wrapper.recall-active .cross-zone { opacity: 0.15; pointer-events: auto; cursor: pointer; }
+        .crossroad-wrapper.recall-active .cross-zone:hover { opacity: 0.5; }
+        
+        .cross-zone.top    { top: 0; left: 0; width: 100%; height: 35%; background: linear-gradient(to bottom, var(--neon-blue), transparent); align-items: flex-start; padding-top: 15px; }
+        .cross-zone.right  { top: 0; right: 0; width: 35%; height: 100%; background: linear-gradient(to left, var(--neon-green), transparent); justify-content: flex-end; padding-right: 15px; }
+        .cross-zone.bottom { bottom: 0; left: 0; width: 100%; height: 35%; background: linear-gradient(to top, var(--neon-red), transparent); align-items: flex-end; padding-bottom: 15px; }
+        .cross-zone.left   { top: 0; left: 0; width: 35%; height: 100%; background: linear-gradient(to right, var(--neon-yellow), transparent); justify-content: flex-start; padding-left: 15px; }
+
+        .cross-zone.correct { background: var(--neon-green) !important; opacity: 0.8 !important; }
+        .cross-zone.wrong { background: var(--neon-red) !important; opacity: 0.8 !important; animation: wrongShake 0.4s ease; }
+
 
         @keyframes scanline { 0%{top:-40%} 100%{top:100%} }
         @keyframes pulseCell { 0%{transform:scale(0.92)} 60%{transform:scale(1.04)} 100%{transform:scale(1)} }
@@ -431,7 +531,7 @@
     <div id="intro" class="panel">
         <div class="panel-title">// BRIEFING</div>
         <ul class="info-list">
-            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano Tiles).</li>
+            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano / Simpang Empat).</li>
             <li>Klik <strong>MULAI</strong>. Perhatikan urutan angka/operasi beserta <strong>suaranya</strong>.</li>
             <li>Hitung total di kepala secara <strong>Mental Math</strong> terus-menerus.</li>
             <li>Kapanpun siap, tekan <strong>RECALL</strong> untuk berhenti dan menjawab.</li>
@@ -455,17 +555,18 @@
                 <label>Mode Visualisasi</label>
                 <select id="visual-mode">
                     <option value="grid">Grid Matriks (Klasik)</option>
-                    <option value="piano" selected>Piano Tiles (Jatuh Satu per Satu)</option>
-                    <option value="piano-flow">Piano Tiles (Arus Deras / Bertumpuk)</option>
+                    <option value="piano">Piano Tiles (Jatuh Satu per Satu)</option>
+                    <option value="piano-flow">Piano Tiles (Arus Bertumpuk)</option>
+                    <option value="crossroad" selected>4 Arah (Simpang 4 Bertumpuk)</option>
                 </select>
             </div>
             
             <div class="setting-group">
-                <label id="grid-size-label">Jumlah Kolom (Lanes)</label>
-                <select id="grid-size">
-                    <option value="3" selected>3 Kolom</option>
-                    <option value="4">4 Kolom</option>
-                    <option value="5">5 Kolom</option>
+                <label id="grid-size-label">Arah (Tetap 4 Arah)</label>
+                <select id="grid-size" disabled>
+                    <option value="4" selected>4 Arah</option>
+                    <option value="4">4 Arah</option>
+                    <option value="4">4 Arah</option>
                 </select>
             </div>
             
@@ -554,6 +655,7 @@
 <script>
     // --- SISTEM AUDIO (SYNTHESIZER) ---
     let audioCtx = null;
+    let globalZIndex = 100; // Untuk memastikan tiles tumpuk menumpuk dgn benar
     
     // Frekuensi nada
     const notesFreq = [
@@ -660,11 +762,20 @@
             select.options[0].text = '3 Kolom';
             select.options[1].text = '4 Kolom';
             select.options[2].text = '5 Kolom';
+            select.disabled = false;
+        } else if (e.target.value === 'crossroad') {
+            label.textContent = 'Arah (Tetap 4 Arah)';
+            select.options[0].text = '4 Arah';
+            select.options[1].text = '4 Arah';
+            select.options[2].text = '4 Arah';
+            select.value = "4"; // force 4
+            select.disabled = true;
         } else {
             label.textContent = 'Ukuran Grid';
             select.options[0].text = '3×3 — 9 Kotak';
             select.options[1].text = '4×4 — 16 Kotak';
             select.options[2].text = '5×5 — 25 Kotak';
+            select.disabled = false;
         }
     });
 
@@ -735,7 +846,7 @@
         el.innerHTML = html;
     }
 
-    // Handles DOM Creation for Grid OR Piano Mode
+    // Handles DOM Creation for Grid, Piano, or Crossroad Mode
     function createGrid() {
         const visualMode = document.getElementById('visual-mode').value;
         const container = document.getElementById('game-container');
@@ -751,6 +862,19 @@
                 cell.onclick=()=>onCellClick(i);
                 container.appendChild(cell);
             }
+        } else if (visualMode === 'crossroad') {
+            container.className = 'crossroad-wrapper';
+            // Buat 4 zona klik untuk sesi Recall dan 4 kotak penanda spawn
+            container.innerHTML = `
+                <div class="cross-spawn dir-0"></div>
+                <div class="cross-spawn dir-1"></div>
+                <div class="cross-spawn dir-2"></div>
+                <div class="cross-spawn dir-3"></div>
+                <div class="cross-zone top" id="cross-0" onclick="onCellClick(0)">ATAS</div>
+                <div class="cross-zone right" id="cross-1" onclick="onCellClick(1)">KANAN</div>
+                <div class="cross-zone bottom" id="cross-2" onclick="onCellClick(2)">BAWAH</div>
+                <div class="cross-zone left" id="cross-3" onclick="onCellClick(3)">KIRI</div>
+            `;
         } else {
             // Berlaku untuk 'piano' dan 'piano-flow'
             container.className = 'piano-wrapper' + (visualMode === 'piano-flow' ? ' flow' : '');
@@ -759,7 +883,10 @@
                 lane.className = 'piano-lane';
                 lane.id = 'lane-'+i;
                 lane.onclick = () => onCellClick(i);
-                lane.innerHTML = `<div class="lane-label">LANE ${i+1}</div>`;
+                lane.innerHTML = `
+                    <div class="spawn-marker"></div>
+                    <div class="lane-label">LANE ${i+1}</div>
+                `;
                 container.appendChild(lane);
             }
         }
@@ -789,7 +916,10 @@
         const visualMode = document.getElementById('visual-mode').value;
         
         // Posisi berdasarkan mode
-        const totalPositions = (visualMode === 'piano' || visualMode === 'piano-flow') ? currentGridSize : (currentGridSize * currentGridSize);
+        let totalPositions = (currentGridSize * currentGridSize);
+        if (visualMode === 'piano' || visualMode === 'piano-flow') totalPositions = currentGridSize;
+        if (visualMode === 'crossroad') totalPositions = 4; // Tetap 4 arah
+
         let runTotal = 0;
 
         const customInputsElements = document.querySelectorAll('.custom-step-input');
@@ -802,6 +932,9 @@
         const fixedPiano3 = [0, 2, 1, 0, 0, 2, 1, 1, 2, 0, 2, 1];
         const fixedPiano4 = [0, 3, 1, 2, 2, 0, 3, 1, 1, 2, 0, 3];
         const fixedPiano5 = [0, 4, 1, 3, 2, 2, 0, 4, 1, 3, 4, 2];
+
+        // Untuk crossroad kita buat urutan rotasi simpel untuk Mode 6
+        const fixedCrossroad = [0, 1, 3, 2, 0, 3, 1, 2, 2, 0, 1, 3];
 
         if (mode === '5' || mode === '6') {
             const simOps = [
@@ -822,17 +955,19 @@
                         if (currentGridSize === 3) pos = fixedPos3x3[i % fixedPos3x3.length];
                         else if (currentGridSize === 4) pos = fixedPos4x4[i % fixedPos4x4.length];
                         else pos = fixedPos5x5[i % fixedPos5x5.length];
+                    } else if (visualMode === 'crossroad') {
+                        pos = fixedCrossroad[i % fixedCrossroad.length];
                     } else {
                         if (currentGridSize === 3) pos = fixedPiano3[i % fixedPiano3.length];
                         else if (currentGridSize === 4) pos = fixedPiano4[i % fixedPiano4.length];
                         else pos = fixedPiano5[i % fixedPiano5.length];
                     }
                 } else {
-                    if (visualMode === 'piano' || visualMode === 'piano-flow') {
-                        // Piano mode: boleh di lajur yang sama, tapi maksimal 2 kali berturut-turut agar terasa organik
+                    if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode === 'crossroad') {
+                        // Boleh di arah yg sama maks 2 kali beruntun
                         do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                     } else {
-                        // Grid mode: sama sekali tidak boleh di kotak yang sama berturut-turut
+                        // Grid mode: tidak boleh beruntun sama sekali
                         do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
                     }
                     lastPos2=lastPos; lastPos=pos;
@@ -846,7 +981,7 @@
         } else {
             for (let i = 0; i < maxSteps; i++) {
                 let pos; 
-                if (visualMode === 'piano' || visualMode === 'piano-flow') {
+                if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode === 'crossroad') {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                 } else {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
@@ -927,7 +1062,6 @@
 
     function startGame() {
         initAudio();
-
         document.getElementById('intro').style.display='none';
         
         let inputSteps = parseInt(document.getElementById('game-steps').value);
@@ -942,6 +1076,7 @@
         generateSequence(); 
         createGrid(); resetUI(); renderLives(); 
         checkpoints = []; 
+        globalZIndex = 100; // Reset z-index
         
         document.getElementById('game-area').classList.remove('hidden');
         
@@ -986,8 +1121,68 @@
                 updateProgress();
                 intervalId = setTimeout(playNextInSequence, spawnInterval);
             }, 250);
+            
+        } else if (visualMode === 'crossroad') {
+            // MODE 4 ARAH (SIMPANG EMPAT)
+            if (gameState !== 'watching') return;
+            const item = sequence[currentIndex];
+            const container = document.getElementById('game-container');
+
+            const tile = document.createElement('div');
+            tile.className = `cross-tile dir-${item.pos}`;
+            tile.style.zIndex = globalZIndex++; // Belakangan = di atas
+            
+            const inner = document.createElement('div');
+            inner.className = 'cell-inner';
+            tile.appendChild(inner);
+            container.appendChild(tile);
+
+            if (item.useLatex) {
+                try { katex.render(item.text, inner, {throwOnError:false, displayMode:false}); }
+                catch(e) { inner.textContent = item.text; }
+            } else {
+                inner.textContent = item.text;
+            }
+
+            // Atur animasi berdasarkan arah (0: Atas, 1: Kanan, 2: Bawah, 3: Kiri)
+            let animKeyframes;
+            if (item.pos === 0) {
+                animKeyframes = [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+            } else if (item.pos === 1) {
+                animKeyframes = [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
+            } else if (item.pos === 2) {
+                animKeyframes = [ {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+            } else if (item.pos === 3) {
+                animKeyframes = [ {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+            }
+
+            const fallDuration = 5000; // Selalu bertumpuk / lambat seperti arus
+
+            const anim = tile.animate(animKeyframes, {
+                duration: fallDuration, easing: 'linear', fill: 'forwards'
+            });
+
+            currentIndex++; 
+            if (currentIndex > highestIndexSeen) highestIndexSeen = currentIndex;
+            updateProgress();
+
+            // Lanjut tile berikutnya
+            intervalId = setTimeout(() => {
+                playNextInSequence();
+            }, spawnInterval);
+
+            // Menghapus tile & membunyikan suara khusus
+            setTimeout(() => {
+                if (gameState === 'watching') {
+                    // Gunakan nada spesifik untuk 4 arah: 0, 7, 14, 21 dari daftar frekuensi
+                    const toneIndex = item.pos * 7; 
+                    playTone(toneIndex);
+                }
+                if (container.contains(tile)) container.removeChild(tile);
+            }, fallDuration);
+
         } else {
-            // Berlaku untuk 'piano' dan 'piano-flow'
+            // MODE PIANO & PIANO FLOW
             if (gameState !== 'watching') return;
             const item = sequence[currentIndex];
             const lane = document.getElementById('lane-'+item.pos);
@@ -1006,10 +1201,9 @@
                 inner.textContent = item.text;
             }
 
-            // Durasi jatuh: Kalau piano klasik sesuai interval, kalau piano-flow dibuat lebih lama
             let fallDuration = spawnInterval;
             if (visualMode === 'piano-flow') {
-                fallDuration = 5000; // Butuh 5 detik untuk sampai bawah
+                fallDuration = 5000; 
             }
 
             const anim = tile.animate([
@@ -1021,20 +1215,15 @@
                 fill: 'forwards'
             });
 
-            // HAPUS playTone(item.pos) dari sini agar tidak bunyi saat muncul
-
             currentIndex++; 
             if (currentIndex > highestIndexSeen) highestIndexSeen = currentIndex;
             updateProgress();
 
-            // Atur waktu kapan tile selanjutya muncul
             intervalId = setTimeout(() => {
                 playNextInSequence();
             }, spawnInterval);
 
-            // Bersihkan tile ketika sudah selesai jatuh ke bawah, DAN bunyikan suaranya di sini
             setTimeout(() => {
-                // Pastikan game masih berjalan (belum di-stop) agar tidak ada suara "hantu"
                 if (gameState === 'watching') {
                     playTone(item.pos);
                 }
@@ -1084,7 +1273,14 @@
         gameState='recalling_pos'; currentRecallStep=0;
         
         const visualMode = document.getElementById('visual-mode').value;
-        const modeText = visualMode === 'grid' ? 'urutan posisi kotak' : 'urutan lajur/kolom yang jatuh';
+        let modeText = 'urutan posisi kotak';
+        if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom yang jatuh';
+        if (visualMode === 'crossroad') {
+            modeText = 'arah datangnya (Atas/Bawah/Kiri/Kanan)';
+            // Nyalakan interaksi zona klik untuk mode 4 arah
+            document.getElementById('game-container').classList.add('recall-active');
+        }
+
         document.getElementById('status-text').textContent=`Recall Visual — Klik ${modeText}!`;
         document.getElementById('status-text').style.color='var(--text)';
         
@@ -1097,11 +1293,19 @@
         if (gameState!=='recalling_pos') return;
         const targetPos = sequence[currentRecallStep].pos;
         const visualMode = document.getElementById('visual-mode').value;
-        const cellId = visualMode === 'grid' ? 'cell-'+pos : 'lane-'+pos;
+        
+        let cellId = 'cell-'+pos;
+        if (visualMode === 'piano' || visualMode === 'piano-flow') cellId = 'lane-'+pos;
+        if (visualMode === 'crossroad') cellId = 'cross-'+pos;
+        
         const cell = document.getElementById(cellId);
 
         if (pos===targetPos) {
-            playTone(targetPos);
+            if(visualMode === 'crossroad') {
+                playTone(targetPos * 7);
+            } else {
+                playTone(targetPos);
+            }
 
             cell.classList.add('correct');
             const dot = document.getElementById('dot-'+currentRecallStep);
@@ -1144,6 +1348,11 @@
         gameState='answering_math'; clearGrid();
         
         document.getElementById('game-area').classList.add('hidden');
+        
+        // Matikan interaksi zona crossroad
+        if(document.getElementById('game-container')) {
+            document.getElementById('game-container').classList.remove('recall-active');
+        }
 
         document.getElementById('recall-dots').classList.add('hidden'); 
         document.getElementById('status-text').textContent='Ingatan visual akurat! Sekarang masukkan hasil hitunganmu.';
@@ -1217,6 +1426,7 @@
         document.getElementById('btn-continue').classList.add('hidden');
         document.getElementById('btn-restart').classList.add('hidden');
         currentIndex = 0; highestIndexSeen = 0; gameState = 'watching';
+        globalZIndex = 100;
         
         memorizeStartTime = Date.now(); memorizeTimerActive = true;
         document.getElementById('mem-box').classList.add('active');
@@ -1237,6 +1447,7 @@
         document.getElementById('math-area').classList.add('hidden');
         document.getElementById('recall-dots').classList.add('hidden');
         currentIndex=0; highestIndexSeen=0; gameState='watching'; clearGrid();
+        globalZIndex = 100;
         
         memorizeStartTime = Date.now(); memorizeTimerActive = true;
         document.getElementById('mem-box').classList.add('active');
@@ -1259,7 +1470,12 @@
         document.getElementById('game-area').classList.remove('hidden');
         
         const visualMode = document.getElementById('visual-mode').value;
-        const modeText = visualMode === 'grid' ? 'urutan posisi kotak' : 'urutan lajur/kolom';
+        let modeText = 'urutan posisi kotak';
+        if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom';
+        if (visualMode === 'crossroad') {
+            modeText = 'arah datangnya';
+            document.getElementById('game-container').classList.add('recall-active');
+        }
         
         document.getElementById('status-text').textContent=`Ayo coba lagi! Klik ${modeText}nya.`;
         document.getElementById('status-text').style.color='var(--text)';
@@ -1275,6 +1491,15 @@
                 const c=document.getElementById('cell-'+i); if(!c) continue;
                 c.className='cell';
                 const inner=c.querySelector('.cell-inner'); if(inner) inner.innerHTML='';
+            }
+        } else if (visualMode === 'crossroad') {
+            // Hapus semua tile animasi yang masih ada di jalan
+            const tiles = document.querySelectorAll('.cross-tile');
+            tiles.forEach(t => t.remove());
+            // Reset zone states
+            for (let i=0; i<4; i++) {
+                const z = document.getElementById('cross-'+i);
+                if(z) { z.classList.remove('correct'); z.classList.remove('wrong'); }
             }
         } else {
             for (let i=0;i<currentGridSize;i++) {
@@ -1294,6 +1519,10 @@
         document.getElementById('lives-display').classList.add('hidden');
         document.getElementById('status-text').textContent='Siap menguji memori dan berhitung?';
         document.getElementById('status-text').style.color='var(--text)';
+        
+        if(document.getElementById('game-container')) {
+            document.getElementById('game-container').classList.remove('recall-active');
+        }
         
         stopDisplayTimer();
         totalMemorizeTime = 0; totalRecallTime = 0;
