@@ -327,6 +327,20 @@
             animation: wrongShake 0.4s ease;
         }
 
+        /* --- RECALL FEEDBACK TILES --- */
+        .piano-tile.correct, .cross-tile.correct {
+            background: linear-gradient(135deg, #062016, #0a2e1e) !important;
+            border-color: var(--neon-green) !important;
+            box-shadow: 0 0 15px rgba(0,255,157,0.6), inset 0 0 10px rgba(0,255,157,0.2) !important;
+            color: var(--neon-green) !important;
+        }
+        .piano-tile.wrong, .cross-tile.wrong {
+            background: linear-gradient(135deg, #200608, #2e0a0e) !important;
+            border-color: var(--neon-red) !important;
+            box-shadow: 0 0 15px rgba(255,56,96,0.6), inset 0 0 10px rgba(255,56,96,0.2) !important;
+            color: var(--neon-red) !important;
+        }
+
         /* --- SPAWN MARKERS (PENANDA TEMPAT KELUAR) --- */
         .spawn-marker {
             position: absolute; top: 0; left: 0; width: 100%; height: 30px;
@@ -1299,6 +1313,52 @@
         if (visualMode === 'crossroad') cellId = 'cross-'+pos;
         
         const cell = document.getElementById(cellId);
+
+        // --- ANIMASI TILE BERGERAK SAAT RECALL ---
+        const isCorrect = pos === targetPos;
+        
+        // Sesuaikan durasi kecepatan dengan saat fase menghafal
+        const spawnInterval = parseInt(document.getElementById('game-speed').value) || 2000;
+        let animDuration = spawnInterval;
+        if (visualMode === 'piano-flow' || visualMode === 'crossroad') {
+            animDuration = 5000;
+        }
+
+        if (visualMode === 'piano' || visualMode === 'piano-flow') {
+            const fbTile = document.createElement('div');
+            // Hapus override warna correct/wrong, biarkan warna aslinya
+            fbTile.className = 'piano-tile';
+            cell.appendChild(fbTile);
+            
+            fbTile.animate([
+                { top: '-70px' },
+                { top: '100%' }
+            ], { duration: animDuration, easing: 'linear', fill: 'forwards' });
+            
+            setTimeout(() => {
+                if (cell.contains(fbTile)) cell.removeChild(fbTile);
+            }, animDuration);
+
+        } else if (visualMode === 'crossroad') {
+            const container = document.getElementById('game-container');
+            const fbTile = document.createElement('div');
+            // Hapus override warna correct/wrong, biarkan warna sesuai arah (dir-pos)
+            fbTile.className = `cross-tile dir-${pos}`;
+            fbTile.style.zIndex = globalZIndex++;
+            container.appendChild(fbTile);
+
+            let animKeyframes;
+            if (pos === 0) animKeyframes = [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+            else if (pos === 1) animKeyframes = [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
+            else if (pos === 2) animKeyframes = [ {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'} ];
+            else if (pos === 3) animKeyframes = [ {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'} ];
+
+            fbTile.animate(animKeyframes, { duration: animDuration, easing: 'linear', fill: 'forwards' });
+
+            setTimeout(() => {
+                if (container.contains(fbTile)) container.removeChild(fbTile);
+            }, animDuration);
+        }
 
         if (pos===targetPos) {
             if(visualMode === 'crossroad') {
