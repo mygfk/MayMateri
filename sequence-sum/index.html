@@ -430,8 +430,24 @@
         }
         .cross-spawn.dir-7::after { transform: rotate(45deg); transform-origin: bottom left; }
 
+        /* --- CENTER SPAWN (KHUSUS MODE OUTWARD/DARI TENGAH) --- */
+        .center-spawn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px dashed rgba(0, 212, 255, 0.6);
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            z-index: 1000; pointer-events: none;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        .center-spawn::after {
+            content: 'CORE'; font-family: 'Orbitron', monospace; font-size: 11px;
+            font-weight: bold; color: var(--neon-blue); letter-spacing: 2px; opacity: 0.9;
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
 
-        /* --- 3. CROSSROAD (4 & 8 ARAH) MODE STYLES --- */
+
+        /* --- 3. CROSSROAD & OUTWARD MODE STYLES --- */
         .crossroad-wrapper {
             position: relative; width: 100%; aspect-ratio: 1; max-height: 480px;
             margin: 0 auto; background: rgba(0, 0, 0, 0.2); border-radius: 8px;
@@ -449,7 +465,7 @@
             background: linear-gradient(135deg, #0d2a45, #0a1e35);
         }
         
-        /* Pewarnaan Ubin Crossroad Berdasarkan Arah */
+        /* Pewarnaan Ubin Crossroad & Outward Berdasarkan Arah */
         .cross-tile.dir-0 { border: 2px solid var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,212,255,0.4), inset 0 0 10px rgba(0,212,255,0.1); }
         .cross-tile.dir-1 { border: 2px solid var(--neon-green); color: var(--neon-green); box-shadow: 0 0 15px rgba(0,255,157,0.4), inset 0 0 10px rgba(0,255,157,0.1); }
         .cross-tile.dir-2 { border: 2px solid var(--neon-red); color: var(--neon-red); box-shadow: 0 0 15px rgba(255,56,96,0.4), inset 0 0 10px rgba(255,56,96,0.1); }
@@ -581,7 +597,7 @@
     <div id="intro" class="panel">
         <div class="panel-title">// BRIEFING</div>
         <ul class="info-list">
-            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano / Simpang Empat / Delapan).</li>
+            <li>Pilih mode <strong>Visualisasi</strong> (Grid Klasik / Piano / Silang Dalam-Luar).</li>
             <li>Klik <strong>MULAI</strong>. Perhatikan urutan angka/operasi beserta <strong>suaranya</strong>.</li>
             <li>Hitung total di kepala secara <strong>Mental Math</strong> terus-menerus.</li>
             <li>Kapanpun siap, tekan <strong>RECALL</strong> untuk berhenti dan menjawab.</li>
@@ -601,30 +617,26 @@
                 <div class="mode-desc" id="mode-desc">Angka muncul beserta operasi (+,–,×,÷). Hitung hasilnya secara berurutan!</div>
             </div>
             
-            <div class="setting-group">
+            <div class="setting-group full">
                 <label>Mode Visualisasi</label>
                 <select id="visual-mode">
                     <option value="grid">Grid Matriks (Klasik)</option>
                     <option value="piano">Piano Tiles (Jatuh Satu per Satu)</option>
                     <option value="piano-flow">Piano Tiles (Arus Bertumpuk)</option>
-                    <option value="crossroad">4 Arah (Simpang 4 Bertumpuk)</option>
-                    <option value="crossroad-8" selected>8 Arah (Simpang 8 Bertumpuk)</option>
+                    <option value="crossroad">4 Arah Tepi (Simpang 4 Bertumpuk)</option>
+                    <option value="crossroad-8">8 Arah Tepi (Simpang 8 Bertumpuk)</option>
+                    <option value="outward-4" selected>4 Arah Keluar (Dari Tengah ke Tepi)</option>
+                    <option value="outward-8">8 Arah Keluar (Dari Tengah ke Tepi)</option>
                 </select>
             </div>
             
             <div class="setting-group">
-                <label id="grid-size-label">Arah</label>
+                <label id="grid-size-label">Arah / Ukuran</label>
                 <select id="grid-size" disabled>
-                    <option value="8" selected>8 Arah</option>
-                    <option value="8">8 Arah</option>
-                    <option value="8">8 Arah</option>
+                    <option value="4" selected>4 Arah</option>
+                    <option value="4">4 Arah</option>
+                    <option value="4">4 Arah</option>
                 </select>
-            </div>
-            
-            <div class="setting-group full" id="custom-group">
-                <label>Urutan Custom (Isi sesuai jumlah langkah)</label>
-                <div id="custom-inputs-container" class="custom-inputs-wrapper"></div>
-                <div class="mode-desc" style="margin-top:6px;">Gunakan <strong>v</strong> untuk akar (cth: +v16), <strong>3v</strong> untuk akar pangkat 3 (cth: x3v8). Ketik <strong>v</strong> / <strong>3v</strong> sendirian untuk mengakarkan total saat ini. <br><em>Tip: Kosongkan kotak jika ingin diacak otomatis.</em></div>
             </div>
             
             <div class="setting-group">
@@ -636,6 +648,13 @@
                     <option value="4000">4 Detik — Santai</option>
                 </select>
             </div>
+            
+            <div class="setting-group full" id="custom-group">
+                <label>Urutan Custom (Isi sesuai jumlah langkah)</label>
+                <div id="custom-inputs-container" class="custom-inputs-wrapper"></div>
+                <div class="mode-desc" style="margin-top:6px;">Gunakan <strong>v</strong> untuk akar (cth: +v16), <strong>3v</strong> untuk akar pangkat 3 (cth: x3v8). Ketik <strong>v</strong> / <strong>3v</strong> sendirian untuk mengakarkan total saat ini. <br><em>Tip: Kosongkan kotak jika ingin diacak otomatis.</em></div>
+            </div>
+            
             <div class="setting-group">
                 <label>Jumlah Langkah</label>
                 <input type="number" id="game-steps" min="3" max="30" value="30">
@@ -814,13 +833,14 @@
             select.options[1].text = '4 Kolom';
             select.options[2].text = '5 Kolom';
             select.disabled = false;
-        } else if (e.target.value === 'crossroad' || e.target.value === 'crossroad-8') {
+        } else if (e.target.value.startsWith('crossroad') || e.target.value.startsWith('outward')) {
             label.textContent = 'Arah';
-            let dirText = e.target.value === 'crossroad' ? '4 Arah' : '8 Arah';
+            let isFourDir = (e.target.value === 'crossroad' || e.target.value === 'outward-4');
+            let dirText = isFourDir ? '4 Arah' : '8 Arah';
             select.options[0].text = dirText;
             select.options[1].text = dirText;
             select.options[2].text = dirText;
-            select.value = e.target.value === 'crossroad' ? "4" : "8"; 
+            select.value = isFourDir ? "4" : "8"; 
             select.disabled = true;
         } else {
             label.textContent = 'Ukuran Grid';
@@ -898,7 +918,7 @@
         el.innerHTML = html;
     }
 
-    // Handles DOM Creation for Grid, Piano, or Crossroad Mode
+    // Handles DOM Creation for Grid, Piano, Crossroad, or Outward Mode
     function createGrid() {
         const visualMode = document.getElementById('visual-mode').value;
         const container = document.getElementById('game-container');
@@ -914,26 +934,42 @@
                 cell.onclick=()=>onCellClick(i);
                 container.appendChild(cell);
             }
-        } else if (visualMode.startsWith('crossroad')) {
+        } else if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
             container.className = 'crossroad-wrapper';
-            // Buat 4 zona klik tepi dan penanda spawn utama
-            let html = `
-                <div class="cross-spawn dir-0"></div>
-                <div class="cross-spawn dir-1"></div>
-                <div class="cross-spawn dir-2"></div>
-                <div class="cross-spawn dir-3"></div>
+            
+            let html = '';
+            
+            // Marker Spawn
+            if (visualMode.startsWith('crossroad')) {
+                // Tepi-tepi untuk crossroad
+                html += `
+                    <div class="cross-spawn dir-0"></div>
+                    <div class="cross-spawn dir-1"></div>
+                    <div class="cross-spawn dir-2"></div>
+                    <div class="cross-spawn dir-3"></div>
+                `;
+                if (visualMode === 'crossroad-8') {
+                    html += `
+                        <div class="cross-spawn dir-4"></div>
+                        <div class="cross-spawn dir-5"></div>
+                        <div class="cross-spawn dir-6"></div>
+                        <div class="cross-spawn dir-7"></div>
+                    `;
+                }
+            } else {
+                // Sentral portal untuk outward
+                html += `<div class="center-spawn"></div>`;
+            }
+
+            // Zona Klik untuk Recall (berlaku untuk crossroad maupun outward)
+            html += `
                 <div class="cross-zone top" id="cross-0" onclick="onCellClick(0)">ATAS</div>
                 <div class="cross-zone right" id="cross-1" onclick="onCellClick(1)">KANAN</div>
                 <div class="cross-zone bottom" id="cross-2" onclick="onCellClick(2)">BAWAH</div>
                 <div class="cross-zone left" id="cross-3" onclick="onCellClick(3)">KIRI</div>
             `;
-            // Tambahkan 4 sudut jika mode 8 Arah
-            if (visualMode === 'crossroad-8') {
+            if (visualMode.endsWith('8')) {
                 html += `
-                    <div class="cross-spawn dir-4"></div>
-                    <div class="cross-spawn dir-5"></div>
-                    <div class="cross-spawn dir-6"></div>
-                    <div class="cross-spawn dir-7"></div>
                     <div class="cross-zone corner top-left" id="cross-4" onclick="onCellClick(4)">KIRI<br>ATAS</div>
                     <div class="cross-zone corner top-right" id="cross-5" onclick="onCellClick(5)">KANAN<br>ATAS</div>
                     <div class="cross-zone corner bottom-right" id="cross-6" onclick="onCellClick(6)">KANAN<br>BAWAH</div>
@@ -941,6 +977,7 @@
                 `;
             }
             container.innerHTML = html;
+
         } else {
             // Berlaku untuk 'piano' dan 'piano-flow'
             container.className = 'piano-wrapper' + (visualMode === 'piano-flow' ? ' flow' : '');
@@ -976,6 +1013,7 @@
         return parseFloat(s);
     }
 
+    // Animasi Dari Tepi Ke Seberang (Crossroad)
     function getCrossroadAnim(pos) {
         if (pos === 0) return [ {top: '-25%', left: '50%', transform: 'translate(-50%, -50%)'}, {top: '125%', left: '50%', transform: 'translate(-50%, -50%)'} ];
         if (pos === 1) return [ {top: '50%', left: '125%', transform: 'translate(-50%, -50%)'}, {top: '50%', left: '-25%', transform: 'translate(-50%, -50%)'} ];
@@ -988,6 +1026,24 @@
         return [];
     }
 
+    // Animasi Dari Tengah Ke Tepi/Sudut (Outward)
+    function getOutwardAnim(pos) {
+        let endTop, endLeft;
+        if (pos === 0) { endTop = '-25%'; endLeft = '50%'; }
+        if (pos === 1) { endTop = '50%'; endLeft = '125%'; }
+        if (pos === 2) { endTop = '125%'; endLeft = '50%'; }
+        if (pos === 3) { endTop = '50%'; endLeft = '-25%'; }
+        if (pos === 4) { endTop = '-25%'; endLeft = '-25%'; }
+        if (pos === 5) { endTop = '-25%'; endLeft = '125%'; }
+        if (pos === 6) { endTop = '125%'; endLeft = '125%'; }
+        if (pos === 7) { endTop = '125%'; endLeft = '-25%'; }
+        return [
+            {top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(0.2)', opacity: 0},
+            {top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(0.8)', opacity: 1, offset: 0.1},
+            {top: endTop, left: endLeft, transform: 'translate(-50%, -50%) scale(1)'}
+        ];
+    }
+
     function generateSequence() {
         sequence = []; let lastPos=-1; let lastPos2=-1;
         const mode = document.getElementById('game-mode').value;
@@ -996,8 +1052,8 @@
         // Posisi berdasarkan mode
         let totalPositions = (currentGridSize * currentGridSize);
         if (visualMode === 'piano' || visualMode === 'piano-flow') totalPositions = currentGridSize;
-        if (visualMode === 'crossroad') totalPositions = 4;
-        if (visualMode === 'crossroad-8') totalPositions = 8; 
+        if (visualMode === 'crossroad' || visualMode === 'outward-4') totalPositions = 4;
+        if (visualMode === 'crossroad-8' || visualMode === 'outward-8') totalPositions = 8; 
 
         let runTotal = 0;
 
@@ -1035,9 +1091,9 @@
                         if (currentGridSize === 3) pos = fixedPos3x3[i % fixedPos3x3.length];
                         else if (currentGridSize === 4) pos = fixedPos4x4[i % fixedPos4x4.length];
                         else pos = fixedPos5x5[i % fixedPos5x5.length];
-                    } else if (visualMode === 'crossroad') {
+                    } else if (visualMode === 'crossroad' || visualMode === 'outward-4') {
                         pos = fixedCrossroad[i % fixedCrossroad.length];
-                    } else if (visualMode === 'crossroad-8') {
+                    } else if (visualMode === 'crossroad-8' || visualMode === 'outward-8') {
                         pos = fixedCrossroad8[i % fixedCrossroad8.length];
                     } else {
                         if (currentGridSize === 3) pos = fixedPiano3[i % fixedPiano3.length];
@@ -1045,7 +1101,7 @@
                         else pos = fixedPiano5[i % fixedPiano5.length];
                     }
                 } else {
-                    if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
+                    if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
                         // Boleh di arah yg sama maks 2 kali beruntun
                         do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                     } else {
@@ -1063,7 +1119,7 @@
         } else {
             for (let i = 0; i < maxSteps; i++) {
                 let pos; 
-                if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
+                if (visualMode === 'piano' || visualMode === 'piano-flow' || visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos && pos===lastPos2);
                 } else {
                     do { pos=Math.floor(Math.random()*totalPositions); } while(pos===lastPos);
@@ -1204,8 +1260,8 @@
                 intervalId = setTimeout(playNextInSequence, spawnInterval);
             }, 250);
             
-        } else if (visualMode.startsWith('crossroad')) {
-            // MODE SIMPANG (4 ARAH & 8 ARAH)
+        } else if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
+            // MODE SIMPANG & OUTWARD
             if (gameState !== 'watching') return;
             const item = sequence[currentIndex];
             const container = document.getElementById('game-container');
@@ -1226,7 +1282,7 @@
                 inner.textContent = item.text;
             }
 
-            let animKeyframes = getCrossroadAnim(item.pos);
+            let animKeyframes = visualMode.startsWith('crossroad') ? getCrossroadAnim(item.pos) : getOutwardAnim(item.pos);
             const fallDuration = 5000; // Selalu bertumpuk / lambat seperti arus
 
             const anim = tile.animate(animKeyframes, {
@@ -1348,7 +1404,10 @@
         if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom yang jatuh';
         if (visualMode.startsWith('crossroad')) {
             modeText = 'arah datangnya';
-            // Nyalakan interaksi zona klik untuk mode silang
+            document.getElementById('game-container').classList.add('recall-active');
+        }
+        if (visualMode.startsWith('outward')) {
+            modeText = 'arah perginya (Tepi/Sudut)';
             document.getElementById('game-container').classList.add('recall-active');
         }
 
@@ -1367,7 +1426,7 @@
         
         let cellId = 'cell-'+pos;
         if (visualMode === 'piano' || visualMode === 'piano-flow') cellId = 'lane-'+pos;
-        if (visualMode.startsWith('crossroad')) cellId = 'cross-'+pos;
+        if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) cellId = 'cross-'+pos;
         
         const cell = document.getElementById(cellId);
 
@@ -1377,7 +1436,7 @@
         // Sesuaikan durasi kecepatan dengan saat fase menghafal
         const spawnInterval = parseInt(document.getElementById('game-speed').value) || 2000;
         let animDuration = spawnInterval;
-        if (visualMode === 'piano-flow' || visualMode.startsWith('crossroad')) {
+        if (visualMode === 'piano-flow' || visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
             animDuration = 5000;
         }
 
@@ -1395,14 +1454,14 @@
                 if (cell.contains(fbTile)) cell.removeChild(fbTile);
             }, animDuration);
 
-        } else if (visualMode.startsWith('crossroad')) {
+        } else if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
             const container = document.getElementById('game-container');
             const fbTile = document.createElement('div');
             fbTile.className = `cross-tile dir-${pos}`;
             fbTile.style.zIndex = globalZIndex++;
             container.appendChild(fbTile);
 
-            let animKeyframes = getCrossroadAnim(pos);
+            let animKeyframes = visualMode.startsWith('crossroad') ? getCrossroadAnim(pos) : getOutwardAnim(pos);
 
             fbTile.animate(animKeyframes, { duration: animDuration, easing: 'linear', fill: 'forwards' });
 
@@ -1412,7 +1471,7 @@
         }
 
         if (pos===targetPos) {
-            if(visualMode.startsWith('crossroad')) {
+            if(visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
                 playTone(targetPos * 3);
             } else {
                 playTone(targetPos);
@@ -1582,8 +1641,8 @@
         const visualMode = document.getElementById('visual-mode').value;
         let modeText = 'urutan posisi kotak';
         if (visualMode === 'piano' || visualMode === 'piano-flow') modeText = 'urutan lajur/kolom';
-        if (visualMode.startsWith('crossroad')) {
-            modeText = 'arah datangnya';
+        if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
+            modeText = visualMode.startsWith('outward') ? 'arah perginya (Tepi/Sudut)' : 'arah datangnya';
             document.getElementById('game-container').classList.add('recall-active');
         }
         
@@ -1602,7 +1661,7 @@
                 c.className='cell';
                 const inner=c.querySelector('.cell-inner'); if(inner) inner.innerHTML='';
             }
-        } else if (visualMode.startsWith('crossroad')) {
+        } else if (visualMode.startsWith('crossroad') || visualMode.startsWith('outward')) {
             const tiles = document.querySelectorAll('.cross-tile');
             tiles.forEach(t => t.remove());
             for (let i=0; i<8; i++) {
