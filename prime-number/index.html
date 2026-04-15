@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIME STRIKE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
+  :root {
+    --bg: #030509;
+    --panel: #080d14;
+    --border: #0ff3;
+    --cyan: #00f5ff;
+    --red: #ff2244;
+    --gold: #ffd700;
+    --green: #00ff88;
+    --dim: #1a2a3a;
+    --text: #c8e8f8;
+    --freeze: #4488ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Scanlines */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    pointer-events: none; z-index: 1000;
+  }
+
+  /* Grid bg */
+  body::after {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; width: 100%; max-width: 900px; padding: 16px; z-index: 2; height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; align-items: center; justify-content: center;}
+
+  /* ===== SETUP SCREEN ===== */
+  #setup-screen { gap: 20px; overflow-y: auto; justify-content: flex-start; padding-top: 40px;}
+
+  .logo { text-align: center; position: relative; margin-bottom: 10px; }
+  .logo h1 {
+    font-family: 'Orbitron', monospace; font-size: clamp(32px, 8vw, 64px); font-weight: 900;
+    letter-spacing: 0.15em; color: var(--cyan);
+    text-shadow: 0 0 20px var(--cyan), 0 0 60px rgba(0,245,255,0.4);
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+  @keyframes pulse-glow {
+    from { text-shadow: 0 0 20px var(--cyan), 0 0 60px rgba(0,245,255,0.4); }
+    to { text-shadow: 0 0 30px var(--cyan), 0 0 80px rgba(0,245,255,0.6); }
+  }
+  .logo .sub { font-size: 14px; letter-spacing: 0.4em; color: rgba(0,245,255,0.5); margin-top: 4px; }
+
+  .setup-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; position: relative; width: 100%; max-width: 700px;
+  }
+  .setup-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+  .setup-card label {
+    font-family: 'Orbitron', monospace; font-size: 11px; letter-spacing: 0.2em;
+    color: var(--cyan); display: block; margin-bottom: 12px; text-transform: uppercase;
+  }
+  
+  .option-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opt-btn {
+    background: var(--dim); border: 1px solid rgba(0,245,255,0.2); color: var(--text);
+    font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700; padding: 12px 16px;
+    cursor: pointer; border-radius: 4px; transition: all 0.15s; flex: 1; text-align: center; min-width: 100px;
+  }
+  .opt-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .opt-btn.selected {
+    background: rgba(0,245,255,0.15); border-color: var(--cyan); color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,245,255,0.3);
+  }
+
+  .sub-config-row { display: flex; gap: 16px; margin-top: 16px; width: 100%; max-width: 700px; flex-wrap: wrap; }
+  .sub-config { flex: 1; min-width: 250px; }
+
+  .start-btn {
+    background: linear-gradient(135deg, rgba(0,245,255,0.2), rgba(0,245,255,0.05));
+    border: 2px solid var(--cyan); color: var(--cyan); font-family: 'Orbitron', monospace;
+    font-size: 20px; font-weight: 700; letter-spacing: 0.3em; padding: 16px 60px;
+    cursor: pointer; border-radius: 6px; transition: all 0.2s; box-shadow: 0 0 20px rgba(0,245,255,0.2);
+    margin-top: 10px; margin-bottom: 40px;
+  }
+  .start-btn:hover { background: rgba(0,245,255,0.25); box-shadow: 0 0 40px rgba(0,245,255,0.5); transform: translateY(-2px); }
+
+  /* ===== GAME SCREEN ===== */
+  #game-screen { padding: 12px; justify-content: flex-start; max-width: 800px; }
+
+  .top-hud { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  
+  .hud-main {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;
+  }
+  .hud-section { display: flex; align-items: center; gap: 16px; }
+  .hud-label { font-size: 10px; letter-spacing: 0.3em; color: rgba(0,245,255,0.5); text-transform: uppercase; font-family: 'Orbitron', monospace; }
+  .hud-value { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: var(--cyan); }
+  
+  .hud-center { text-align: center; flex: 1; }
+  .hud-center .cat-title { font-family: 'Orbitron', monospace; font-size: 16px; color: var(--gold); font-weight: 700; letter-spacing: 0.1em; }
+
+  .hud-stats {
+    display: flex; justify-content: space-between; background: rgba(8,13,20,0.8);
+    border: 1px solid rgba(0,245,255,0.2); border-radius: 6px; padding: 8px 16px;
+  }
+  .stat-item { font-family: 'Share Tech Mono', monospace; font-size: 14px; }
+  .stat-item span.lbl { font-size: 10px; color: rgba(255,255,255,0.4); margin-right: 6px; }
+
+  .hearts { display: flex; gap: 4px; }
+  .heart { font-size: 18px; transition: all 0.3s; filter: drop-shadow(0 0 4px #ff2244); }
+  .heart.lost { filter: grayscale(1) opacity(0.3); transform: scale(0.8); }
+
+  .round-indicator { display: flex; gap: 4px; }
+  .round-pip { width: 20px; height: 6px; border-radius: 3px; background: var(--dim); transition: all 0.3s; }
+  .round-pip.done { background: rgba(0,245,255,0.4); }
+  .round-pip.active { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+
+  /* Stage */
+  .game-arena {
+    width: 100%; display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0;
+  }
+
+  .number-stage {
+    flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,245,255,0.05);
+  }
+
+  .category-tag {
+    position: absolute; top: 16px; left: 0; right: 0; text-align: center;
+    font-size: 14px; letter-spacing: 0.3em; color: rgba(255,215,0,0.8);
+    font-family: 'Orbitron', monospace; font-weight: 700;
+  }
+  
+  .global-timer-display {
+    position: absolute; top: 16px; right: 20px;
+    font-family: 'Orbitron', monospace; font-size: 24px; color: var(--gold);
+    text-shadow: 0 0 10px var(--gold); display: none; font-weight: 900;
+  }
+
+  .number-display {
+    font-family: 'Orbitron', monospace; font-size: clamp(80px, 20vw, 160px); font-weight: 900;
+    color: var(--text); text-shadow: 0 0 30px rgba(200,232,248,0.3); position: relative;
+    z-index: 2; transition: all 0.1s; letter-spacing: 0.05em; user-select: none;
+  }
+
+  .number-display.flash-correct { color: var(--green); text-shadow: 0 0 40px var(--green), 0 0 80px rgba(0,255,136,0.5); animation: correct-flash 0.4s ease-out; }
+  .number-display.flash-wrong { color: var(--red); text-shadow: 0 0 40px var(--red); animation: wrong-flash 0.3s ease-out; }
+
+  @keyframes correct-flash { 0% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  @keyframes wrong-flash { 0% { transform: translateX(-8px); } 25% { transform: translateX(8px); } 50% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+
+  .number-display.entering { animation: number-enter 0.2s ease-out; }
+  @keyframes number-enter { from { opacity: 0; transform: translateY(-20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .progress-track { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; background: var(--dim); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), rgba(0,245,255,0.8)); box-shadow: 0 0 10px var(--cyan); transition: width 0.1s linear; }
+
+  .timer-ring-wrap { position: absolute; bottom: 20px; right: 20px; display: none; }
+  .timer-svg { transform: rotate(-90deg); }
+  .timer-bg { fill: none; stroke: var(--dim); stroke-width: 4; }
+  .timer-arc { fill: none; stroke: var(--cyan); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--cyan)); }
+
+  .freeze-overlay {
+    position: absolute; inset: 0; background: rgba(68,136,255,0.15); border: 2px solid var(--freeze);
+    border-radius: 12px; display: none; align-items: center; justify-content: center; z-index: 10; backdrop-filter: blur(4px);
+  }
+  .freeze-overlay.active { display: flex; }
+  .freeze-text { font-family: 'Orbitron', monospace; font-size: 32px; color: var(--freeze); text-shadow: 0 0 20px var(--freeze); letter-spacing: 0.2em; animation: blink 0.5s step-end infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Bottom Controls */
+  .bottom-controls { width: 100%; display: flex; gap: 16px; justify-content: center; height: clamp(100px, 15vh, 140px); }
+  
+  .yn-btn {
+    flex: 1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace; font-weight: 900; cursor: pointer; transition: all 0.1s; user-select: none;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.5); /* 3D effect */
+  }
+  .yn-btn:active, .yn-btn.pressed { transform: translateY(8px); box-shadow: 0 0px 0 rgba(0,0,0,0.5); }
+  
+  .btn-yes {
+    background: linear-gradient(180deg, #0a4020, #052010); border: 3px solid var(--green); color: var(--green);
+  }
+  .btn-no {
+    background: linear-gradient(180deg, #400a10, #200508); border: 3px solid var(--red); color: var(--red);
+  }
+
+  .btn-icon { font-size: clamp(36px, 6vw, 48px); margin-bottom: 4px; line-height: 1; text-shadow: inherit;}
+  .btn-lbl { font-size: clamp(18px, 3vw, 24px); letter-spacing: 0.1em; text-shadow: inherit; }
+
+  .btn-yes:hover, .btn-yes:active, .btn-yes.pressed { text-shadow: 0 0 20px var(--green); box-shadow: 0 0 30px rgba(0,255,136,0.3), inset 0 0 20px rgba(0,255,136,0.2); background: linear-gradient(180deg, #0d5028, #0a3018); }
+  .btn-no:hover, .btn-no:active, .btn-no.pressed { text-shadow: 0 0 20px var(--red); box-shadow: 0 0 30px rgba(255,34,68,0.3), inset 0 0 20px rgba(255,34,68,0.2); background: linear-gradient(180deg, #500d15, #300a10); }
+
+  /* Classic button (centered) */
+  .btn-classic-wrapper { display: none; width: 100%; justify-content: center; align-items: center; height: 100%; }
+  .btn-buzz {
+    width: clamp(120px, 40vw, 300px); height: 100%; border-radius: 16px; background: linear-gradient(180deg, #400a10, #200508);
+    border: 3px solid var(--red); color: var(--red); font-family: 'Orbitron', monospace; font-weight: 900; font-size: 24px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.1s;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.5);
+  }
+  .btn-buzz:active, .btn-buzz.pressed { transform: translateY(8px); box-shadow: 0 0 0 rgba(0,0,0,0.5); background: #500d15; text-shadow: 0 0 20px var(--red); }
+
+  .hint-box { background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.2); border-radius: 6px; padding: 10px; font-size: 12px; color: rgba(255,215,0,0.8); font-family: 'Share Tech Mono', monospace; text-align: center; margin-top: 8px;}
+
+  /* ===== ROUND INTRO & RESULTS ===== */
+  #round-intro, #results-screen { gap: 24px; text-align: center; }
+  .result-title { font-family: 'Orbitron', monospace; font-size: clamp(28px, 6vw, 50px); font-weight: 900; letter-spacing: 0.2em; }
+  .final-score-display { font-family: 'Orbitron', monospace; font-size: clamp(60px, 14vw, 110px); font-weight: 900; color: var(--gold); text-shadow: 0 0 40px rgba(255,215,0,0.6); animation: score-reveal 0.6s ease-out; }
+  @keyframes score-reveal { from { opacity: 0; transform: scale(0.5) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  
+  .rounds-summary { display: flex; gap: 16px; justify-content: center; width: 100%; flex-wrap: wrap;}
+  .round-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; min-width: 140px; position: relative; overflow: hidden; }
+  .rc-cat { font-size: 12px; color: var(--gold); margin-bottom: 8px; font-weight: 600; }
+  .rc-score { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 700; color: var(--cyan); }
+  
+  .play-again-btn { background: transparent; border: 2px solid var(--cyan); color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.2em; padding: 16px 48px; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+  .play-again-btn:hover { background: rgba(0,245,255,0.15); box-shadow: 0 0 30px rgba(0,245,255,0.4); }
+
+  .particle { position: fixed; font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; pointer-events: none; z-index: 999; animation: particle-fly 0.8s ease-out forwards; }
+  @keyframes particle-fly { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(1.3); } }
+  
+  /* Utilities */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="screen active">
+  <div class="logo">
+    <h1>PRIME STRIKE</h1>
+    <div class="sub">Logic · Speed · Math</div>
+  </div>
+
+  <div class="setup-card">
+    <label>MODE INTERAKSI</label>
+    <div class="option-group" id="mode-opts">
+      <button class="opt-btn" data-val="classic">KLASIK (TOMBOL BUZZ)</button>
+      <button class="opt-btn selected" data-val="strict">KETAT (TOMBOL YES / NO)</button>
+    </div>
+  </div>
+
+  <div class="setup-card">
+    <label>SISTEM WAKTU & PACING</label>
+    <div class="option-group" id="timing-mode-opts">
+      <button class="opt-btn" data-val="interval">WAKTU PER SOAL</button>
+      <button class="opt-btn selected" data-val="untimed">SANGAT SANTAI (TANPA WAKTU)</button>
+      <button class="opt-btn" data-val="accumulative">TANTANGAN WAKTU TOTAL</button>
+    </div>
+  </div>
+
+  <!-- Dynamic Sub Options -->
+  <div class="sub-config-row">
+    <div class="setup-card sub-config hidden" id="sub-interval">
+      <label>DURASI PER SOAL (OTOMATIS GANTI)</label>
+      <div class="option-group" id="interval-opts">
+        <button class="opt-btn" data-val="1">1 Detik</button>
+        <button class="opt-btn selected" data-val="2">2 Detik</button>
+        <button class="opt-btn" data-val="3">3 Detik</button>
+      </div>
+    </div>
+    
+    <div class="setup-card sub-config hidden" id="sub-count">
+      <label>JUMLAH SOAL PER RONDE</label>
+      <div class="option-group" id="count-opts">
+        <button class="opt-btn" data-val="20">20 Soal</button>
+        <button class="opt-btn selected" data-val="50">50 Soal</button>
+        <button class="opt-btn" data-val="100">100 Soal</button>
+      </div>
+    </div>
+
+    <div class="setup-card sub-config hidden" id="sub-acc">
+      <label>TOTAL WAKTU PER RONDE</label>
+      <div class="option-group" id="acc-opts">
+        <button class="opt-btn" data-val="60">1 Menit</button>
+        <button class="opt-btn selected" data-val="180">3 Menit</button>
+        <button class="opt-btn" data-val="300">5 Menit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-card" style="margin-top:0;">
+    <label>TINGKAT KESULITAN (DIGIT ANGKA)</label>
+    <div class="option-group" id="digit-opts">
+      <button class="opt-btn selected" data-val="3">3 Digit (100 - 999)</button>
+      <button class="opt-btn" data-val="4">4 Digit (1000 - 9999) ⭐ BONUS SKOR</button>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-game-btn">⚡ MULAI BERMAIN</button>
+</div>
+
+<!-- ROUND INTRO -->
+<div id="round-intro" class="screen">
+  <div class="round-badge" style="font-family:'Orbitron',monospace; font-size:18px; color:var(--cyan); letter-spacing:0.3em;">RONDE <span id="intro-round-num">1</span></div>
+  <div class="category-reveal" style="background:var(--panel); border:2px solid var(--gold); border-radius:12px; padding:30px; margin:20px 0;">
+    <div style="font-size:14px; letter-spacing:0.3em; color:rgba(255,215,0,0.7); margin-bottom:10px;">TARGET KATEGORI</div>
+    <div id="intro-cat-name" style="font-family:'Orbitron',monospace; font-size:clamp(24px, 5vw, 40px); font-weight:900; color:var(--gold);">BILANGAN PRIMA</div>
+    <div id="intro-cat-desc" style="font-family:'Share Tech Mono',monospace; font-size:16px; color:#fff; opacity:0.8; margin-top:12px;">Hanya bisa dibagi 1 dan dirinya sendiri</div>
+  </div>
+  <div style="font-family:'Orbitron',monospace; font-size:24px; color:var(--cyan);" id="intro-countdown">3</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+  <div class="top-hud">
+    <div class="hud-main">
+      <div class="hud-section">
+        <div>
+          <div class="hud-label">Ronde</div>
+          <div class="round-indicator" id="round-pips">
+            <div class="round-pip active"></div>
+            <div class="round-pip"></div>
+            <div class="round-pip"></div>
+          </div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="cat-title" id="hud-cat-title">BILANGAN PRIMA</div>
+      </div>
+      <div class="hud-section" style="justify-content:flex-end;">
+        <div style="text-align:right;">
+          <div class="hud-label">Skor</div>
+          <div class="hud-value" id="score-display">0</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="hud-stats">
+      <div class="stat-item"><span class="lbl">PROGRESS</span><span id="stat-progress" style="color:var(--text);">0/50</span></div>
+      <div class="stat-item"><span class="lbl">BENAR</span><span id="stat-hits" style="color:var(--green);">0</span></div>
+      <div class="stat-item"><span class="lbl">SALAH</span><span id="stat-miss" style="color:var(--red);">0</span></div>
+      <div class="hearts" id="hearts-display"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
+    </div>
+  </div>
+
+  <div class="game-arena">
+    <div class="number-stage" id="number-stage">
+      <div class="category-tag" id="category-tag">APAKAH INI BILANGAN PRIMA?</div>
+      <div class="global-timer-display" id="global-timer">03:00</div>
+      
+      <div class="number-display" id="number-display">---</div>
+      
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="timer-ring-wrap" id="timer-ring-wrap">
+        <svg class="timer-svg" width="50" height="50" viewBox="0 0 50 50">
+          <circle class="timer-bg" cx="25" cy="25" r="20"/>
+          <circle class="timer-arc" id="timer-arc" cx="25" cy="25" r="20" stroke-dasharray="125.66" stroke-dashoffset="0"/>
+        </svg>
+      </div>
+      <div class="freeze-overlay" id="freeze-overlay">
+        <div class="freeze-text">⚡ BEKU ⚡</div>
+      </div>
+    </div>
+
+    <div class="hint-box" id="hint-box">Tekan ✓ YES jika angka sesuai dengan kategori di atas!</div>
+
+    <!-- CONTROLS -->
+    <div class="bottom-controls" id="strict-controls">
+      <button class="yn-btn btn-yes" id="yes-btn">
+        <span class="btn-icon">✓</span><span class="btn-lbl">YES (Y)</span>
+      </button>
+      <button class="yn-btn btn-no" id="no-btn">
+        <span class="btn-icon">✗</span><span class="btn-lbl">NO (N)</span>
+      </button>
+    </div>
+
+    <div class="bottom-controls hidden" id="classic-controls">
+      <div class="btn-classic-wrapper" style="display:flex;">
+        <button class="btn-buzz" id="buzzer-btn">
+          <span class="btn-icon" style="font-size:40px;">🔴</span><span class="btn-lbl">BUZZ (SPASI)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="screen">
+  <div style="font-family:'Orbitron',monospace; font-size:20px; color:rgba(0,245,255,0.6); letter-spacing:0.4em;">PERMAINAN SELESAI</div>
+  <div class="result-title" id="result-title" style="color:var(--cyan)">TOTAL SKOR</div>
+  <div class="final-score-display" id="final-score">0</div>
+  <div class="rounds-summary" id="rounds-summary"></div>
+  <button class="play-again-btn" id="play-again-btn">↺ MAIN LAGI</button>
+</div>
+
+<script>
+// ========== MATH LOGIC ==========
+function isPrime(n) {
+  if (n < 2) return false;
+  if (n === 2) return true;
+  if (n % 2 === 0) return false;
+  for (let i = 3; i <= Math.sqrt(n); i += 2)
+    if (n % i === 0) return false;
+  return true;
+}
+function isPerfectSquare(n) { const s = Math.round(Math.sqrt(n)); return s * s === n; }
+
+const CATEGORIES = [
+  { name: 'BILANGAN PRIMA', desc: 'Hanya bisa dibagi 1 dan angka itu sendiri', tag: 'APAKAH BILANGAN PRIMA?', check: isPrime },
+  { name: 'KELIPATAN 4', desc: 'Dua digit terakhir bisa dibagi 4', tag: 'APAKAH KELIPATAN 4?', check: n => n % 4 === 0 },
+  { name: 'KELIPATAN 6', desc: 'Genap dan jumlah digitnya kelipatan 3', tag: 'APAKAH KELIPATAN 6?', check: n => n % 6 === 0 },
+  { name: 'KELIPATAN 11', desc: 'Selisih jumlah digit berselang-seling adalah kelipatan 11', tag: 'APAKAH KELIPATAN 11?', check: n => n % 11 === 0 },
+  { name: 'KUADRAT SEMPURNA', desc: 'Hasil perkalian suatu bilangan bulat dengan dirinya sendiri', tag: 'APAKAH KUADRAT SEMPURNA?', check: isPerfectSquare },
+  { name: 'KELIPATAN 3', desc: 'Jumlah semua digitnya bisa dibagi 3', tag: 'APAKAH KELIPATAN 3?', check: n => n % 3 === 0 }
+];
+
+function generateRoundNumbers(count, targetRatio, checkFn, digits) {
+  const min = digits === 4 ? 1000 : 100;
+  const max = digits === 4 ? 9999 : 999;
+  const range = max - min + 1;
+  const targetCount = Math.round(count * targetRatio);
+  const numbers = [];
+  const used = new Set();
+
+  let safetyA = 0;
+  while (numbers.filter(n => checkFn(n)).length < targetCount && safetyA++ < 5000) {
+    const n = Math.floor(Math.random() * range) + min;
+    if (!used.has(n) && checkFn(n)) { used.add(n); numbers.push(n); }
+  }
+  let safetyB = 0;
+  while (numbers.length < count && safetyB++ < 5000) {
+    const n = Math.floor(Math.random() * range) + min;
+    if (!used.has(n) && !checkFn(n)) { used.add(n); numbers.push(n); }
+  }
+  // Shuffle
+  for (let i = numbers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+  }
+  return numbers;
+}
+
+// ========== STATE ==========
+const state = {
+  interactionMode: 'strict', // 'classic' or 'strict'
+  timingMode: 'untimed',     // 'interval', 'untimed', 'accumulative'
+  intervalSec: 2,
+  questionsCount: 50,
+  totalTimeSec: 180, // 3 mins
+  digitCount: 3,
+  
+  rounds: [],
+  currentRound: 0,
+  currentIndex: 0,
+  score: 0,
+  hearts: 3,
+  hits: 0,
+  misses: 0,
+  
+  frozen: false,
+  freezeTimer: null,
+  qTimer: null,
+  globalTimer: null,
+  globalTimeLeft: 0,
+  timerAnimFrame: null,
+  qStartTs: 0,
+  buzzedThisTurn: false
+};
+
+// ========== UI SETUP LOGIC ==========
+const screens = {
+  setup: document.getElementById('setup-screen'),
+  intro: document.getElementById('round-intro'),
+  game: document.getElementById('game-screen'),
+  results: document.getElementById('results-screen')
+};
+
+function showScreen(name) {
+  Object.values(screens).forEach(s => s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+
+function setupBtnGroup(groupId, stateKey, isInt, onChange) {
+  const container = document.getElementById(groupId);
+  if(!container) return;
+  container.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state[stateKey] = isInt ? parseInt(btn.dataset.val) : btn.dataset.val;
+      if(onChange) onChange();
+    });
+  });
+}
+
+function updateSubConfigVisibility() {
+  document.getElementById('sub-interval').classList.add('hidden');
+  document.getElementById('sub-count').classList.add('hidden');
+  document.getElementById('sub-acc').classList.add('hidden');
+  
+  if (state.timingMode === 'interval') {
+    document.getElementById('sub-interval').classList.remove('hidden');
+    document.getElementById('sub-count').classList.remove('hidden');
+  } else if (state.timingMode === 'untimed') {
+    document.getElementById('sub-count').classList.remove('hidden');
+  } else if (state.timingMode === 'accumulative') {
+    document.getElementById('sub-acc').classList.remove('hidden');
+  }
+}
+
+setupBtnGroup('mode-opts', 'interactionMode', false);
+setupBtnGroup('timing-mode-opts', 'timingMode', false, updateSubConfigVisibility);
+setupBtnGroup('interval-opts', 'intervalSec', true);
+setupBtnGroup('count-opts', 'questionsCount', true);
+setupBtnGroup('acc-opts', 'totalTimeSec', true);
+setupBtnGroup('digit-opts', 'digitCount', true);
+updateSubConfigVisibility(); // Init
+
+// ========== GAME FLOW ==========
+document.getElementById('start-game-btn').addEventListener('click', startGame);
+document.getElementById('play-again-btn').addEventListener('click', resetGame);
+
+function startGame() {
+  const catsCopy = [...CATEGORIES].sort(() => Math.random() - 0.5);
+  // strict needs balanced yes/no, classic needs fewer targets
+  const ratio = state.interactionMode === 'strict' ? 0.4 : 0.20; 
+  
+  // If accumulative, give a huge buffer of questions so they don't run out.
+  const numToGen = state.timingMode === 'accumulative' ? 400 : state.questionsCount;
+
+  state.rounds = catsCopy.slice(0, 3).map(cat => ({
+    category: cat,
+    numbers: generateRoundNumbers(numToGen, ratio, cat.check, state.digitCount),
+    score: 0, hits: 0, misses: 0
+  }));
+  state.currentRound = 0;
+  state.score = 0;
+  startRoundIntro();
+}
+
+function startRoundIntro() {
+  const round = state.rounds[state.currentRound];
+  document.getElementById('intro-round-num').textContent = state.currentRound + 1;
+  document.getElementById('intro-cat-name').textContent = round.category.name;
+  document.getElementById('intro-cat-desc').textContent = round.category.desc;
+
+  showScreen('intro');
+  
+  let cd = 3;
+  const cdEl = document.getElementById('intro-countdown');
+  cdEl.textContent = "DIMULAI DALAM " + cd + "...";
+  
+  const inv = setInterval(() => {
+    cd--;
+    if(cd > 0) {
+      cdEl.textContent = "DIMULAI DALAM " + cd + "...";
+    } else {
+      clearInterval(inv);
+      beginRound();
+    }
+  }, 1000);
+}
+
+function beginRound() {
+  const round = state.rounds[state.currentRound];
+  state.currentIndex = 0;
+  state.hearts = 3;
+  state.hits = 0;
+  state.misses = 0;
+  state.frozen = false;
+  state.buzzedThisTurn = false;
+
+  document.getElementById('hud-cat-title').textContent = round.category.name;
+  
+  // Setup Controls Display
+  if (state.interactionMode === 'classic') {
+    document.getElementById('category-tag').textContent = "JIKA SESUAI, TEKAN BUZZ!";
+    document.getElementById('hint-box').textContent = "Pencet tombol BUZZ / SPASI HANYA JIKA angkanya sesuai kategori!";
+    document.getElementById('classic-controls').classList.remove('hidden');
+    document.getElementById('strict-controls').classList.add('hidden');
+  } else {
+    document.getElementById('category-tag').textContent = round.category.tag;
+    document.getElementById('hint-box').innerHTML = "Tekan <b>✓ YES (Kiri/Y)</b> jika sesuai, atau <b>✗ NO (Kanan/N)</b> jika tidak sesuai.";
+    document.getElementById('classic-controls').classList.add('hidden');
+    document.getElementById('strict-controls').classList.remove('hidden');
+  }
+
+  // UI Setup for Timing Mode
+  const gt = document.getElementById('global-timer');
+  const ring = document.getElementById('timer-ring-wrap');
+  
+  if (state.timingMode === 'accumulative') {
+    gt.style.display = 'block';
+    ring.style.display = 'none';
+    state.globalTimeLeft = state.totalTimeSec;
+    updateGlobalTimerUI();
+    clearInterval(state.globalTimer);
+    state.globalTimer = setInterval(tickGlobalTimer, 1000);
+  } else if (state.timingMode === 'interval') {
+    gt.style.display = 'none';
+    ring.style.display = 'block';
+  } else { // untimed
+    gt.style.display = 'none';
+    ring.style.display = 'none';
+  }
+
+  updateHearts();
+  updatePips();
+  updateStats();
+  
+  showScreen('game');
+  showNextNumber();
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateGlobalTimerUI() {
+  const el = document.getElementById('global-timer');
+  el.textContent = formatTime(state.globalTimeLeft);
+  if(state.globalTimeLeft <= 10) el.style.color = 'var(--red)';
+  else el.style.color = 'var(--gold)';
+}
+
+function tickGlobalTimer() {
+  if (state.frozen) return; // Optional: Pause global timer during freeze? Let's NOT pause it, makes freeze more punishing!
+  state.globalTimeLeft--;
+  updateGlobalTimerUI();
+  updateProgress(); // In accumulative, progress bar is time.
+
+  if (state.globalTimeLeft <= 0) {
+    clearInterval(state.globalTimer);
+    endRound();
+  }
+}
+
+function showNextNumber() {
+  const round = state.rounds[state.currentRound];
+  if (state.currentIndex >= round.numbers.length) { endRound(); return; }
+  if (state.hearts <= 0 && state.timingMode !== 'accumulative') { endRound(); return; } 
+  // In accumulative, hearts don't end the round, it's just pure freeze penalty.
+  if (state.hearts <= 0 && state.timingMode === 'accumulative') {
+     // refill 1 heart to keep them going but they just suffered a freeze
+     state.hearts = 1; updateHearts();
+  }
+
+  state.buzzedThisTurn = false;
+  clearInterval(state.qTimer);
+  cancelAnimationFrame(state.timerAnimFrame);
+
+  const num = round.numbers[state.currentIndex];
+  const display = document.getElementById('number-display');
+  display.textContent = num;
+  display.className = 'number-display entering';
+  setTimeout(() => display.classList.remove('entering'), 150);
+
+  state.qStartTs = Date.now();
+  updateProgress();
+
+  if (state.timingMode === 'interval') {
+    startRingAnim();
+    state.qTimer = setInterval(() => {
+      if (state.frozen) return;
+      const isTarget = round.category.check(num);
+      
+      // Time is up
+      if (state.interactionMode === 'classic') {
+         // Auto skip. If it was a target, it's a miss, but no penalty freeze. Just skip.
+         state.currentIndex++;
+         showNextNumber();
+      } else {
+         // Strict mode + time up = wrong! (Did not answer in time)
+         handleAnswerResult(false); 
+      }
+    }, state.intervalSec * 1000);
+  }
+}
+
+function handleAnswerResult(isCorrect, is4digit = false, timeElapsed = 0) {
+  const display = document.getElementById('number-display');
+  const round = state.rounds[state.currentRound];
+
+  if (isCorrect) {
+    // Points Calc
+    let pts = 10;
+    // Speed bonus if playing Interval or if they answer under 2 seconds.
+    if (state.timingMode === 'interval' || state.timingMode === 'accumulative') {
+        const speedRatio = Math.max(0, 1 - (timeElapsed / 3000));
+        pts += Math.floor(10 * speedRatio);
+    }
+    if (is4digit) pts = Math.floor(pts * 1.5);
+
+    state.score += pts;
+    round.score += pts;
+    state.hits++; round.hits++;
+    
+    display.classList.add('flash-correct');
+    spawnParticle(`+${pts}`, 'var(--green)');
+    document.getElementById('score-display').textContent = state.score;
+    
+    setTimeout(() => {
+      display.classList.remove('flash-correct');
+      state.currentIndex++;
+      updateStats();
+      showNextNumber();
+    }, 250);
+
+  } else {
+    // Wrong
+    state.misses++; round.misses++;
+    state.hearts--;
+    display.classList.add('flash-wrong');
+    updateHearts();
+    
+    setTimeout(() => {
+      display.classList.remove('flash-wrong');
+      // If interval/untimed and out of hearts -> Dead
+      if (state.hearts <= 0 && state.timingMode !== 'accumulative') {
+        endRound();
+        return;
+      }
+      activateFreeze();
+    }, 250);
+  }
+}
+
+// ACTION: Strict (Yes/No)
+function submitStrict(isYes) {
+  if (state.frozen || state.buzzedThisTurn || state.interactionMode !== 'strict') return;
+  state.buzzedThisTurn = true;
+  clearInterval(state.qTimer);
+
+  const num = state.rounds[state.currentRound].numbers[state.currentIndex];
+  const isTarget = state.rounds[state.currentRound].category.check(num);
+  const isCorrect = (isYes && isTarget) || (!isYes && !isTarget);
+  const timeElap = Date.now() - state.qStartTs;
+
+  animBtn(isYes ? 'yes-btn' : 'no-btn');
+  handleAnswerResult(isCorrect, num >= 1000, timeElap);
+}
+
+// ACTION: Classic (Buzz)
+function submitClassic() {
+  if (state.frozen || state.buzzedThisTurn || state.interactionMode !== 'classic') return;
+  state.buzzedThisTurn = true;
+  clearInterval(state.qTimer);
+
+  const num = state.rounds[state.currentRound].numbers[state.currentIndex];
+  const isTarget = state.rounds[state.currentRound].category.check(num);
+  const timeElap = Date.now() - state.qStartTs;
+
+  animBtn('buzzer-btn');
+  handleAnswerResult(isTarget, num >= 1000, timeElap);
+}
+
+function activateFreeze() {
+  state.frozen = true;
+  clearInterval(state.qTimer);
+  const overlay = document.getElementById('freeze-overlay');
+  overlay.classList.add('active');
+  let remain = 3; // 3 seconds freeze
+
+  overlay.querySelector('.freeze-text').textContent = `⚡ BEKU ${remain}s ⚡`;
+
+  state.freezeTimer = setInterval(() => {
+    remain--;
+    overlay.querySelector('.freeze-text').textContent = remain > 0 ? `⚡ BEKU ${remain}s ⚡` : '⚡ LANJUT! ⚡';
+    if (remain <= 0) {
+      clearInterval(state.freezeTimer);
+      overlay.classList.remove('active');
+      state.frozen = false;
+      // Skip this number, go to next
+      state.currentIndex++;
+      showNextNumber();
+    }
+  }, 1000);
+}
+
+function startRingAnim() {
+  const arc = document.getElementById('timer-arc');
+  const circ = 125.66;
+  const duration = state.intervalSec * 1000;
+
+  function tick() {
+    if (state.frozen) { state.timerAnimFrame = requestAnimationFrame(tick); return; }
+    const elapsed = Date.now() - state.qStartTs;
+    const ratio = Math.min(elapsed / duration, 1);
+    arc.style.strokeDashoffset = circ * ratio;
+    if (ratio < 1) state.timerAnimFrame = requestAnimationFrame(tick);
+  }
+  arc.style.strokeDashoffset = 0;
+  cancelAnimationFrame(state.timerAnimFrame);
+  state.timerAnimFrame = requestAnimationFrame(tick);
+}
+
+function endRound() {
+  clearInterval(state.qTimer);
+  clearInterval(state.globalTimer);
+  cancelAnimationFrame(state.timerAnimFrame);
+  
+  state.currentRound++;
+  if (state.currentRound < 3) {
+    setTimeout(() => startRoundIntro(), 400);
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  const total = state.rounds.reduce((s, r) => s + r.score, 0);
+  document.getElementById('final-score').textContent = total;
+  
+  const summary = document.getElementById('rounds-summary');
+  summary.innerHTML = state.rounds.map((r, i) => `
+    <div class="round-card">
+      <div style="font-size:10px;color:rgba(0,245,255,0.5);margin-bottom:4px;letter-spacing:0.2em;">RONDE ${i+1}</div>
+      <div class="rc-cat">${r.category.name}</div>
+      <div class="rc-score">${r.score}</div>
+      <div style="font-size:12px;opacity:0.6;margin-top:4px;">${r.hits} Benar | ${r.misses} Salah</div>
+    </div>
+  `).join('');
+
+  showScreen('results');
+}
+
+function resetGame() {
+  clearInterval(state.qTimer);
+  clearInterval(state.globalTimer);
+  clearInterval(state.freezeTimer);
+  cancelAnimationFrame(state.timerAnimFrame);
+  document.getElementById('freeze-overlay').classList.remove('active');
+  showScreen('setup');
+}
+
+// ========== UI UTILS ==========
+function updateHearts() {
+  const hearts = document.getElementById('hearts-display').querySelectorAll('.heart');
+  hearts.forEach((h, i) => h.classList.toggle('lost', i >= state.hearts));
+}
+function updatePips() {
+  const pips = document.getElementById('round-pips').querySelectorAll('.round-pip');
+  pips.forEach((p, i) => {
+    p.className = 'round-pip';
+    if (i < state.currentRound) p.classList.add('done');
+    else if (i === state.currentRound) p.classList.add('active');
+  });
+}
+function updateStats() {
+  document.getElementById('stat-hits').textContent = state.hits;
+  document.getElementById('stat-miss').textContent = state.misses;
+}
+function updateProgress() {
+  let pct = 0;
+  let text = '';
+  if (state.timingMode === 'accumulative') {
+    pct = (state.globalTimeLeft / state.totalTimeSec) * 100;
+    text = `WAKTU: ${formatTime(state.globalTimeLeft)}`;
+  } else {
+    const total = state.questionsCount;
+    pct = (state.currentIndex / total) * 100;
+    text = `${state.currentIndex}/${total}`;
+  }
+  document.getElementById('stat-progress').textContent = text;
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+}
+function animBtn(id) {
+  const btn = document.getElementById(id);
+  if(btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 150); }
+}
+function spawnParticle(text, color) {
+  const el = document.createElement('div');
+  el.className = 'particle'; el.textContent = text; el.style.color = color;
+  el.style.left = '50%'; el.style.top = '40%'; el.style.transform = 'translate(-50%,-50%)';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+// ========== INPUT ==========
+document.getElementById('buzzer-btn').addEventListener('click', submitClassic);
+document.getElementById('yes-btn').addEventListener('click', () => submitStrict(true));
+document.getElementById('no-btn').addEventListener('click', () => submitStrict(false));
+
+document.addEventListener('keydown', e => {
+  if (![...document.getElementById('game-screen').classList].includes('active')) return;
+  if (state.interactionMode === 'classic' && (e.code === 'Space' || e.code === 'Enter')) {
+    e.preventDefault(); submitClassic();
+  } else if (state.interactionMode === 'strict') {
+    if (e.code === 'ArrowLeft' || e.key.toLowerCase() === 'y') { e.preventDefault(); submitStrict(true); }
+    if (e.code === 'ArrowRight' || e.key.toLowerCase() === 'n') { e.preventDefault(); submitStrict(false); }
+  }
+});
+</script>
+</body>
+</html>
