@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panduan Belajar Siswa - Pembahasan Soal Tes Numerik</title>
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+          displayMath: [
+            ["$$", "$$"],
+            ["\\[", "\\]"],
+          ],
+          packages: { "[+]": ["ams"] },
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-text: #333333;
+        --secondary-text: #555555;
+        --border-color: #dddddd;
+        --header-top-bg: #e0f7fa;
+        --header-bottom-bg: #f0f0f0;
+        --header-title-color: #00838f;
+        --table-header-bg: #e9e9e9;
+        --grey-text: #8d8e8d;
+        --highlight-box-bg: #f9f9f9;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Nunito", sans-serif;
+        font-size: 12pt;
+        line-height: 1.6;
+        color: var(--primary-text);
+        background-color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .page {
+        background: white;
+        width: 21cm;
+        min-height: 29.7cm;
+        padding: 1.5cm 2cm;
+        margin: 1cm auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        page-break-after: always;
+      }
+
+      .page::before {
+        content: "";
+        background-image: url("https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 12cm;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        opacity: 0.08;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .page-header {
+        margin: -1.5cm -2cm 0 -2cm;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+      }
+
+      .header-top-box {
+        background-color: var(--header-top-bg);
+        padding: 15px 2cm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+      }
+
+      .header-title-main {
+        font-size: 18pt;
+        font-weight: 900;
+        color: var(--header-title-color);
+        line-height: 1.2;
+      }
+
+      .header-title-sub {
+        font-size: 11pt;
+        font-weight: 700;
+        color: var(--primary-text);
+      }
+
+      .header-bottom-box {
+        padding: 0 2cm 15px 2cm;
+        text-align: left;
+      }
+
+      .header-bottom-text {
+        background-color: var(--header-bottom-bg);
+        padding: 6px 12px;
+        font-weight: 700;
+        font-size: 10pt;
+        color: var(--primary-text);
+        display: block;
+        border-radius: 4px;
+        white-space: normal;
+      }
+      
+      .header-bottom-text.pembahasan-label {
+        background-color: var(--header-title-color);
+        color: white;
+      }
+
+      .header-logo {
+        max-height: 45px;
+        width: auto;
+      }
+
+      .content-wrapper {
+        flex-grow: 1;
+        position: relative;
+        z-index: 2;
+        padding-top: 20px;
+      }
+
+      .section-title {
+        font-size: 14pt;
+        font-weight: 800;
+        color: var(--header-title-color);
+        border-bottom: 2px solid var(--header-top-bg);
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        margin-top: 5px;
+      }
+
+      .tips-box {
+        background-color: #fff3e0;
+        border-left: 5px solid #ff9800;
+        padding: 20px;
+        margin: 20px 0;
+        font-size: 11pt;
+        border-radius: 0 5px 5px 0;
+      }
+
+      ul.custom-list {
+        padding-left: 20px;
+        margin: 10px 0;
+      }
+      ul.custom-list li {
+        margin-bottom: 10px;
+      }
+
+      .soal-pembahasan {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-top: 5px;
+        margin-bottom: 30px;
+      }
+      .soal-nomor {
+        font-weight: 800;
+        font-size: 14pt;
+        min-width: 35px;
+        color: var(--header-title-color);
+      }
+      .soal-konten {
+        flex-grow: 1;
+        text-align: justify;
+        font-size: 11.5pt;
+      }
+
+      .pilihan-ganda {
+        padding-left: 0;
+        list-style: none;
+        margin-top: 15px;
+      }
+      .pilihan-ganda li {
+        display: flex;
+        margin-bottom: 8px;
+      }
+      .pilihan-ganda li::before {
+        content: attr(data-opt) ".";
+        font-weight: 700;
+        width: 25px;
+        flex-shrink: 0;
+        color: var(--secondary-text);
+      }
+
+      .pembahasan-detail {
+        background-color: var(--highlight-box-bg);
+        border-left: 5px solid var(--header-title-color);
+        padding: 20px;
+        border-radius: 0 8px 8px 0;
+        font-size: 11pt;
+      }
+      .pembahasan-detail b.jawaban {
+        background-color: var(--header-title-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 10pt;
+      }
+
+      .page-footer {
+        text-align: center;
+        font-size: 6pt;
+        color: var(--grey-text);
+        margin-top: auto;
+        padding-top: 5px;
+        border-top: 2px solid var(--border-color);
+        flex-shrink: 0;
+        width: 100%;
+        position: relative;
+        z-index: 10;
+        background: white;
+      }
+
+      /* Custom styles for specific math components */
+      .magic-square {
+        border-collapse: collapse;
+        margin: 15px auto;
+        background: #fff;
+      }
+      .magic-square td {
+        border: 2px solid var(--secondary-text);
+        width: 45px;
+        height: 45px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 11pt;
+      }
+      .cryptarithm-box {
+        font-family: monospace;
+        font-size: 1.5em;
+        text-align: right;
+        width: 90px;
+        margin: 15px auto;
+        letter-spacing: 6px;
+        font-weight: bold;
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          background-color: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .page {
+          box-shadow: none;
+          margin: 0;
+          width: 21cm;
+          min-height: 29.7cm;
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-container">
+
+      <!-- ================== SOAL 1 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">Matematika - Tes Numerik</div>
+            </div>
+            <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">1.</div>
+            <div class="soal-konten">
+              Besar sudut antara jarum jam dan jarum menit pada gambar di bawah ini adalah ... derajat.
+              
+              <!-- Gambar Jam -->
+              <div style="text-align: center; margin: 25px 0;">
+                <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_94ivlp_5160.png" alt="Gambar Jam Pukul 05:47:24" style="max-width: 200px; width: 100%; height: auto;" />
+              </div>
+
+              <ul class="pilihan-ganda">
+                <li data-opt="A">$100,7^\circ$</li>
+                <li data-opt="B">$110,7^\circ$</li>
+                <li data-opt="C">$111,4^\circ$</li>
+                <li data-opt="D">$112,0^\circ$</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 1 (BAGIAN 1) ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">Matematika - Tes Numerik</div>
+            </div>
+            <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 1 (Bagian 1)</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: B. $110,7^\circ$</b><br /><br />
+            <b>Pembahasan Konsep Matematika:</b><br>
+            Gambar jam pada soal secara akurat menunjukkan pukul <b>05:47:24</b> (Jarum jam melewati angka 5, jarum menit di garis ke-47, dan jarum detik di garis ke-24). Kita harus menghitung pergeseran sudut yang sangat presisi akibat pergerakan jarum detik.<br><br>
+            
+            Dalam satu lingkaran penuh ($360^\circ$):
+            <ul class="custom-list">
+                <li><b>Jarum Menit</b> bergerak $360^\circ$ dalam 60 menit ($6^\circ$/menit). Karena 1 menit = 60 detik, maka pergerakannya adalah $\frac{6^\circ}{60} = \mathbf{0,1^\circ \text{ per detik}}$.</li>
+                <li><b>Jarum Jam</b> bergerak $30^\circ$ (jarak antar angka) dalam 60 menit ($0,5^\circ$/menit). Pergerakannya tiap detik adalah $\frac{0,5^\circ}{60} = \mathbf{\frac{1}{120}^\circ \text{ per detik}}$.</li>
+            </ul>
+
+            Mari kita hitung posisi sudut masing-masing jarum (dihitung dari angka 12 atau $0^\circ$ searah jarum jam):
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 1 (BAGIAN 2) ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">Matematika - Tes Numerik</div>
+            </div>
+            <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 1 (Bagian 2)</div>
+          <div class="pembahasan-detail">
+            <b>Lanjutan Perhitungan:</b><br><br>
+            <ol>
+                <li><b>Posisi Jarum Jam (05:47:24)</b><br>
+                Bergerak dari angka 12 ke angka 5 $= 5 \times 30^\circ = 150^\circ$.<br>
+                Tambahan dari 47 menit $= 47 \times 0,5^\circ = 23,5^\circ$.<br>
+                Tambahan dari 24 detik $= 24 \times \frac{1}{120}^\circ = 0,2^\circ$.<br>
+                Total posisi jarum jam $= 150^\circ + 23,5^\circ + 0,2^\circ = \mathbf{173,7^\circ}$.
+                </li><br>
+                <li><b>Posisi Jarum Menit (Menit ke-47 lewat 24 detik)</b><br>
+                Bergerak ke menit 47 $= 47 \times 6^\circ = 282^\circ$.<br>
+                Tambahan dari 24 detik $= 24 \times 0,1^\circ = 2,4^\circ$.<br>
+                Total posisi jarum menit $= 282^\circ + 2,4^\circ = \mathbf{284,4^\circ}$.
+                </li>
+            </ol>
+            Besar sudut yang dibentuk adalah selisih antara keduanya:<br>
+            Sudut $= 284,4^\circ - 173,7^\circ = \mathbf{110,7^\circ}$.
+
+            <div class="tips-box">
+                <b>TIPS & TRIK UNTUK SISWA:</b><br>
+                Untuk soal-soal tingkat lanjut yang menyertakan satuan detik, selesaikan dengan menghitung <b>posisi mutlak tiap jarum dari angka 12</b> secara terpisah, baru kemudian kurangkan keduanya! Jika tidak ada jarum detiknya, kamu cukup pakai rumus cepat: $| 30 \times \text{Jam} - 5,5 \times \text{Menit} |$.
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 2 ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">2.</div>
+            <div class="soal-konten">
+              Perhatikan gambar berikut ini.
+
+              <table class="magic-square">
+                <tr><td></td><td>321</td><td></td></tr>
+                <tr><td></td><td></td><td>339</td></tr>
+                <tr><td>330</td><td></td><td></td></tr>
+              </table>
+              <br>
+              Tiga dari sembilan bilangan yang membentuk barisan aritmatika sudah ditempatkan pada kotak-kotak <i>persegi ajaib</i> seperti yang ditunjukkan pada gambar di atas. Pada <i>persegi ajaib</i>, jumlah tiga buah bilangan pada setiap baris, jumlah tiga buah bilangan pada setiap kolom, dan jumlah tiga buah bilangan yang membentuk diagonal memiliki nilai yang sama. Jika nilai yang sama itu dinamakan $x$, berapakah nilai $x$?
+
+              <ul class="pilihan-ganda">
+                <li data-opt="A">333</li>
+                <li data-opt="B">666</li>
+                <li data-opt="C">999</li>
+                <li data-opt="D">1332</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 2 (BAGIAN 1) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 2 (Bagian 1)</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: C. 999</b><br /><br />
+            <b>Pembahasan Konsep Matematika:</b><br>
+            Persegi ajaib berukuran $3 \times 3$ yang diisi oleh barisan aritmatika memiliki sifat aljabar yang sangat teratur.
+            <ol>
+                <li><b>Nilai Tengah (Median):</b> Angka yang berada persis di tengah matriks selalu merupakan nilai rata-rata dari seluruh angka dalam barisan tersebut.</li>
+                <li><b>Konstanta Ajaib (Nilai $x$):</b> Karena nilai tengah adalah rata-rata, maka jumlah angka pada setiap garis lurus (baris, kolom, diagonal) selalu bernilai <b>3 kali angka di tengah</b>.</li>
+            </ol>
+
+            Mari kita amati angka yang diketahui: 321, 330, dan 339.<br>
+            Jika diurutkan (321, 330, 339), selisih antar angka ini adalah 9. Karena angka-angka ini terletak di sisi luar (bukan di tengah), angka tengah yang berfungsi sebagai poros (rata-rata penyeimbang) dari pola ini adalah $\mathbf{333}$.
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 2 (BAGIAN 2) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 2 (Bagian 2)</div>
+          <div class="pembahasan-detail">
+            <b>Lanjutan:</b><br><br>
+            Jika angka di pusat matriks $= 333$, maka:<br>
+            Nilai $x$ (Jumlah ajaib) $= 3 \times \text{Angka Tengah}$ <br>
+            Nilai $x = 3 \times 333 = \mathbf{999}$.
+
+            <table class="magic-square" style="margin-top: 20px; margin-bottom: 20px;">
+                <tr><td>342</td><td>321</td><td>336</td></tr>
+                <tr><td>327</td><td style="color:var(--header-title-color); background:var(--header-top-bg);">333</td><td>339</td></tr>
+                <tr><td>330</td><td>345</td><td>324</td></tr>
+            </table>
+
+            <div class="tips-box">
+                <b>TIPS & TRIK UNTUK SISWA:</b><br>
+                <b>Trik Cepat Persegi Ajaib $3 \times 3$:</b> <br>
+                1. <b>Total Baris/Kolom/Diagonal ($x$)</b> = $3 \times \text{Nilai Tengah}$. Kamu tidak perlu melengkapi seluruh isi kotak untuk menjawab soal! <br>
+                2. <b>Mencari Nilai Tengah</b> = Setengah dari jumlah dua angka yang letaknya berseberangan secara simetris melalui titik tengah.
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 3 ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">3.</div>
+            <div class="soal-konten">
+              Jika jumlah digit-digit dari suatu bilangan dua digit dikalikan oleh 8, hasilnya adalah 8 lebihnya daripada bilangan dua digit tersebut. Berapakah bilangan tersebut?
+
+              <ul class="pilihan-ganda">
+                <li data-opt="A">24</li>
+                <li data-opt="B">32</li>
+                <li data-opt="C">42</li>
+                <li data-opt="D">56</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 3 (BAGIAN 1) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 3 (Bagian 1)</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: B. 32</b><br /><br />
+            <b>Pembahasan Konsep Matematika:</b><br>
+            Kesalahan paling umum siswa adalah memodelkan bilangan dua digit sebagai perkalian $x \cdot y$. 
+            Berdasarkan konsep <b>Nilai Tempat</b> (<i>Place Value</i>), bilangan dua digit $\overline{ab}$ memuat puluhan dan satuan. Oleh karena itu, model matematikanya adalah $\mathbf{10a + b}$ (dengan syarat $a$ dan $b$ adalah digit $0-9$, dan $a \neq 0$).<br><br>
+            
+            Mari kita susun persamaannya secara literal dari kalimat soal:
+            $$ \begin{aligned}
+                8 \times (a + b) &= (10a + b) + 8 \\
+                8a + 8b &= 10a + b + 8
+            \end{aligned} $$
+            
+            Kelompokkan variabel yang sama menggunakan kaidah aljabar dasar:
+            $$ \begin{aligned}
+                8b - b &= 10a - 8a + 8 \\
+                7b &= 2a + 8
+            \end{aligned} $$
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 3 (BAGIAN 2) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 3 (Bagian 2)</div>
+          <div class="pembahasan-detail">
+            <b>Lanjutan (Penyelesaian Persamaan):</b><br><br>
+            Kita tidak bisa menyelesaikannya dengan metode eliminasi biasa karena hanya ada satu persamaan dengan dua variabel (Persamaan Diophantine). Gunakan <b>Logika Paritas (Ganjil-Genap)</b>:<br>
+            Ruas kanan adalah $2a + 8$. Karena merupakan kelipatan 2, hasilnya pasti <b>Genap</b>.<br>
+            Maka ruas kiri ($7b$) juga harus genap. Ini berarti $b$ harus merupakan digit genap ($0, 2, 4, 6, 8$).<br>
+            Mari kita uji (<i>Trial and Error</i> terarah):<br>
+            Misalkan $b = 2$:<br>
+            $7(2) = 2a + 8 \implies 14 = 2a + 8 \implies 2a = 6 \implies \mathbf{a = 3}$.<br>
+            Karena $a=3$ dan $b=2$ memenuhi syarat sebagai digit bilangan, maka bilangannya adalah <b>32</b>.
+
+            <div class="tips-box">
+                <b>TIPS & TRIK UNTUK SISWA:</b><br>
+                Setiap menghadapi soal cerita "bilangan dua digit", hal pertama yang harus kamu tulis adalah bentuk aljabarnya: $\mathbf{10x + y}$.<br>
+                Gunakan logika angka Ganjil-Genap saat memecahkan persamaan variabel tunggal untuk memangkas waktu uji coba (<i>trial & error</i>).
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 4 ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">4.</div>
+            <div class="soal-konten">
+              Perhatikan soal <i>cryptarithm</i> di bawah ini.
+
+              <div class="cryptarithm-box">
+                <div>A B C</div>
+                <div style="border-bottom: 3px solid #333;">A &times;</div>
+                <div>1 0 A C</div>
+              </div>
+
+              Berapakah nilai dari A + B + C?
+
+              <ul class="pilihan-ganda">
+                <li data-opt="A">10</li>
+                <li data-opt="B">11</li>
+                <li data-opt="C">12</li>
+                <li data-opt="D">13</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 4 (BAGIAN 1) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 4 (Bagian 1)</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: C. 12</b><br /><br />
+            <b>Pembahasan Konsep Matematika:</b><br>
+            <i>Cryptarithm</i> melatih pemahaman struktural tentang operasi perkalian bersusun. Huruf yang sama merepresentasikan digit yang sama (0-9).<br><br>
+
+            <b>Langkah 1: Analisis Nilai Tempat Tertinggi (Estimasi Ratusan/Ribuan)</b><br>
+            Fokus pada $A$ (ratusan) dikali $A$ yang menghasilkan ribuan dengan awalan "1 0...". <br>
+            Artinya, $A \times A \approx 10$. Angka digit tunggal yang jika dikuadratkan mendekati 10 adalah 3 atau 4.<br>
+            Jika $A = 4$, maka $400 \times 4 = 1600$ (terlalu besar karena hasilnya diawali angka 10). <br>
+            Maka dapat dipastikan $\mathbf{A = 3}$.
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 4 (BAGIAN 2) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 4 (Bagian 2)</div>
+          <div class="pembahasan-detail">
+            <b>Langkah 2: Analisis Nilai Tempat Terendah (Satuan)</b><br>
+            Fokus pada kolom paling kanan: $C \times A = \text{angka dengan akhiran } C$.<br>
+            Karena kita tahu $A = 3$, maka: $C \times 3 = \dots C$.<br>
+            Digit berapakah yang jika dikali 3, digit satuannya tidak berubah? <br>
+            Hanya angka 5 yang memenuhi sifat ini ($5 \times 3 = 1\mathbf{5}$). Maka $\mathbf{C = 5}$.<br><br>
+
+            <b>Langkah 3: Deduksi Variabel Tengah</b><br>
+            Substitusikan huruf yang sudah diketahui ke dalam pola awal: $3 B 5 \times 3 = 1035$.<br>
+            Gunakan invers operasi (pembagian) untuk mencari $3B5$:<br>
+            $1035 \div 3 = 345$.<br>
+            Terlihat jelas bahwa struktur bilangannya adalah 345, sehingga $\mathbf{B = 4}$.<br><br>
+
+            Hasil akhirnya adalah: $A + B + C = 3 + 4 + 5 = \mathbf{12}$.
+
+            <div class="tips-box">
+                <b>TIPS & TRIK UNTUK SISWA:</b><br>
+                <b>Algoritma Pengerjaan Cryptarithm:</b> <br>
+                1. <b>Estimasi Kiri:</b> Mulai dari angka paling depan. Gunakan batasan logika perkalian ratusan/ribuan. <br>
+                2. <b>Pola Kanan:</b> Pindah ke angka satuan di belakang. Manfaatkan pola perkalian (misal: perkalian berakhiran kembar).
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 5 ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">5.</div>
+            <div class="soal-konten">
+              Jika $(724)_8 = (abc)_9$ maka $b =\dots$
+
+              <ul class="pilihan-ganda">
+                <li data-opt="A">0</li>
+                <li data-opt="B">5</li>
+                <li data-opt="C">7</li>
+                <li data-opt="D">9</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 5 (BAGIAN 1) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 5 (Bagian 1)</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: C. 7</b><br /><br />
+            <b>Pembahasan Konsep Matematika:</b><br>
+            Sistem basis bilangan (seperti basis 8 atau oktal) menunjukkan pengelompokan berdasarkan perpangkatan basis tersebut, bukan perpangkatan 10. Untuk mengubah basis 8 ke basis 9, kita tidak bisa mengubahnya secara langsung, melainkan harus mengubahnya ke <b>Basis 10 (Sistem Desimal)</b> terlebih dahulu sebagai jembatan.<br><br>
+
+            <b>Langkah 1: Konversi Basis 8 $\rightarrow$ Basis 10 (Ekspansi Polinomial)</b><br>
+            Kalikan setiap digit dengan perpangkatan 8, dimulai dari pangkat 0 dari digit paling kanan (satuan).
+            $$ \begin{aligned}
+                (724)_8 &= (7 \times 8^2) + (2 \times 8^1) + (4 \times 8^0) \\
+                &= (7 \times 64) + (2 \times 8) + (4 \times 1) \\
+                &= 448 + 16 + 4 \\
+                &= \mathbf{468_{10}} \text{ (Dalam sistem desimal standar)}
+            \end{aligned} $$
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 5 (BAGIAN 2) ================== -->
+      <section class="page">
+        <header class="page-header">
+            <div class="header-top-box">
+              <div>
+                <div class="header-title-main">Panduan Ajar</div>
+                <div class="header-title-sub">Matematika - Tes Numerik</div>
+              </div>
+              <img src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png" class="header-logo" />
+            </div>
+            <div class="header-bottom-box">
+              <div class="header-bottom-text pembahasan-label">KUNCI JAWABAN & PEMBAHASAN</div>
+            </div>
+          </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 5 (Bagian 2)</div>
+          <div class="pembahasan-detail">
+            <b>Langkah 2: Konversi Basis 10 $\rightarrow$ Basis 9 (Pembagian Berulang)</b><br>
+            Bagi angka desimal 468 dengan 9 (basis tujuan) secara berulang. <b>Sisa pembagian</b> dari setiap langkah akan membentuk susunan digit pada basis baru, dibaca dari bawah ke atas.
+            <ul class="custom-list">
+                <li>$468 \div 9 = 52$ dengan sisa <b>0</b> $\rightarrow$ (Digit satuan / $c$)</li>
+                <li>$52 \div 9 = 5$ dengan sisa <b>7</b> $\rightarrow$ (Digit puluhan / $b$)</li>
+                <li>$5 \div 9 = 0$ dengan sisa <b>5</b> $\rightarrow$ (Digit ratusan / $a$)</li>
+            </ul>
+            Dengan membaca sisa dari pembagian terakhir ke awal, didapat nilai $(570)_9$. <br>
+            Sehingga $(abc)_9 = (570)_9$. Berdasarkan pemetaan ini, posisi nilai di tengah ($b$) adalah <b>7</b>.
+
+            <div class="tips-box">
+                <b>TIPS & TRIK UNTUK SISWA:</b><br>
+                <b>Konsep Jembatan Basis:</b> <br>
+                - <b>Ke Basis 10:</b> Gunakan <i>Perkalian</i> dengan perpangkatan basis asal dari kanan ke kiri. <br>
+                - <b>Dari Basis 10:</b> Gunakan <i>Pembagian bersisa</i> secara beruntun dengan basis tujuan. Tulis urutan sisa baginya secara terbalik (bawah ke atas).
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b>Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights Reserved.</b>
+          <i>Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya Indonesia.</i>
+        </footer>
+      </section>
+
+    </div>
+  </body>
+</html>
