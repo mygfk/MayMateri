@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panduan Belajar Siswa - Penalaran Spasial</title>
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+          displayMath: [
+            ["$$", "$$"],
+            ["\\[", "\\]"],
+          ],
+          packages: { "[+]": ["ams"] },
+        },
+        svg: {
+          fontCache: "global",
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-text: #333333;
+        --secondary-text: #555555;
+        --border-color: #dddddd;
+        --header-top-bg: #e0f7fa;
+        --header-bottom-bg: #f0f0f0;
+        --header-title-color: #00838f;
+        --table-header-bg: #e9e9e9;
+        --grey-text: #8d8e8d;
+        --highlight-box-bg: #f9f9f9;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Nunito", sans-serif;
+        font-size: 12pt;
+        line-height: 1.6;
+        color: var(--primary-text);
+        background-color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .page {
+        background: white;
+        width: 21cm;
+        min-height: 29.7cm;
+        padding: 1.5cm 2cm;
+        margin: 1cm auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        page-break-after: always;
+      }
+
+      .page::before {
+        content: "";
+        background-image: url("https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 12cm;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        opacity: 0.08;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .page-header {
+        margin: -1.5cm -2cm 0 -2cm;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+      }
+
+      .header-top-box {
+        background-color: var(--header-top-bg);
+        padding: 15px 2cm;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+      }
+
+      .header-title-main {
+        font-size: 18pt;
+        font-weight: 900;
+        color: var(--header-title-color);
+        line-height: 1.2;
+      }
+
+      .header-title-sub {
+        font-size: 11pt;
+        font-weight: 700;
+        color: var(--primary-text);
+      }
+
+      .header-bottom-box {
+        padding: 0 2cm 15px 2cm;
+        text-align: left;
+      }
+
+      .header-bottom-text {
+        background-color: var(--header-bottom-bg);
+        padding: 6px 12px;
+        font-weight: 700;
+        font-size: 10pt;
+        color: var(--primary-text);
+        display: block;
+        border-radius: 4px;
+        white-space: normal;
+      }
+
+      .header-bottom-text.pembahasan-label {
+        background-color: var(--header-title-color);
+        color: white;
+      }
+
+      .header-logo {
+        max-height: 45px;
+        width: auto;
+      }
+
+      .content-wrapper {
+        flex-grow: 1;
+        position: relative;
+        z-index: 2;
+        padding-top: 20px;
+      }
+
+      .section-title {
+        font-size: 14pt;
+        font-weight: 800;
+        color: var(--header-title-color);
+        border-bottom: 2px solid var(--header-top-bg);
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        margin-top: 5px;
+      }
+
+      .tips-box {
+        background-color: #fff3e0;
+        border-left: 5px solid #ff9800;
+        padding: 20px;
+        margin: 20px 0;
+        font-size: 11pt;
+        border-radius: 0 5px 5px 0;
+      }
+
+      ul.custom-list,
+      ol.custom-list {
+        padding-left: 20px;
+        margin: 10px 0;
+      }
+
+      ul.custom-list li,
+      ol.custom-list li {
+        margin-bottom: 10px;
+      }
+
+      .soal-pembahasan {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-top: 5px;
+        margin-bottom: 30px;
+      }
+
+      .soal-nomor {
+        font-weight: 800;
+        font-size: 14pt;
+        min-width: 35px;
+        color: var(--header-title-color);
+      }
+
+      .soal-konten {
+        flex-grow: 1;
+        text-align: justify;
+        font-size: 11.5pt;
+      }
+
+      .pilihan-ganda {
+        padding-left: 0;
+        list-style: none;
+        margin-top: 15px;
+      }
+
+      .pilihan-ganda li {
+        display: flex;
+        margin-bottom: 8px;
+      }
+
+      .pilihan-ganda li::before {
+        content: attr(data-opt) ".";
+        font-weight: 700;
+        width: 25px;
+        flex-shrink: 0;
+        color: var(--secondary-text);
+      }
+
+      .pembahasan-detail {
+        background-color: var(--highlight-box-bg);
+        border-left: 5px solid var(--header-title-color);
+        padding: 20px;
+        border-radius: 0 8px 8px 0;
+        font-size: 11pt;
+      }
+
+      .pembahasan-detail b.jawaban {
+        background-color: var(--header-title-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 10pt;
+      }
+
+      .page-footer {
+        text-align: center;
+        font-size: 6pt;
+        color: var(--grey-text);
+        margin-top: auto;
+        padding-top: 5px;
+        border-top: 2px solid var(--border-color);
+        flex-shrink: 0;
+        width: 100%;
+        position: relative;
+        z-index: 10;
+        background: white;
+      }
+
+      /* Placeholder Image Box */
+      .img-placeholder {
+        border: 2px dashed var(--header-title-color);
+        padding: 30px;
+        text-align: center;
+        margin: 20px auto;
+        width: 70%;
+        background-color: #f1fbfc;
+        border-radius: 8px;
+      }
+
+      /* Intro Cover Styling */
+      .intro-box {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px dashed var(--border-color);
+      }
+      .intro-box h1 {
+        font-size: 18pt;
+        color: var(--header-title-color);
+        margin-bottom: 5px;
+      }
+      .intro-box h2 {
+        font-size: 14pt;
+        color: var(--primary-text);
+        margin-top: 0;
+        margin-bottom: 5px;
+      }
+
+      .content-image {
+        display: block;
+        max-width: 90%;
+        height: auto;
+        margin: 20px auto;
+        border-radius: 8px;
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          background-color: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .page {
+          box-shadow: none;
+          margin: 0;
+          width: 21cm;
+          min-height: 29.7cm;
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-container">
+      <!-- ================== HALAMAN PENGANTAR & SOAL 1 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text">
+              LEMBAR PANDUAN DAN SOAL LATIHAN
+            </div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">
+            Tipe Soal 1: Rotasi Gambar (Perputaran)
+          </div>
+
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">1.</div>
+            <div class="soal-konten">
+              Jika gambar berikut dirotasikan sebesar $135^\circ$ searah jarum
+              jam, gambar yang tepat untuk menunjukkan hasil rotasinya adalah...
+
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_zlgfbw_4805.png"
+                alt="Gambar Soal Rotasi"
+                class="content-image"
+                style="max-width: 100%"
+              />
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 1 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">
+              KUNCI JAWABAN & PEMBAHASAN
+            </div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 1</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: D</b><br /><br />
+
+            <b>Konsep Dasar (Visualisasi):</b><br />
+            Membayangkan putaran $135^\circ$ sekaligus memang sulit. Ingatlah
+            bahwa $135^\circ$ adalah gabungan dari $90^\circ$ (putaran
+            siku-siku/seperempat jam) ditambah $45^\circ$ (setengah dari putaran
+            siku-siku). <br /><br />
+
+            <b>Pembahasan Langkah-demi-Langkah:</b>
+            <ol class="custom-list">
+              <li>
+                <b>Cari Titik Jangkar (Anchor Point):</b> Perhatikan sudut
+                paling lancip dari segitiga utama yang menunjuk lurus ke atas
+                (posisi arah jam 12).
+              </li>
+              <li>
+                <b>Putar Tahap 1 ($90^\circ$):</b> Jika titik puncak diputar
+                searah jarum jam sejauh $90^\circ$, ia akan menunjuk ke arah
+                kanan (posisi jam 3).
+              </li>
+              <li>
+                <b>Putar Tahap 2 ($45^\circ$):</b> Tambahkan putaran $45^\circ$
+                lagi searah jarum jam. Puncak segitiga kini akan menunjuk ke
+                arah kanan bawah (antara jam 4 dan jam 5).
+              </li>
+              <li>
+                <b>Evaluasi Elemen Dalam:</b> Lihat pilihan gambar hasil rotasi
+                yang menghadap kanan bawah. Pastikan elemen di dalamnya ikut
+                berputar dengan benar. Kotak hitam yang awalnya berada di sisi
+                "kiri" segitiga, setelah diputar $135^\circ$ akan berpindah
+                menjadi berada di sisi "atas" dari orientasi yang baru. Begitu
+                juga titik hitam yang awalnya di "kanan", akan berputar menjadi
+                di "bawah".
+              </li>
+            </ol>
+
+            <div class="tips-box">
+              <b>💡 Tips & Trik Jitu:</b>
+              <b>JANGAN melihat keseluruhan gambar saat memutar!</b> Otak akan
+              kelebihan beban.
+              <ul class="custom-list">
+                <li>
+                  Pilih <b>satu elemen paling menonjol</b> (misalnya: ujung
+                  lancip).
+                </li>
+                <li>Putar elemen tersebut saja.</li>
+                <li>
+                  Eliminasi (coret) pilihan jawaban yang posisi elemen
+                  menonjolnya salah. Biasanya, akan langsung tersisa 1 atau 2
+                  jawaban saja!
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 2 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">
+            Tipe Soal 2: Penggabungan Pixel (Overlay)
+          </div>
+
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">2.</div>
+            <div class="soal-konten">
+              Sebutkan gambar pola akhir yang terbentuk dari gabungan kartu
+              pixel berikut apabila semuanya ditumpuk menjadi satu!
+
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_mccqxx_7575.png"
+                alt="Gambar Soal Tumpukan Pixel"
+                class="content-image"
+                style="max-width: 80%"
+              />
+            </div>
+          </div>
+          <div class="content-wrapper">
+            <div class="section-title">Pembahasan Soal Nomor 2</div>
+            <div class="pembahasan-detail">
+              <b class="jawaban">Kunci Jawaban: Membentuk huruf "L" siku</b
+              ><br /><br />
+
+              <b>Konsep Dasar (Overlay/Tumpukan):</b><br />
+              Bayangkan keempat kartu tersebut terbuat dari plastik bening
+              tebal. Jika kita menumpuk semuanya menjadi satu, kotak mana saja
+              yang akan terisi warna? Ini melatih kemampuan
+              <i>sintesis visual</i> kalian.<br /><br />
+
+              <b>Pembahasan:</b><br />
+              Kita memiliki bidang grid berukuran $5 \times 4$ (5 baris, 4
+              kolom). Mari kita petakan letak warna biru dari kiri ke kanan
+              secara cermat:
+              <ul class="custom-list">
+                <li>Kartu 1: Baris 1 Kolom 1 <i>dan</i> Baris 5 Kolom 2.</li>
+                <li>Kartu 2: Baris 3 Kolom 1 <i>dan</i> Baris 5 Kolom 1.</li>
+                <li>Kartu 3: Baris 2 Kolom 1 <i>dan</i> Baris 5 Kolom 3.</li>
+                <li>Kartu 4: Baris 4 Kolom 1 <i>dan</i> Baris 5 Kolom 4.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 2 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">
+              KUNCI JAWABAN & PEMBAHASAN
+            </div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 2</div>
+          <div class="pembahasan-detail">
+            <b>Kesimpulan Visual:</b> Jika kita gabungkan hasil di atas, seluruh
+            kotak pada <b>Kolom 1</b> (dari atas ke bawah) akan terisi warna.
+            Kemudian, seluruh kotak pada <b>Baris 5</b> (dari kiri ke kanan)
+            juga akan terisi warna. Hasil akhirnya akan membentuk huruf
+            <b>"L"</b> siku yang sempurna!
+
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_9puybz_6037.png"
+              alt="Gambar Hasil Akhir Pixel"
+              class="content-image"
+              style="max-width: 25%; margin-top: 15px; margin-bottom: 15px"
+            />
+            <div class="tips-box">
+              <b>💡 Tips & Trik Jitu: Teknik "Sketsa Kilat"</b><br /><br />
+              Saat bertemu soal penggabungan grid, jangan hanya dibayangkan
+              karena rawan terlewat.
+              <ul class="custom-list">
+                <li>
+                  Buatlah kotak kosong sederhana (sketsa kasar) di kertas
+                  coretanmu.
+                </li>
+                <li>
+                  Lihat kartu pertama, arsir cepat di sketsamu. Lanjut ke kartu
+                  kedua, arsir lagi di sketsa yang sama.
+                </li>
+                <li>
+                  Hasil akhir di sketsamu adalah jawaban pasti yang harus kamu
+                  cari di pilihan ganda.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 3 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">
+            Tipe Soal 3: Jaring-jaring Bangun Ruang (Kubus)
+          </div>
+
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">3.</div>
+            <div class="soal-konten">
+              Perhatikan jaring-jaring kubus berikut.<br />
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_ykaocc_3910.png"
+                alt="Gambar Jaring-jaring Kubus"
+                class="content-image"
+                style="max-width: 25%; margin-top: 10px; margin-bottom: 20px"
+              />
+
+              Tentukan gambar/pola pada sisi kubus yang bertanda tanya
+              berdasarkan jaring-jaring yang diberikan!<br />
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_ulm8qe_616.png"
+                alt="Gambar Kubus 3D"
+                class="content-image"
+                style="max-width: 75%; margin-top: 10px; margin-bottom: 10px"
+              />
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 3 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">
+              KUNCI JAWABAN & PEMBAHASAN
+            </div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 3</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: B</b><br /><br />
+
+            <b>Konsep Dasar (Visualisasi 3D):</b><br />
+            Tantangan terbesarnya adalah menentukan sisi mana yang saling
+            berhadapan, mana yang bersebelahan, dan bagaimana rotasi gambarnya
+            saat dilipat.<br /><br />
+
+            <b>Pembahasan Secara Geometris:</b><br />
+            Mari kita selesaikan dengan metode lipatan ruang untuk menghindari
+            kerancuan:
+            <ol class="custom-list">
+              <li>
+                <b>Prinsip Bersebelahan:</b> Pada gambar kubus 3D, sisi dengan
+                tanda <b>"?"</b> (di bagian depan-kanan) bertemu langsung pada
+                satu rusuk dengan sisi yang terlihat di <b>depan-kiri</b>.
+                Artinya, kedua sisi ini saling <b>bersebelahan</b>,
+                <i>bukan</i> berhadapan/membelakangi.
+              </li>
+              <li>
+                <b>Prinsip Berhadapan (Aturan Lompat Satu):</b> Pada pola
+                jaring-jaring 2D, dua sisi yang terpisah oleh tepat satu kotak
+                lurus sejajar pasti akan menjadi sisi yang berhadapan. Sisi yang
+                berhadapan <b>tidak mungkin</b> terlihat bersamaan dari satu
+                sudut pandang kubus 3D.
+              </li>
+              <li>
+                <b>Simulasi Lipatan:</b> Jadikan satu sisi sebagai poros (alas
+                bawah). Temukan sisi referensi (misal: sisi atas dan sisi
+                depan-kiri) pada gambar jaring-jaring.
+              </li>
+              <li>
+                Ketika jaring-jaring tersebut kita lipat imajiner mengikuti
+                orientasi sisi atas dan sisi depan-kiri, maka sisi yang terlipat
+                tepat di sebelahnya adalah sisi yang secara struktur
+                jaring-jaring memang menempel atau mengarah ke bagian kanan
+                tersebut.
+              </li>
+            </ol>
+
+            <div class="tips-box">
+              <b>💡 Tips & Trik Jitu: Aturan Emas Kubus 3D</b><br /><br />
+              Gunakan dua metode ini untuk mencoret pilihan jawaban yang
+              menjebak:
+              <ul class="custom-list">
+                <li>
+                  Sisi yang berhadapan di jaring-jaring
+                  <b>TIDAK MUNGKIN</b> bertemu di satu rusuk/sudut yang sama
+                  pada gambar kubus 3D.
+                </li>
+                <li>
+                  Sisi yang berhadapan <b>TIDAK MUNGKIN</b> terlihat berdua
+                  sekaligus di pandangan kubus 3D.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== SOAL 4 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text">LEMBAR SOAL LATIHAN</div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">
+            Tipe Soal 4: Melanjutkan Pola Gambar (Deret Visual)
+          </div>
+
+          <div class="soal-pembahasan">
+            <div class="soal-nomor">4.</div>
+            <div class="soal-konten">
+              Perhatikan pola gambar berikut<br />
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sqiz82_4385.png"
+                alt="Pola Deret Gambar Utama"
+                class="content-image"
+                style="max-width: 60%; margin-top: 10px; margin-bottom: 20px"
+              />
+
+              Gambar yang tepat untuk melanjutkan pola deret gambar tersebut
+              adalah...<br />
+              <img
+                src="https://imgix3.ruangguru.com/assets/miscellaneous/png_n8aoq5_3874.png"
+                alt="Pilihan Jawaban Deret Gambar"
+                class="content-image"
+                style="max-width: 100%; margin-top: 10px; margin-bottom: 10px"
+              />
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+
+      <!-- ================== PEMBAHASAN 4 ================== -->
+      <section class="page">
+        <header class="page-header">
+          <div class="header-top-box">
+            <div>
+              <div class="header-title-main">Panduan Ajar</div>
+              <div class="header-title-sub">
+                Penalaran Spasial - Persiapan Seleksi CoC
+              </div>
+            </div>
+            <img
+              src="https://imgix3.ruangguru.com/assets/miscellaneous/png_sxoqo7_1499.png"
+              class="header-logo"
+            />
+          </div>
+          <div class="header-bottom-box">
+            <div class="header-bottom-text pembahasan-label">
+              KUNCI JAWABAN & PEMBAHASAN
+            </div>
+          </div>
+        </header>
+
+        <div class="content-wrapper">
+          <div class="section-title">Pembahasan Soal Nomor 4</div>
+          <div class="pembahasan-detail">
+            <b class="jawaban">Kunci Jawaban: Gambar 5</b><br /><br />
+
+            <b>Konsep Dasar (Bernalar Serial):</b><br />
+            Gambar-gambar ini tidak acak. Mereka bergerak atau berubah mengikuti
+            sebuah aturan (pola) tertentu. Tugas kita adalah menemukan aturan
+            perubahannya.<br /><br />
+
+            <b>Pembahasan:</b><br />
+            Pecah fokus kita menjadi dua tahap.<br /><br />
+
+            <b>Langkah 1: Bentuk Utama (Bingkai Segitiga Siku-siku)</b><br />
+            Perhatikan di mana letak sudut siku-sikunya bergerak dari waktu ke
+            waktu:
+            <ul class="custom-list">
+              <li>Urutan 1: Siku-siku di <b>Kanan-Bawah</b>.</li>
+              <li>Urutan 2: Siku-siku di <b>Kiri-Bawah</b>.</li>
+              <li>Urutan 3: Siku-siku di <b>Kiri-Atas</b>.</li>
+              <li>Urutan 4: Siku-siku di <b>Kanan-Atas</b>.</li>
+            </ul>
+            Aturannya jelas: Segitiga ini diputar sejauh $90^\circ$ searah jarum
+            jam pada setiap langkah. Maka, untuk Urutan ke-5, letak siku-sikunya
+            harus kembali lagi ke titik awal yaitu <b>Kanan-Bawah</b>. <br />
+            Dari pilihan gambar yang disediakan, eliminasi gambar yang sudut
+            siku-sikunya salah posisinya.<br /><br />
+
+            <b>Langkah 2: Elemen Kecil (Lingkaran di dalam)</b><br />
+            Sekarang kita fokus pada sisa pilihan yang sudah benar posisi
+            bingkainya. Perhatikan gambar lingkaran putih yang bagian tengahnya
+            berlubang (ring). Jika kita amati pada deret soal,
+            <b
+              >ring tersebut posisinya SELALU menempel/berada tepat pada sudut
+              yang siku-siku!</b
+            >
+            <ul class="custom-list">
+              <li>
+                Coret gambar opsi yang posisi ringnya <i>menjauh</i> dari sudut
+                siku-siku.
+              </li>
+              <li>
+                Pilih gambar opsi yang posisi ringnya
+                <i>tetap berada menempel</i> pada sudut siku-siku.
+              </li>
+            </ul>
+            Maka, jawaban yang paling tepat secara keseluruhan adalah gambar
+            yang memenuhi dua syarat utama tersebut secara bersamaan.
+
+            <div class="tips-box">
+              <b>💡 Tips & Trik Jitu: Teknik "Pecah Fokus" (Dekonstruksi)</b
+              ><br /><br />
+              Dalam soal pola gambar, biasanya ada 2 atau 3 aturan yang berjalan
+              bersamaan (misal: bingkai luar DAN pergerakan elemen kecil).
+              <ul class="custom-list">
+                <li>
+                  <b>Langkah 1:</b> Fokus pada elemen TERBESAR (bingkai luar).
+                  Cari polanya, lalu eliminasi pilihan yang salah. Biasanya
+                  lebih dari separuh opsi akan langsung gugur!
+                </li>
+                <li>
+                  <b>Langkah 2:</b> Setelah tersisa sedikit pilihan, barulah
+                  fokus mengamati <b>sifat unik</b> pada elemen KECIL untuk
+                  menemukan jawaban akhir.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <footer class="page-footer">
+          <b
+            >Copyright Ⓒ 2026 - PT Ruang Raya Indonesia - All Rights
+            Reserved.</b
+          >
+          |
+          <i
+            >Dilarang menyebarluaskan dokumen ini tanpa seizin PT Ruang Raya
+            Indonesia.</i
+          >
+        </footer>
+      </section>
+    </div>
+  </body>
+</html>
