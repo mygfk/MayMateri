@@ -631,8 +631,10 @@ function beginRound() {
 }
 
 function formatTime(sec) {
-  const m = Math.floor(sec / 60).toString().padStart(2, '0');
-  const s = (sec % 60).toString().padStart(2, '0');
+  // Mencegah error jika detik mines karena penalti
+  const validSec = Math.max(0, sec);
+  const m = Math.floor(validSec / 60).toString().padStart(2, '0');
+  const s = (validSec % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
 
@@ -644,7 +646,7 @@ function updateGlobalTimerUI() {
 }
 
 function tickGlobalTimer() {
-  if (state.frozen) return; // Optional: Pause global timer during freeze? Let's NOT pause it, makes freeze more punishing!
+  if (state.frozen) return;
   state.globalTimeLeft--;
   updateGlobalTimerUI();
   updateProgress(); // In accumulative, progress bar is time.
@@ -659,9 +661,9 @@ function showNextNumber() {
   const round = state.rounds[state.currentRound];
   if (state.currentIndex >= round.numbers.length) { endRound(); return; }
   if (state.hearts <= 0 && state.timingMode !== 'accumulative') { endRound(); return; } 
-  // In accumulative, hearts don't end the round, it's just pure freeze penalty.
+  
+  // In accumulative, hearts don't end the round, but we keep them at 1 so the game continues
   if (state.hearts <= 0 && state.timingMode === 'accumulative') {
-     // refill 1 heart to keep them going but they just suffered a freeze
      state.hearts = 1; updateHearts();
   }
 
@@ -682,7 +684,6 @@ function showNextNumber() {
     startRingAnim();
     state.qTimer = setInterval(() => {
       if (state.frozen) return;
-      const isTarget = round.category.check(num);
       
       // Time is up
       if (state.interactionMode === 'classic') {
@@ -735,12 +736,36 @@ function handleAnswerResult(isCorrect, is4digit = false, timeElapsed = 0) {
     
     setTimeout(() => {
       display.classList.remove('flash-wrong');
-      // If interval/untimed and out of hearts -> Dead
-      if (state.hearts <= 0 && state.timingMode !== 'accumulative') {
-        endRound();
-        return;
+      
+      // ===== LOGIKA HUKUMAN / PENALTI =====
+      if (state.timingMode === 'accumulative') {
+        // PENALTI: Kurangi 5 detik alih-alih freeze
+        const penaltySec = 5;
+        state.globalTimeLeft -= penaltySec;
+        spawnParticle(`-${penaltySec}s`, 'var(--red)');
+        updateGlobalTimerUI();
+        
+        if (state.globalTimeLeft <= 0) {
+          state.globalTimeLeft = 0;
+          updateGlobalTimerUI();
+          clearInterval(state.globalTimer);
+          endRound();
+          return;
+        }
+        
+        // Langsung lanjut ke angka selanjutnya
+        state.currentIndex++;
+        updateStats();
+        showNextNumber();
+
+      } else {
+        // DEFAULT: Jika darah habis = mati
+        if (state.hearts <= 0) {
+          endRound();
+          return;
+        }
+        activateFreeze(); // Bekukan layer
       }
-      activateFreeze();
     }, 250);
   }
 }
@@ -874,7 +899,7 @@ function updateProgress() {
   let pct = 0;
   let text = '';
   if (state.timingMode === 'accumulative') {
-    pct = (state.globalTimeLeft / state.totalTimeSec) * 100;
+    pct = (Math.max(0, state.globalTimeLeft) / state.totalTimeSec) * 100;
     text = `WAKTU: ${formatTime(state.globalTimeLeft)}`;
   } else {
     const total = state.questionsCount;
