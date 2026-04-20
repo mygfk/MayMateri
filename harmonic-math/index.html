@@ -494,31 +494,61 @@
         document.getElementById('pauseValue').textContent = this.value + ' detik';
     });
 
-    // Data Soal Default
+    // Data Soal Default 25 Langkah Berdasarkan Update Terbaru
     const defaultSet1Data = [
-        { text: "³√(2197)", speech: "Akar pangkat tiga dari 2197", expected: 13 },
-        { text: "+ 42", speech: "Ditambah 42", expected: 55 },
-        { text: ": ½", speech: "Dibagi 1 per 2", expected: 110 },
-        { text: "+ 502", speech: "Ditambah 502", expected: 612 },
-        { text: "- (-13)", speech: "Dikurangi negatif 13", expected: 625 },
-        { text: "√...", speech: "Diakarkan", expected: 25 },
-        { text: "x 40", speech: "Dikali 40", expected: 1000 },
-        { text: "- 775", speech: "Dikurangi 775", expected: 225 },
-        { text: "x 4", speech: "Dikali 4", expected: 900 },
-        { text: "+ 2⁵", speech: "Ditambah 2 pangkat 5", expected: 932 }
+        { text: "712 + 215", speech: "Tujuh ratus dua belas ditambah dua ratus lima belas", expected: 927 },
+        { text: "- 3³", speech: "dikurangi tiga pangkat tiga", expected: 900 },
+        { text: "√...", speech: "diakarkan", expected: 30 },
+        { text: "x 2,5", speech: "dikali dua koma lima", expected: 75 },
+        { text: "- (-15)", speech: "dikurangi negatif lima belas", expected: 90 },
+        { text: ": ⅙", speech: "dibagi satu per enam", expected: 540 },
+        { text: "- 90", speech: "dikurangi sembilan puluh", expected: 450 },
+        { text: "+ 112", speech: "ditambah seratus dua belas", expected: 562 },
+        { text: "- (-18)", speech: "dikurangi negatif delapan belas", expected: 580 },
+        { text: "x ½", speech: "dikali satu per dua", expected: 290 },
+        { text: "+ 701", speech: "ditambah tujuh ratus satu", expected: 991 },
+        { text: "+ (-91)", speech: "ditambah negatif sembilan puluh satu", expected: 900 },
+        { text: "x 0,3", speech: "dikali nol koma tiga", expected: 270 },
+        { text: "- (-42)", speech: "dikurangi negatif empat puluh dua", expected: 312 },
+        { text: ": 0,5", speech: "dibagi nol koma lima", expected: 624 },
+        { text: "- 112", speech: "dikurangi seratus dua belas", expected: 512 },
+        { text: "³√...", speech: "diakar pangkat tiga", expected: 8 },
+        { text: "x 75", speech: "dikali tujuh puluh lima", expected: 600 },
+        { text: "x 3/2", speech: "dikali tiga per dua", expected: 900 },
+        { text: "+ ³√27", speech: "ditambah akar pangkat tiga dari dua puluh tujuh", expected: 903 },
+        { text: ": 301", speech: "dibagi tiga ratus satu", expected: 3 },
+        { text: "x 242", speech: "dikali dua ratus empat puluh dua", expected: 726 },
+        { text: "- (-58)", speech: "dikurangi negatif lima puluh delapan", expected: 784 },
+        { text: "√...", speech: "diakarkan", expected: 28 },
+        { text: "x 55", speech: "dikali lima puluh lima", expected: 1540 }
     ];
 
     const defaultSet2Data = [
-        { text: "712 + 215", speech: "Tujuh ratus dua belas Ditambah 215", expected: 927 },
-        { text: "- 3³", speech: "Dikurangi 3 pangkat 3", expected: 900 },
-        { text: "√...", speech: "Diakarkan", expected: 30 },
-        { text: "x 12", speech: "Dikali 12", expected: 360 },
-        { text: ": 6", speech: "Dibagi 6", expected: 60 },
-        { text: "x 1,2", speech: "Dikali 1 koma 2", expected: 72 },
-        { text: "- (-27)", speech: "Dikurangi negatif 27", expected: 99 },
-        { text: "+ 701", speech: "Ditambah 701", expected: 800 },
-        { text: "x ⅛", speech: "Dikali 1 per 8", expected: 100 },
-        { text: "+ 269", speech: "Ditambah 269", expected: 369 }
+        { text: "³√(2197)", speech: "Akar pangkat tiga dari dua ribu seratus sembilan puluh tujuh", expected: 13 },
+        { text: "+ 42", speech: "ditambah empat puluh dua", expected: 55 },
+        { text: ": ½", speech: "dibagi satu per dua", expected: 110 },
+        { text: "+ 502", speech: "ditambah lima ratus dua", expected: 612 },
+        { text: "- (-13)", speech: "dikurangi negatif tiga belas", expected: 625 },
+        { text: "√...", speech: "diakarkan", expected: 25 },
+        { text: "x 40", speech: "dikali empat puluh", expected: 1000 },
+        { text: "- 775", speech: "dikurangi tujuh ratus tujuh puluh lima", expected: 225 },
+        { text: "x 4", speech: "dikali empat", expected: 900 },
+        { text: "+ 2⁵", speech: "ditambah dua pangkat lima", expected: 932 },
+        { text: "- 132", speech: "dikurangi seratus tiga puluh dua", expected: 800 },
+        { text: "x ⅛", speech: "dikali satu per delapan", expected: 100 },
+        { text: "+ √169", speech: "ditambah akar dari seratus enam puluh sembilan", expected: 113 },
+        { text: "x 2", speech: "dikali dua", expected: 226 },
+        { text: "+ 113", speech: "ditambah seratus tiga puluh tiga", expected: 339 },
+        { text: "- (-111)", speech: "dikurangi negatif seratus sebelas", expected: 450 },
+        { text: "x ³√8", speech: "dikali akar pangkat tiga dari delapan", expected: 900 },
+        { text: "√...", speech: "diakarkan", expected: 30 },
+        { text: "x 12", speech: "dikali dua belas", expected: 360 },
+        { text: ": 6", speech: "dibagi enam", expected: 60 },
+        { text: "x 1,2", speech: "dikali satu koma dua", expected: 72 },
+        { text: "- (-27)", speech: "dikurangi negatif dua puluh tujuh", expected: 99 },
+        { text: "+ 701", speech: "ditambah tujuh ratus satu", expected: 800 },
+        { text: ": ⅓", speech: "dibagi satu per tiga", expected: 2400 },
+        { text: "+ 269", speech: "ditambah dua ratus enam puluh sembilan", expected: 2669 }
     ];
 
     // Variabel state
