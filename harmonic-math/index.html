@@ -683,7 +683,7 @@
             } else if (lowerLine === '3v' || lowerLine === 'cbrt') {
                 runTotal = Math.cbrt(runTotal);
                 text = "³√...";
-                speech = "Diakar pangkat tiga";
+                speech = "Diakarkan pangkat tiga";
             } else {
                 let match = line.match(/^([+\-x*\/:]?)\s*(.+)$/i);
                 if (!match) throw new Error(`Format baris ke-${i+1} tidak dikenali: ${line}`);
