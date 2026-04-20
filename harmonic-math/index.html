@@ -6,7 +6,7 @@
     <title>Mental Aritmetika: Dual Competition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
-
+        
         :root {
             --primary: #FF5722; /* Orange ceria */
             --secondary: #2196F3; /* Biru kalem */
@@ -157,6 +157,18 @@
             width: 200px;
         }
 
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+
         button {
             font-family: 'Fredoka One', cursive;
             background-color: var(--primary);
@@ -203,6 +215,15 @@
 
         .btn-success:hover {
             background-color: #43A047;
+        }
+
+        .btn-danger {
+            background-color: #E91E63;
+            box-shadow: 0 5px 0 #C2185B;
+        }
+
+        .btn-danger:hover {
+            background-color: #D81B60;
         }
 
         .game-area {
@@ -386,15 +407,25 @@
                 <input type="range" id="pauseRate" min="0.5" max="5" value="1" step="0.5">
                 <span id="pauseValue">1.0 detik</span>
             </div>
-            <div>
-                <input type="checkbox" id="showText" checked>
-                <label for="showText" style="font-weight: bold;">Tampilkan Teks Operasi (Hilangkan centang untuk mode auditori murni)</label>
+            
+            <!-- Pengaturan Tampilan & Looping -->
+            <div class="checkbox-group">
+                <div>
+                    <input type="checkbox" id="showText" checked>
+                    <label for="showText" style="font-weight: bold;">Tampilkan Teks Operasi (Uncheck = Mode Auditori murni)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="loopingMode">
+                    <label for="loopingMode" style="font-weight: bold;">Mode Looping (Ulang terus sampai menekan tombol Jawab)</label>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px;">
                 <button id="startBtn" onclick="startGame()">🔊 Mulai Dengarkan</button>
-                <button id="pauseBtn" onclick="pauseAudio()" style="display: none; background-color: #FFB300; box-shadow: 0 5px 0 #FF8F00;">⏸️ Jeda (Pause)</button>
-                <button id="resumeBtn" onclick="resumeAudio()" style="display: none; background-color: #00897B; box-shadow: 0 5px 0 #00695C;">▶️ Lanjut (Resume)</button>
-                <button onclick="backToMenu()" style="background-color: #757575; box-shadow: 0 5px 0 #424242; padding: 10px 20px; font-size: 1rem;">Kembali ke Menu</button>
+                <button id="pauseBtn" onclick="pauseAudio()" style="display: none; background-color: #FFB300; box-shadow: 0 5px 0 #FF8F00;">⏸️ Jeda</button>
+                <button id="resumeBtn" onclick="resumeAudio()" style="display: none; background-color: #00897B; box-shadow: 0 5px 0 #00695C;">▶️ Lanjut</button>
+                <button id="answerNowBtn" onclick="forceStopAndAnswer()" class="btn-danger" style="display: none;">📝 Jawab Sekarang!</button>
+                <button onclick="backToMenu()" style="background-color: #757575; box-shadow: 0 5px 0 #424242; padding: 10px 20px; font-size: 1rem;">Menu Awal</button>
             </div>
         </div>
 
@@ -501,11 +532,36 @@
     let currentTimeoutId = null;
     let storedCallback = null;
 
+    // --- MANAJEMEN AUDIO (SFX) ---
+    let audioCtx = null;
+
+    function playBeep(frequency, durationMs) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + durationMs / 1000);
+
+        setTimeout(() => {
+            oscillator.stop();
+        }, durationMs);
+    }
+
     // --- MANAJEMEN SUARA LAKI-LAKI & PEREMPUAN ---
     let voiceSet1 = null;
     let voiceSet2 = null;
-    let pitchSet1 = 1.1; // Nada default/agak tinggi (Perempuan)
-    let pitchSet2 = 0.5; // Nada direndahkan drastis (Laki-laki)
+    let pitchSet1 = 1.1; 
+    let pitchSet2 = 0.5; 
 
     function initVoices() {
         if (!('speechSynthesis' in window)) return;
@@ -513,32 +569,27 @@
         let voices = window.speechSynthesis.getVoices();
         if(voices.length === 0) return;
 
-        // Cari suara berbahasa Indonesia
         let idVoices = voices.filter(v => v.lang.includes('id') || v.lang.includes('ID'));
 
         if(idVoices.length >= 2) {
-            // Jika ada lebih dari 1, coba tebak dari namanya (Male/Female/Andika/Gadis)
             let maleVoice = idVoices.find(v => v.name.toLowerCase().match(/male|andika|pria/));
             let femaleVoice = idVoices.find(v => v.name.toLowerCase().match(/female|gadis|wanita/));
             
-            voiceSet1 = femaleVoice || idVoices[0]; // Set 1: Perempuan
-            voiceSet2 = maleVoice || idVoices[1];   // Set 2: Laki-laki
+            voiceSet1 = femaleVoice || idVoices[0]; 
+            voiceSet2 = maleVoice || idVoices[1];   
             
-            // Jika suara beda tapi jenisnya ga jelas, tetap mainkan pitch untuk amannya
             if(!maleVoice) pitchSet2 = 0.5; 
-            else pitchSet2 = 1.0; // Kalau sudah ketemu cowok asli, pitchnya normal saja
+            else pitchSet2 = 1.0; 
         } else if (idVoices.length === 1) {
-            // Jika hanya 1 suara (misal Google Bahasa Indonesia), andalkan pitch
             voiceSet1 = idVoices[0];
             voiceSet2 = idVoices[0];
-            pitchSet2 = 0.5; // Rendahkan nada untuk cowok
+            pitchSet2 = 0.5; 
         }
     }
     
-    // Inisialisasi suara saat halaman dimuat
     if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = initVoices;
-        initVoices(); // Panggil sekali jaga-jaga
+        initVoices(); 
     }
 
     // Navigasi Menu
@@ -571,14 +622,12 @@
         }
     }
 
-    // Fungsi Auto Parsing Canggih
     function parseCustomTextAuto(rawText) {
         if (!rawText.trim()) return [];
         const lines = rawText.trim().split('\n');
         const parsedData = [];
         let runTotal = 0;
 
-        // Fungsi bantu formatting
         const toSuperscript = (str) => {
             const map = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
             return str.split('').map(c => map[c] || c).join('');
@@ -597,7 +646,6 @@
             let speech = "";
             let lowerLine = line.toLowerCase();
 
-            // Cek jika perintah hanya akar tunggal "v" atau "3v"
             if (lowerLine === 'v' || lowerLine === 'sqrt' || lowerLine === 'akar') {
                 runTotal = Math.sqrt(Math.max(0, runTotal));
                 text = "√...";
@@ -607,7 +655,6 @@
                 text = "³√...";
                 speech = "Diakar pangkat tiga";
             } else {
-                // Regex memisahkan operator (+, -, x, *, /, :) dan nilainya
                 let match = line.match(/^([+\-x*\/:]?)\s*(.+)$/i);
                 if (!match) throw new Error(`Format baris ke-${i+1} tidak dikenali: ${line}`);
 
@@ -619,7 +666,6 @@
                 let textOperand = valStr;
                 let speechOperand = valStr;
 
-                // Cek jenis nilai operand (Pangkat, Akar, Pecahan, Desimal)
                 if (valLower.startsWith('3v') || valLower.startsWith('cbrt') || valLower.startsWith('³√')) {
                     let numStr = valLower.replace(/^(3v|cbrt|³√\()?/, '').replace(/\)$/, '').trim();
                     opValue = Math.cbrt(parseNum(numStr));
@@ -642,16 +688,13 @@
                     speechOperand = `${parts[0].replace('-', 'negatif ')} per ${parts[1].replace('-', 'negatif ')}`;
                 } else {
                     opValue = parseNum(valLower);
-                    // Tambahkan kurung tutup untuk minus agar rapi: cth + (-13)
                     textOperand = (valStr.includes('-') && i > 0 && op !== '') ? `(${valStr})` : valStr;
                     speechOperand = valStr.replace('-', 'negatif ').replace('.', ' koma ').replace(',', ' koma ');
                 }
 
                 if (isNaN(opValue)) throw new Error(`Angka tidak valid pada baris ke-${i+1}: ${line}`);
 
-                // Aplikasikan Operator ke Subtotal
                 if (i === 0 || op === '') {
-                    // Kasus langkah pertama
                     if (i === 0 && op === '-') {
                         opValue = -opValue;
                         textOperand = "-" + textOperand;
@@ -679,7 +722,6 @@
                 }
             }
 
-            // Pembulatan untuk menghindari masalah floating point javascript (cth: 0.3000000004)
             runTotal = Math.round(runTotal * 10000) / 10000;
 
             parsedData.push({
@@ -711,7 +753,6 @@
             currentUtterance = new SpeechSynthesisUtterance(text);
             currentUtterance.lang = 'id-ID';
             
-            // Atur Suara & Nada berdasarkan Set yang sedang main
             if(isSet1) {
                 if(voiceSet1) currentUtterance.voice = voiceSet1;
                 currentUtterance.pitch = pitchSet1;
@@ -783,15 +824,54 @@
         document.getElementById('pauseBtn').style.display = 'inline-block';
     }
 
+    function announceStartAndPlay() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        document.getElementById('op-set1').textContent = "SIAP...";
+        document.getElementById('op-set2').textContent = "SIAP...";
+        
+        setTimeout(() => {
+            speakText("Perhatian, bersiap!", true, () => {
+                let countdown = 3;
+                function doCountdown() {
+                    if (countdown > 0) {
+                        document.getElementById('op-set1').textContent = countdown.toString();
+                        document.getElementById('op-set2').textContent = countdown.toString();
+                        playBeep(800, 200); 
+                        countdown--;
+                        setTimeout(doCountdown, 1000);
+                    } else {
+                        document.getElementById('op-set1').textContent = "MULAI!";
+                        document.getElementById('op-set2').textContent = "MULAI!";
+                        playBeep(1200, 400); 
+                        
+                        setTimeout(() => {
+                            document.getElementById('op-set1').textContent = "...";
+                            document.getElementById('op-set2').textContent = "...";
+                            playNextTurn();
+                        }, 500); 
+                    }
+                }
+                doCountdown(); 
+            });
+        }, 250);
+    }
+
     function startGame() {
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('pauseBtn').style.display = 'inline-block';
         document.getElementById('resumeBtn').style.display = 'none';
+        
+        // Tampilkan tombol jawab sekarang jika mode looping aktif
+        if (document.getElementById('loopingMode').checked) {
+            document.getElementById('answerNowBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('answerNowBtn').style.display = 'none';
+        }
 
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('pembahasanSection').style.display = 'none';
-        document.getElementById('op-set1').textContent = "?";
-        document.getElementById('op-set2').textContent = "?";
         
         currentIndex = 0;
         isSet1Turn = true;
@@ -803,29 +883,41 @@
 
         window.speechSynthesis.resume();
         window.speechSynthesis.cancel();
-        setTimeout(playNextTurn, 250);
+        
+        announceStartAndPlay();
     }
 
     function playNextTurn() {
         const showText = document.getElementById('showText').checked;
+        const isLoopingMode = document.getElementById('loopingMode').checked;
         const box1 = document.getElementById('set1-box');
         const box2 = document.getElementById('set2-box');
 
         const maxSteps = Math.max(activeSet1Data.length, activeSet2Data.length);
 
         if (currentIndex >= maxSteps) {
-            box1.classList.remove('active');
-            box2.classList.remove('active');
-            document.getElementById('op-set1').textContent = "Selesai!";
-            document.getElementById('op-set2').textContent = "Selesai!";
-            
-            document.getElementById('pauseBtn').style.display = 'none';
-            document.getElementById('resumeBtn').style.display = 'none';
-            document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('startBtn').disabled = true;
-
-            document.getElementById('answerSection').style.display = 'block';
-            return;
+            // Jika Mode Looping dihidupkan, ulang dari awal. Jika tidak, sudahi.
+            if (isLoopingMode) {
+                box1.classList.remove('active');
+                box2.classList.remove('active');
+                document.getElementById('op-set1').textContent = "ULANG...";
+                document.getElementById('op-set2').textContent = "ULANG...";
+                
+                playBeep(400, 200); // Nada penanda mengulang
+                
+                currentIndex = 0;
+                isSet1Turn = true;
+                
+                // Jeda 1 detik sebelum looping mulai dari indeks 0
+                currentTimeoutId = setTimeout(() => {
+                    currentTimeoutId = null;
+                    playNextTurn();
+                }, 1000);
+                return;
+            } else {
+                endGameSequence();
+                return;
+            }
         }
 
         if (isSet1Turn) {
@@ -837,7 +929,6 @@
                 if(showText) document.getElementById('op-set1').textContent = data.text;
                 else document.getElementById('op-set1').textContent = "🔊...";
 
-                // Panggil dengan flag true (Set 1 / Perempuan)
                 speakText(data.speech, true, () => {
                     isSet1Turn = false;
                     playNextTurn();
@@ -857,7 +948,6 @@
                 if(showText) document.getElementById('op-set2').textContent = data.text;
                 else document.getElementById('op-set2').textContent = "🔊...";
 
-                // Panggil dengan flag false (Set 2 / Laki-laki)
                 speakText(data.speech, false, () => {
                     isSet1Turn = true;
                     currentIndex++;
@@ -872,15 +962,53 @@
         }
     }
 
+    // Fungsi tambahan jika user memencet tombol "Jawab Sekarang" di mode Looping
+    function forceStopAndAnswer() {
+        window.speechSynthesis.cancel();
+        if (currentTimeoutId !== null) {
+            clearTimeout(currentTimeoutId);
+            currentTimeoutId = null;
+        }
+        isPaused = false;
+        endGameSequence();
+    }
+
+    function endGameSequence() {
+        const box1 = document.getElementById('set1-box');
+        const box2 = document.getElementById('set2-box');
+        
+        box1.classList.remove('active');
+        box2.classList.remove('active');
+        
+        document.getElementById('op-set1').textContent = "Selesai!";
+        document.getElementById('op-set2').textContent = "Selesai!";
+        
+        // SFX Akhir: "Tiiiiiit" panjang
+        playBeep(600, 1500); 
+        
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('resumeBtn').style.display = 'none';
+        document.getElementById('answerNowBtn').style.display = 'none';
+        
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('startBtn').disabled = true;
+
+        document.getElementById('answerSection').style.display = 'block';
+    }
+
     function replayAudio() {
         document.getElementById('answerSection').style.display = 'none';
         document.getElementById('feedbackResult').innerHTML = "";
-        document.getElementById('op-set1').textContent = "?";
-        document.getElementById('op-set2').textContent = "?";
         
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('pauseBtn').style.display = 'inline-block';
         document.getElementById('resumeBtn').style.display = 'none';
+        
+        if (document.getElementById('loopingMode').checked) {
+            document.getElementById('answerNowBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('answerNowBtn').style.display = 'none';
+        }
 
         currentIndex = 0;
         isSet1Turn = true;
@@ -892,7 +1020,8 @@
         
         window.speechSynthesis.resume();
         window.speechSynthesis.cancel();
-        setTimeout(playNextTurn, 250); 
+        
+        announceStartAndPlay();
     }
 
     function checkAnswers() {
@@ -967,6 +1096,7 @@
         document.getElementById('startBtn').style.display = 'inline-block';
         document.getElementById('pauseBtn').style.display = 'none';
         document.getElementById('resumeBtn').style.display = 'none';
+        document.getElementById('answerNowBtn').style.display = 'none';
         
         isPaused = false;
         if(currentTimeoutId) clearTimeout(currentTimeoutId);
@@ -983,6 +1113,5 @@
         document.getElementById('op-set2').textContent = "?";
     }
 </script>
-
 </body>
 </html>
