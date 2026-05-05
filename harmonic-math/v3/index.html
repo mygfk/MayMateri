@@ -226,6 +226,16 @@
             background-color: #8E24AA;
         }
 
+        .btn-purple-custom {
+            background-color: #8E24AA;
+            box-shadow: 0 5px 0 #6A1B9A;
+            color: white;
+        }
+
+        .btn-purple-custom:hover {
+            background-color: #7B1FA2;
+        }
+
         .btn-danger {
             background-color: #E91E63;
             box-shadow: 0 5px 0 #C2185B;
@@ -370,9 +380,12 @@
     <div id="setup-area">
         <h2>Pilih Mode Permainan</h2>
         <div class="menu-buttons">
-            <button onclick="startDefaultMode()">🚀 Soal Campuran</button>
-            <button onclick="startSimpleMode()" class="btn-purple">⚡ Mode Tambah-Kurang</button>
-            <button onclick="toggleCustomSection()" class="btn-secondary">⚙️ Buat Soal Sendiri</button>
+            <button onclick="startDefaultMode()">🚀 Preset Campuran</button>
+            <button onclick="startSimpleMode()" class="btn-purple">⚡ Preset Tambah-Kurang</button>
+        </div>
+        <div class="menu-buttons" style="margin-top: -10px;">
+            <button onclick="openCustomMixed()" class="btn-secondary">⚙️ Custom Campuran</button>
+            <button onclick="openCustomSimple()" class="btn-purple-custom">⚙️ Custom Tambah-Kurang</button>
         </div>
 
         <div id="custom-section" class="custom-section">
@@ -405,6 +418,7 @@
             </div>
             <div style="text-align: center; margin-top: 20px;">
                 <button onclick="startCustomMode()" class="btn-success">✅ Terapkan & Mulai Main</button>
+                <div id="customError" style="color: #D81B60; background-color: #FCE4EC; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; font-weight: bold; border: 2px solid #F06292;"></div>
             </div>
         </div>
     </div>
@@ -419,8 +433,8 @@
             </div>
             <div class="slider-container">
                 <label for="pauseRate">Jeda Antar Operasi:</label>
-                <input type="range" id="pauseRate" min="0.5" max="5" value="1" step="0.5">
-                <span id="pauseValue">1.0 detik</span>
+                <input type="range" id="pauseRate" min="0.1" max="5" value="1" step="0.05">
+                <span id="pauseValue">1.00 detik</span>
             </div>
             
             <!-- Pengaturan Tampilan & Looping -->
@@ -506,7 +520,7 @@
     });
 
     document.getElementById('pauseRate').addEventListener('input', function() {
-        document.getElementById('pauseValue').textContent = this.value + ' detik';
+        document.getElementById('pauseValue').textContent = parseFloat(this.value).toFixed(2) + ' detik';
     });
 
     // Data Soal Default Campuran (Mode 1)
@@ -642,9 +656,32 @@
     }
 
     // Navigasi Menu
-    function toggleCustomSection() {
+    let currentCustomMode = null;
+
+    function openCustomMixed() {
         const customSection = document.getElementById('custom-section');
-        customSection.style.display = customSection.style.display === 'block' ? 'none' : 'block';
+        if (customSection.style.display === 'block' && currentCustomMode === 'mixed') {
+            customSection.style.display = 'none';
+            return;
+        }
+        customSection.style.display = 'block';
+        currentCustomMode = 'mixed';
+        document.getElementById('simpleSpeechCustom').checked = false;
+        document.getElementById('customSet1Input').placeholder = "3v2197\n+ 42\n: 1/2\n+ 502\n- -13\nv\nx 40\n- 775\nx 4\n+ 2^5";
+        document.getElementById('customSet2Input').placeholder = "712\n+ 215\n- 3^3\nv\nx 12\n: 6\nx 1,2\n- -27\n+ 701\nx 1/8\n+ 269";
+    }
+
+    function openCustomSimple() {
+        const customSection = document.getElementById('custom-section');
+        if (customSection.style.display === 'block' && currentCustomMode === 'simple') {
+            customSection.style.display = 'none';
+            return;
+        }
+        customSection.style.display = 'block';
+        currentCustomMode = 'simple';
+        document.getElementById('simpleSpeechCustom').checked = true;
+        document.getElementById('customSet1Input').placeholder = "45\n+ 23\n- 18\n+ 50\n- 12";
+        document.getElementById('customSet2Input').placeholder = "72\n- 15\n+ 24\n- 30\n+ 41";
     }
 
     function startDefaultMode() {
@@ -668,18 +705,22 @@
         const raw1 = document.getElementById('customSet1Input').value;
         const raw2 = document.getElementById('customSet2Input').value;
         const useSimpleSpeech = document.getElementById('simpleSpeechCustom').checked;
+        const errorDiv = document.getElementById('customError');
+
+        errorDiv.style.display = 'none';
 
         try {
             activeSet1Data = parseCustomTextAuto(raw1, useSimpleSpeech);
             activeSet2Data = parseCustomTextAuto(raw2, useSimpleSpeech);
             
             if(activeSet1Data.length === 0 || activeSet2Data.length === 0) {
-                throw new Error("Data Set 1 dan Set 2 tidak boleh kosong.");
+                throw new Error("Data Set 1 dan Set 2 tidak boleh kosong. Silakan ketik soalnya terlebih dahulu di dalam kotak teks.");
             }
             
             enterGame();
         } catch (error) {
-            alert("Kesalahan Parsing: \n" + error.message);
+            errorDiv.innerHTML = "⚠️ Kesalahan Parsing: <br>" + error.message;
+            errorDiv.style.display = 'block';
         }
     }
 
@@ -706,6 +747,9 @@
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i].trim();
             if (!line) continue;
+
+            // Otomatis hapus penomoran di awal baris (misal "1.", "2)", "12. ") jika user copas dengan nomor
+            line = line.replace(/^\d+[\.\)]\s*/, '');
 
             let text = "";
             let speech = "";
@@ -851,7 +895,7 @@
 
             window.speechSynthesis.speak(currentUtterance);
         } else {
-            alert("Maaf, browser Anda tidak mendukung fitur Text-to-Speech.");
+            console.error("Maaf, browser Anda tidak mendukung fitur Text-to-Speech.");
             callback();
         }
     }
