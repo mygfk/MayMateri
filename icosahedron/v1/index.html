@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Custom Math Icosahedron</title>
+    <!-- Tailwind CSS untuk UI/UX -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js untuk Render 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls untuk interaksi mouse -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Konfigurasi MathJax (Library untuk render LaTeX ke SVG) -->
+    <script>
+        window.MathJax = {
+            options: { enableMenu: false },
+            svg: { fontCache: 'local' },
+            startup: {
+                typeset: false,
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady().then(() => {
+                        window.mathJaxReady = true;
+                        // Render ulang seluruh sisi jika MathJax sudah termuat
+                        if(typeof textures !== 'undefined' && textures.length > 0) {
+                            for(let i=0; i<20; i++) {
+                                updateFace(i);
+                            }
+                        }
+                    });
+                }
+            }
+        };
+    </script>
+    <!-- Script MathJax Utama -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0f172a; color: white; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        #canvas-container { cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen font-sans">
+
+    <!-- PANEL KONTROL KIRI -->
+    <div class="w-full md:w-1/3 lg:w-1/4 h-[40vh] md:h-screen bg-slate-900 border-b md:border-b-0 md:border-r border-slate-700 flex flex-col shadow-2xl z-10">
+        
+        <!-- Header -->
+        <div class="p-5 bg-slate-800 border-b border-slate-700">
+            <h1 class="text-xl font-bold text-indigo-400">Math Icosahedron</h1>
+            <p class="text-xs text-slate-400 mt-1">Dadu 20-Sisi dengan Indeks & LaTeX</p>
+        </div>
+
+        <!-- Kontrol Kecepatan -->
+        <div class="p-4 border-b border-slate-700 bg-slate-800/50">
+            <label class="block text-sm font-semibold text-slate-300 mb-2 flex justify-between">
+                <span>Kecepatan Putar</span>
+                <span id="speed-display" class="text-indigo-400">1x</span>
+            </label>
+            <input type="range" id="speed-slider" min="0" max="10" step="0.1" value="1" class="w-full accent-indigo-500 cursor-pointer">
+        </div>
+
+        <!-- Input 20 Wajah -->
+        <div class="flex-1 overflow-y-auto p-5">
+            <div class="border-b border-slate-700 mb-4 pb-3 flex justify-between items-start">
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-300 mb-1">Variabel 20 Sisi</h2>
+                    <p class="text-[11px] text-slate-400 leading-tight">
+                        <b>Warna</b> | <b>Indeks</b> | <b>Nilai</b> (LaTeX)
+                    </p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <label class="text-[10px] text-slate-400 mb-1">Warna Indeks</label>
+                    <input type="color" id="global-index-color" value="#cbd5e1" class="w-6 h-6 shrink-0 cursor-pointer bg-slate-900 border border-slate-600 rounded p-0" title="Ubah warna semua teks indeks">
+                </div>
+            </div>
+            
+            <div id="inputs-container" class="grid grid-cols-1 gap-3">
+                <!-- Input akan di-generate via JavaScript -->
+            </div>
+            
+            <button id="btn-reset" class="mt-6 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors text-sm font-semibold">
+                Reset Nilai
+            </button>
+            <div class="flex gap-2 mt-3 mb-2">
+                <button id="btn-number" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-indigo-900/50">
+                    Isi 1 - 20
+                </button>
+                <button id="btn-math" class="flex-1 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-purple-900/50">
+                    Contoh Math
+                </button>
+            </div>
+
+            <!-- Tambahan: Fitur Penyimpanan Multi-Slot -->
+            <div class="mt-6 border-t border-slate-700 pt-4 pb-4">
+                <h3 class="text-sm font-semibold text-slate-300 mb-2">Simpan Konfigurasi</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="input-save-name" placeholder="Beri nama (misal: Aljabar 1)" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all min-w-0">
+                    <button id="btn-save" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-emerald-900/50 shrink-0">
+                        💾 Simpan
+                    </button>
+                </div>
+                <p id="save-status" class="text-[11px] text-center mt-2 opacity-0 transition-opacity duration-300 font-medium"></p>
+                
+                <!-- Daftar Simpanan -->
+                <div class="mt-3">
+                    <h4 class="text-[11px] font-medium text-slate-400 mb-2 uppercase tracking-wider">Daftar Tersimpan:</h4>
+                    <ul id="saved-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                        <!-- List item di-generate via JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL RENDER 3D KANAN -->
+    <div id="canvas-container" class="w-full md:w-2/3 lg:w-3/4 h-[60vh] md:h-screen relative bg-slate-950">
+        <!-- Render ThreeJS disini -->
+    </div>
+
+    <script>
+        // --- KONFIGURASI AWAL ---
+        const CANVAS_CONTAINER = document.getElementById('canvas-container');
+        const INPUTS_CONTAINER = document.getElementById('inputs-container');
+        const SPEED_SLIDER = document.getElementById('speed-slider');
+        const SPEED_DISPLAY = document.getElementById('speed-display');
+
+        // Parameter Warna
+        const COLOR_BG = 0x020617; // Slate 950
+        const DEFAULT_FACE_COLOR = '#4338ca'; // Indigo 700
+        const COLOR_TEXT = '#ffffff';
+
+        let globalIndexColor = '#cbd5e1'; // Warna global untuk teks indeks
+
+        // Variabel Global Data dan Three.js
+        let scene, camera, renderer, controls, icosahedron;
+        let materials = [];
+        let textures = [];
+        
+        // Data State untuk masing-masing 20 sisi
+        let faceData = Array.from({length: 20}, (_, i) => ({ 
+            label: String.fromCharCode(65 + i), // Default Indeks A sampai T
+            value: '',
+            color: DEFAULT_FACE_COLOR // Warna default tiap sisi
+        }));
+
+        let speedMultiplier = 1;
+        let baseRotationSpeed = { x: 0.005, y: 0.008, z: 0.003 };
+
+        // --- INISIALISASI THREE.JS ---
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(COLOR_BG);
+            
+            const aspect = CANVAS_CONTAINER.clientWidth / CANVAS_CONTAINER.clientHeight;
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            camera.position.z = 15;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(CANVAS_CONTAINER.clientWidth, CANVAS_CONTAINER.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            CANVAS_CONTAINER.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight1.position.set(10, 10, 10);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0x818cf8, 0.5);
+            dirLight2.position.set(-10, -10, -10);
+            scene.add(dirLight2);
+
+            const radius = 5;
+            const baseGeometry = new THREE.IcosahedronGeometry(radius, 0);
+            
+            const edgesGeometry = new THREE.EdgesGeometry(baseGeometry);
+            const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x0f172a });
+            const icosahedronEdges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+
+            let geometry = baseGeometry.clone().toNonIndexed();
+            
+            const uvAttribute = geometry.attributes.uv;
+            for (let i = 0; i < 20; i++) {
+                uvAttribute.setXY(i * 3 + 0, 0, 0);       // Kiri Bawah
+                uvAttribute.setXY(i * 3 + 1, 1, 0);       // Kanan Bawah
+                uvAttribute.setXY(i * 3 + 2, 0.5, 1);     // Tengah Atas
+                geometry.addGroup(i * 3, 3, i);
+            }
+            uvAttribute.needsUpdate = true;
+
+            for (let i = 0; i < 20; i++) {
+                const mat = createBlankMaterial();
+                materials.push(mat);
+            }
+
+            icosahedron = new THREE.Mesh(geometry, materials);
+            icosahedron.add(icosahedronEdges);
+            scene.add(icosahedron);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.autoRotate = false;
+
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Render awal sisi-sisinya
+            for (let i = 0; i < 20; i++) {
+                updateFace(i);
+            }
+        }
+
+        function createBlankMaterial() {
+            const canvasSize = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            const ctx = canvas.getContext('2d');
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            textures.push({ canvas, ctx, texture });
+
+            return new THREE.MeshStandardMaterial({
+                map: texture,
+                roughness: 0.3,
+                metalness: 0.2,
+            });
+        }
+
+        // --- UPDATE TEKS DAN INDEKS (LOGIC UTAMA) ---
+        function updateFace(index) {
+            const data = faceData[index];
+            const canvasData = textures[index];
+            if(!canvasData) return;
+            
+            const size = canvasData.canvas.width;
+            const ctx = canvasData.ctx;
+            const text = data.value;
+            const labelText = data.label;
+            const bgColor = data.color; // Ambil warna spesifik sisi ini
+            const indexColor = globalIndexColor; // Gunakan warna indeks global
+
+            // Fungsi internal untuk menggambar semua halamannya
+            const renderFinal = (imgElement, isFallback) => {
+                // 1. Bersihkan background
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, size, size);
+
+                // 2. Gambar Indeks/Label di ujung atas segitiga
+                if (labelText) {
+                    ctx.fillStyle = indexColor; // Menggunakan warna custom indeks
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    // Sesuaikan font indeks
+                    let labelSize = size * 0.12; 
+                    if(labelText.length > 2) labelSize = size * 0.08;
+                    ctx.font = `bold ${labelSize}px Arial, sans-serif`;
+                    // Y = size * 0.25 menempatkannya dekat puncak segitiga
+                    ctx.fillText(labelText, size / 2, size * 0.25);
+                }
+
+                // 3. Gambar Nilai/Matematika di bagian tengah bawah
+                if (text && text.trim() !== "") {
+                    const mathY = size * 0.65; // Titik Y lebih ke bawah karena ada label di atas
+
+                    if (isFallback || !imgElement) {
+                        ctx.fillStyle = COLOR_TEXT;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        let fontSize = 120;
+                        if (text.length > 2) fontSize = 80;
+                        if (text.length > 4) fontSize = 55;
+                        if (text.length > 6) fontSize = 35;
+
+                        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                        ctx.fillText(text, size / 2, mathY);
+                    } else {
+                        const pxWidth = imgElement.customWidth;
+                        const pxHeight = imgElement.customHeight;
+                        ctx.drawImage(imgElement, (size - pxWidth) / 2, mathY - pxHeight / 2, pxWidth, pxHeight);
+                    }
+                }
+                
+                canvasData.texture.needsUpdate = true;
+            };
+
+            // Jika nilai kosong, gambar indeksnya saja
+            if (!text || text.trim() === "") {
+                renderFinal(null, true);
+                return;
+            }
+
+            // Render MathJax jika tersedia
+            if (window.mathJaxReady) {
+                window.MathJax.tex2svgPromise(text, {display: true}).then((node) => {
+                    const svg = node.querySelector('svg');
+                    if (!svg) {
+                        renderFinal(null, true);
+                        return;
+                    }
+
+                    const viewBox = svg.getAttribute('viewBox').split(' ');
+                    const vbWidth = parseFloat(viewBox[2]);
+                    const vbHeight = parseFloat(viewBox[3]);
+
+                    let pxWidth = vbWidth * 0.12;
+                    let pxHeight = vbHeight * 0.12;
+
+                    // Beri margin atas agar rumus tidak menabrak label indeks
+                    const maxWidth = size * 0.60;
+                    const maxHeight = size * 0.40;
+                    
+                    const scale = Math.min(1, maxWidth / pxWidth, maxHeight / pxHeight);
+                    pxWidth *= scale;
+                    pxHeight *= scale;
+
+                    svg.setAttribute('width', pxWidth + 'px');
+                    svg.setAttribute('height', pxHeight + 'px');
+                    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+                    let svgString = new XMLSerializer().serializeToString(svg);
+                    svgString = svgString.replace(/currentColor/g, COLOR_TEXT); 
+
+                    const img = new Image();
+                    img.customWidth = pxWidth;
+                    img.customHeight = pxHeight;
+                    img.onload = () => { renderFinal(img, false); };
+                    img.onerror = () => { renderFinal(null, true); };
+                    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+                }).catch(() => {
+                    renderFinal(null, true);
+                });
+            } else {
+                renderFinal(null, true);
+            }
+        }
+
+        // --- PEMBANGUNAN UI INPUT ---
+        function initUI() {
+            // Event listener untuk warna indeks global
+            document.getElementById('global-index-color').addEventListener('input', (e) => {
+                globalIndexColor = e.target.value;
+                for (let i = 0; i < 20; i++) {
+                    updateFace(i);
+                }
+            });
+
+            for (let i = 0; i < 20; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex gap-2 items-center bg-slate-800/50 p-2 rounded border border-slate-700";
+                
+                // Kolom Baru: Pemilih Warna
+                const inputColor = document.createElement('input');
+                inputColor.type = "color";
+                inputColor.id = `input-color-${i}`;
+                inputColor.className = "w-8 h-8 shrink-0 cursor-pointer bg-slate-900 border border-slate-600 rounded p-0";
+                inputColor.value = faceData[i].color;
+                inputColor.title = "Warna Sisi";
+
+                // Kolom Kiri: Indeks
+                const inputLabel = document.createElement('input');
+                inputLabel.type = "text";
+                inputLabel.id = `input-label-${i}`;
+                inputLabel.className = "w-10 md:w-12 shrink-0 bg-slate-900 border border-slate-600 rounded px-1 py-1.5 text-sm font-bold text-center text-slate-300 focus:outline-none focus:border-indigo-500 transition-all";
+                inputLabel.value = faceData[i].label; // Set otomatis A-T
+                inputLabel.title = "Indeks Sisi (Misal: A)";
+                
+                // Kolom Kanan: Nilai
+                const inputValue = document.createElement('input');
+                inputValue.type = "text";
+                inputValue.id = `input-face-${i}`;
+                inputValue.className = "flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all min-w-0";
+                inputValue.placeholder = "Nilai atau Rumus Latex";
+                
+                // Event listener Input
+                inputColor.addEventListener('input', (e) => {
+                    faceData[i].color = e.target.value;
+                    updateFace(i);
+                });
+                inputLabel.addEventListener('input', (e) => {
+                    faceData[i].label = e.target.value;
+                    updateFace(i);
+                });
+                inputValue.addEventListener('input', (e) => {
+                    faceData[i].value = e.target.value;
+                    updateFace(i);
+                });
+
+                wrapper.appendChild(inputColor);
+                wrapper.appendChild(inputLabel);
+                wrapper.appendChild(inputValue);
+                INPUTS_CONTAINER.appendChild(wrapper);
+            }
+
+            SPEED_SLIDER.addEventListener('input', (e) => {
+                speedMultiplier = parseFloat(e.target.value);
+                SPEED_DISPLAY.innerText = speedMultiplier.toFixed(1) + "x";
+            });
+
+            // Hanya hapus nilai matematika, biarkan indeks A-T utuh
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                for (let i = 0; i < 20; i++) {
+                    faceData[i].value = "";
+                    document.getElementById(`input-face-${i}`).value = "";
+                    updateFace(i);
+                }
+            });
+
+            document.getElementById('btn-number').addEventListener('click', () => {
+                for (let i = 0; i < 20; i++) {
+                    faceData[i].value = (i + 1).toString();
+                    document.getElementById(`input-face-${i}`).value = faceData[i].value;
+                    updateFace(i);
+                }
+            });
+
+            document.getElementById('btn-math').addEventListener('click', () => {
+                const mathExamples = [
+                    "200", "\\sqrt{64}", "\\frac{1}{2}", "x^2", "y = mx+c",
+                    "\\pi", "\\alpha", "\\beta", "A = \\pi r^2", "E=mc^2", 
+                    "\\sum_{n=1}^{10}", "\\infty", "a^2+b^2=c^2", "50\\%", "\\int x dx",
+                    "1 \\frac{1}{2}", "\\frac{x}{y}", "x \\pm 1", "\\Delta", "10^3"
+                ];
+                for (let i = 0; i < 20; i++) {
+                    faceData[i].value = mathExamples[i];
+                    document.getElementById(`input-face-${i}`).value = faceData[i].value;
+                    updateFace(i);
+                }
+            });
+
+            // --- LOGIKA PENYIMPANAN MULTI-SLOT (LOCAL STORAGE) ---
+            const SAVE_KEY = 'mathIcosahedronSaves_v2';
+            const statusText = document.getElementById('save-status');
+            const inputSaveName = document.getElementById('input-save-name');
+            const savedList = document.getElementById('saved-list');
+
+            function showStatus(msg, colorClass) {
+                statusText.innerText = msg;
+                statusText.className = `text-[11px] text-center mt-2 ${colorClass} opacity-100 transition-opacity duration-300 font-medium`;
+                setTimeout(() => {
+                    statusText.classList.remove('opacity-100');
+                    statusText.classList.add('opacity-0');
+                }, 3000);
+            }
+
+            function getSaves() {
+                const saves = localStorage.getItem(SAVE_KEY);
+                return saves ? JSON.parse(saves) : {};
+            }
+
+            function renderSaveList() {
+                const saves = getSaves();
+                savedList.innerHTML = '';
+                const names = Object.keys(saves);
+                
+                if (names.length === 0) {
+                    savedList.innerHTML = '<li class="text-[11px] text-slate-500 text-center italic py-2">Belum ada data tersimpan</li>';
+                    return;
+                }
+
+                names.forEach(name => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center bg-slate-800 p-1.5 rounded border border-slate-700 hover:border-slate-500 transition-colors group";
+                    
+                    const nameBtn = document.createElement('button');
+                    nameBtn.className = "flex-1 text-left text-xs text-slate-300 group-hover:text-white font-medium truncate mr-2 px-1";
+                    nameBtn.innerText = name;
+                    nameBtn.title = `Muat data: ${name}`;
+                    nameBtn.onclick = () => loadData(name);
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = "text-slate-500 hover:text-red-400 p-1 rounded transition-colors text-xs bg-slate-900/50 hover:bg-slate-900";
+                    delBtn.innerHTML = "🗑️";
+                    delBtn.title = "Hapus simpanan ini";
+                    delBtn.onclick = () => deleteData(name);
+
+                    li.appendChild(nameBtn);
+                    li.appendChild(delBtn);
+                    savedList.appendChild(li);
+                });
+            }
+
+            function saveCurrentData() {
+                const name = inputSaveName.value.trim();
+                if (!name) {
+                    showStatus("⚠️ Tolong masukkan nama simpanan!", "text-amber-400");
+                    return;
+                }
+
+                const saves = getSaves();
+                // Simpan data wajah dan warna indeks global sebagai object
+                saves[name] = {
+                    faces: faceData,
+                    indexColor: globalIndexColor
+                };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+                
+                inputSaveName.value = ''; // Kosongkan input
+                renderSaveList();
+                showStatus(`✅ "${name}" berhasil disimpan!`, "text-emerald-400");
+            }
+
+            function loadData(name) {
+                const saves = getSaves();
+                if (saves[name]) {
+                    const savedItem = saves[name];
+                    
+                    // Deteksi backward compatibility (kalau save lama cuma array faceData)
+                    let parsedFaces = Array.isArray(savedItem) ? savedItem : savedItem.faces;
+                    
+                    // Set Global Index Color
+                    globalIndexColor = savedItem.indexColor || '#cbd5e1';
+                    document.getElementById('global-index-color').value = globalIndexColor;
+
+                    for (let i = 0; i < 20; i++) {
+                        if(parsedFaces[i]) {
+                            faceData[i].color = parsedFaces[i].color || DEFAULT_FACE_COLOR;
+                            faceData[i].label = parsedFaces[i].label || '';
+                            faceData[i].value = parsedFaces[i].value || '';
+
+                            document.getElementById(`input-color-${i}`).value = faceData[i].color;
+                            document.getElementById(`input-label-${i}`).value = faceData[i].label;
+                            document.getElementById(`input-face-${i}`).value = faceData[i].value;
+
+                            updateFace(i);
+                        }
+                    }
+                    showStatus(`📂 "${name}" dimuat.`, "text-indigo-400");
+                }
+            }
+
+            function deleteData(name) {
+                if (confirm(`Apakah Anda yakin ingin menghapus "${name}"?`)) {
+                    const saves = getSaves();
+                    delete saves[name];
+                    localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+                    renderSaveList();
+                    showStatus(`🗑️ "${name}" dihapus.`, "text-red-400");
+                }
+            }
+
+            // Pasang event ke tombol Simpan
+            document.getElementById('btn-save').addEventListener('click', saveCurrentData);
+
+            // Render daftar simpanan saat aplikasi pertama kali dimuat
+            renderSaveList();
+        }
+
+        // --- ANIMASI DAN RESIZE ---
+        function onWindowResize() {
+            const width = CANVAS_CONTAINER.clientWidth;
+            const height = CANVAS_CONTAINER.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (icosahedron) {
+                icosahedron.rotation.x += baseRotationSpeed.x * speedMultiplier;
+                icosahedron.rotation.y += baseRotationSpeed.y * speedMultiplier;
+                icosahedron.rotation.z += baseRotationSpeed.z * speedMultiplier;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- EKSEKUSI UTAMA ---
+        init3D();
+        initUI();
+        animate();
+
+    </script>
+</body>
+</html>
