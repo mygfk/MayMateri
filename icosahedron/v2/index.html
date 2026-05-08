@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Custom Math Icosahedron</title>
+    
     <!-- Tailwind CSS untuk UI/UX -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Three.js untuk Render 3D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- OrbitControls untuk interaksi mouse -->
@@ -22,9 +24,11 @@
                     return MathJax.startup.defaultPageReady().then(() => {
                         window.mathJaxReady = true;
                         // Render ulang seluruh sisi jika MathJax sudah termuat
-                        if(typeof textures !== 'undefined' && textures.length > 0) {
-                            for(let i=0; i<20; i++) {
-                                updateFace(i);
+                        if(typeof allTextures !== 'undefined' && allTextures.length > 0) {
+                            for(let d=0; d<3; d++) {
+                                for(let i=0; i<20; i++) {
+                                    updateFace(d, i);
+                                }
                             }
                         }
                     });
@@ -62,11 +66,29 @@
                 <span>Kecepatan Putar</span>
                 <span id="speed-display" class="text-indigo-400">1x</span>
             </label>
-            <input type="range" id="speed-slider" min="0" max="10" step="0.1" value="1" class="w-full accent-indigo-500 cursor-pointer">
+            <input type="range" id="speed-slider" min="0" max="10" step="0.1" value="1" class="w-full accent-indigo-500 cursor-pointer mb-4">
+            
+            <!-- Kontrol Jumlah Dadu (BARU) -->
+            <label class="block text-sm font-semibold text-slate-300 mb-2">Jumlah Icosahedron</label>
+            <div class="flex gap-2">
+                <button id="btn-dice-1" class="flex-1 py-1.5 bg-indigo-600 text-white rounded text-sm font-bold shadow transition-colors">1</button>
+                <button id="btn-dice-2" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-sm font-bold shadow transition-colors">2</button>
+                <button id="btn-dice-3" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-sm font-bold shadow transition-colors">3</button>
+            </div>
         </div>
 
         <!-- Input 20 Wajah -->
         <div class="flex-1 overflow-y-auto p-5">
+            <!-- Pilihan Dadu yang Diedit (BARU) -->
+            <div class="border-b border-slate-700 mb-4 pb-3">
+                <h2 class="text-sm font-semibold text-slate-300 mb-2">Pilih Dadu untuk Diedit:</h2>
+                <div class="flex gap-2">
+                    <button id="btn-edit-die-0" class="flex-1 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold shadow transition-colors">Dadu 1</button>
+                    <button id="btn-edit-die-1" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs font-bold shadow transition-colors">Dadu 2</button>
+                    <button id="btn-edit-die-2" class="flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs font-bold shadow transition-colors">Dadu 3</button>
+                </div>
+            </div>
+
             <div class="border-b border-slate-700 mb-4 pb-3 flex justify-between items-start">
                 <div>
                     <h2 class="text-sm font-semibold text-slate-300 mb-1">Variabel 20 Sisi</h2>
@@ -74,9 +96,20 @@
                         <b>Warna</b> | <b>Indeks</b> | <b>Nilai</b> (LaTeX)
                     </p>
                 </div>
-                <div class="flex flex-col items-center">
-                    <label class="text-[10px] text-slate-400 mb-1">Warna Indeks</label>
-                    <input type="color" id="global-index-color" value="#cbd5e1" class="w-6 h-6 shrink-0 cursor-pointer bg-slate-900 border border-slate-600 rounded p-0" title="Ubah warna semua teks indeks">
+                <div class="flex flex-col items-end gap-2">
+                    <!-- Toggle Switch untuk Tampilkan/Sembunyikan Indeks -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] text-slate-400 cursor-pointer" for="toggle-index">Tampilkan Indeks</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-index" class="sr-only peer" checked>
+                            <div class="w-7 h-4 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-500"></div>
+                        </label>
+                    </div>
+                    <!-- Pemilih Warna Indeks -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-[10px] text-slate-400">Warna Indeks</label>
+                        <input type="color" id="global-index-color" value="#cbd5e1" class="w-5 h-5 shrink-0 cursor-pointer bg-slate-900 border border-slate-600 rounded p-0" title="Ubah warna semua teks indeks">
+                    </div>
                 </div>
             </div>
             
@@ -84,19 +117,25 @@
                 <!-- Input akan di-generate via JavaScript -->
             </div>
             
-            <button id="btn-reset" class="mt-6 w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors text-sm font-semibold">
-                Reset Nilai
-            </button>
-            <div class="flex gap-2 mt-3 mb-2">
-                <button id="btn-number" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-indigo-900/50">
+            <div class="grid grid-cols-2 gap-2 mt-6 mb-2">
+                <button id="btn-number" class="py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-indigo-900/50">
                     Isi 1 - 20
                 </button>
-                <button id="btn-math" class="flex-1 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-purple-900/50">
+                <button id="btn-letter" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-blue-900/50">
+                    Isi A - T
+                </button>
+                <button id="btn-math" class="py-2 bg-purple-600 hover:bg-purple-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-purple-900/50">
                     Contoh Math
                 </button>
+                <button id="btn-random-color" class="py-2 bg-pink-600 hover:bg-pink-500 text-white rounded transition-colors text-xs font-semibold shadow-lg shadow-pink-900/50">
+                    Acak Warna
+                </button>
             </div>
+            <button id="btn-reset" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors text-sm font-semibold">
+                Reset Nilai
+            </button>
 
-            <!-- Tambahan: Fitur Penyimpanan Multi-Slot -->
+            <!-- Fitur Penyimpanan Multi-Slot -->
             <div class="mt-6 border-t border-slate-700 pt-4 pb-4">
                 <h3 class="text-sm font-semibold text-slate-300 mb-2">Simpan Konfigurasi</h3>
                 <div class="flex gap-2">
@@ -145,21 +184,30 @@
         const COLOR_TEXT = '#ffffff';
 
         let globalIndexColor = '#cbd5e1'; // Warna global untuk teks indeks
+        let showIndex = true; // Status tampil/sembunyi indeks
 
         // Variabel Global Data dan Three.js
-        let scene, camera, renderer, controls, icosahedron;
-        let materials = [];
-        let textures = [];
+        let scene, camera, renderer, controls;
+        let icosahedrons = []; // Menampung array dari mesh icosahedron
         
-        // Data State untuk masing-masing 20 sisi
-        let faceData = Array.from({length: 20}, (_, i) => ({ 
-            label: String.fromCharCode(65 + i), // Default Indeks A sampai T
-            value: '',
-            color: DEFAULT_FACE_COLOR // Warna default tiap sisi
-        }));
-
+        let allMaterials = [[], [], []];
+        let allTextures = [[], [], []];
+        let sharedGeometry, sharedEdgesGeometry, sharedEdgesMaterial;
+        
+        let diceCount = 1; // Menyimpan status jumlah dadu saat ini
+        let activeEditDie = 0; // Index dadu mana yang sedang diedit di UI (0, 1, atau 2)
+        
         let speedMultiplier = 1;
         let baseRotationSpeed = { x: 0.005, y: 0.008, z: 0.003 };
+
+        // Data State untuk 3 Dadu, masing-masing 20 sisi
+        let allFaceData = Array.from({length: 3}, () => 
+            Array.from({length: 20}, (_, i) => ({ 
+                label: String.fromCharCode(65 + i), // Default Indeks A sampai T
+                value: '',
+                color: DEFAULT_FACE_COLOR // Warna default tiap sisi
+            }))
+        );
 
         // --- INISIALISASI THREE.JS ---
         function init3D() {
@@ -186,32 +234,35 @@
             dirLight2.position.set(-10, -10, -10);
             scene.add(dirLight2);
 
+            // Persiapan Geometri Bersama
             const radius = 5;
             const baseGeometry = new THREE.IcosahedronGeometry(radius, 0);
             
-            const edgesGeometry = new THREE.EdgesGeometry(baseGeometry);
-            const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x0f172a });
-            const icosahedronEdges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+            sharedEdgesGeometry = new THREE.EdgesGeometry(baseGeometry);
+            sharedEdgesMaterial = new THREE.LineBasicMaterial({ color: 0x0f172a });
 
-            let geometry = baseGeometry.clone().toNonIndexed();
+            sharedGeometry = baseGeometry.clone().toNonIndexed();
             
-            const uvAttribute = geometry.attributes.uv;
+            const uvAttribute = sharedGeometry.attributes.uv;
             for (let i = 0; i < 20; i++) {
                 uvAttribute.setXY(i * 3 + 0, 0, 0);       // Kiri Bawah
                 uvAttribute.setXY(i * 3 + 1, 1, 0);       // Kanan Bawah
                 uvAttribute.setXY(i * 3 + 2, 0.5, 1);     // Tengah Atas
-                geometry.addGroup(i * 3, 3, i);
+                sharedGeometry.addGroup(i * 3, 3, i);
             }
             uvAttribute.needsUpdate = true;
 
-            for (let i = 0; i < 20; i++) {
-                const mat = createBlankMaterial();
-                materials.push(mat);
+            // Buat Material terpisah untuk ke-3 dadu
+            for (let d = 0; d < 3; d++) {
+                for (let i = 0; i < 20; i++) {
+                    const matData = createBlankMaterial();
+                    allTextures[d].push({ canvas: matData.canvas, ctx: matData.ctx, texture: matData.texture });
+                    allMaterials[d].push(matData.material);
+                }
             }
 
-            icosahedron = new THREE.Mesh(geometry, materials);
-            icosahedron.add(icosahedronEdges);
-            scene.add(icosahedron);
+            // Panggil fungsi untuk merender jumlah dadu sesuai state awal
+            updateDiceDisplay();
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -221,10 +272,58 @@
 
             window.addEventListener('resize', onWindowResize, false);
             
-            // Render awal sisi-sisinya
-            for (let i = 0; i < 20; i++) {
-                updateFace(i);
+            // Render awal sisi-sisinya untuk semua dadu
+            for (let d = 0; d < 3; d++) {
+                for (let i = 0; i < 20; i++) {
+                    updateFace(d, i);
+                }
             }
+        }
+
+        function updateDiceDisplay() {
+            // Hapus semua dadu yang ada sebelumnya dari scene
+            icosahedrons.forEach(die => {
+                scene.remove(die);
+            });
+            icosahedrons = [];
+
+            const positions = [];
+            
+            // Penentuan layout dan posisi kamera berdasarkan jumlah dadu
+            if (diceCount === 1) {
+                positions.push({ x: 0, y: 0, z: 0 });
+                camera.position.z = 15;
+            } else if (diceCount === 2) {
+                positions.push({ x: -6, y: 0, z: 0 });
+                positions.push({ x: 6, y: 0, z: 0 });
+                camera.position.z = 20;
+            } else if (diceCount === 3) {
+                positions.push({ x: -12, y: 0, z: 0 });
+                positions.push({ x: 0, y: 0, z: 0 });
+                positions.push({ x: 12, y: 0, z: 0 });
+                camera.position.z = 28;
+            }
+
+            // Buat dadu sesuai posisi yang ditentukan
+            positions.forEach((pos, index) => {
+                // Pasangkan material yang sesuai dengan index dadu
+                const mesh = new THREE.Mesh(sharedGeometry, allMaterials[index]);
+                const edges = new THREE.LineSegments(sharedEdgesGeometry, sharedEdgesMaterial);
+                mesh.add(edges);
+                
+                mesh.position.set(pos.x, pos.y, pos.z);
+                
+                // Rotasi awal yang acak agar tidak terlihat seragam
+                mesh.rotation.x = Math.random() * Math.PI * 2;
+                mesh.rotation.y = Math.random() * Math.PI * 2;
+                mesh.rotation.z = Math.random() * Math.PI * 2;
+
+                scene.add(mesh);
+                icosahedrons.push(mesh);
+            });
+            
+            // Update kamera bila diceCount berubah
+            camera.updateProjectionMatrix();
         }
 
         function createBlankMaterial() {
@@ -236,50 +335,46 @@
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            textures.push({ canvas, ctx, texture });
-
-            return new THREE.MeshStandardMaterial({
+            
+            const material = new THREE.MeshBasicMaterial({
                 map: texture,
-                roughness: 0.3,
-                metalness: 0.2,
             });
+
+            return { canvas, ctx, texture, material };
         }
 
         // --- UPDATE TEKS DAN INDEKS (LOGIC UTAMA) ---
-        function updateFace(index) {
-            const data = faceData[index];
-            const canvasData = textures[index];
+        function updateFace(dieIndex, faceIndex) {
+            const data = allFaceData[dieIndex][faceIndex];
+            const canvasData = allTextures[dieIndex][faceIndex];
             if(!canvasData) return;
             
             const size = canvasData.canvas.width;
             const ctx = canvasData.ctx;
             const text = data.value;
             const labelText = data.label;
-            const bgColor = data.color; // Ambil warna spesifik sisi ini
-            const indexColor = globalIndexColor; // Gunakan warna indeks global
+            const bgColor = data.color;
+            const indexColor = globalIndexColor; 
 
-            // Fungsi internal untuk menggambar semua halamannya
             const renderFinal = (imgElement, isFallback) => {
                 // 1. Bersihkan background
                 ctx.fillStyle = bgColor;
                 ctx.fillRect(0, 0, size, size);
 
                 // 2. Gambar Indeks/Label di ujung atas segitiga
-                if (labelText) {
-                    ctx.fillStyle = indexColor; // Menggunakan warna custom indeks
+                if (showIndex && labelText) {
+                    ctx.fillStyle = indexColor;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    // Sesuaikan font indeks
                     let labelSize = size * 0.12; 
                     if(labelText.length > 2) labelSize = size * 0.08;
                     ctx.font = `bold ${labelSize}px Arial, sans-serif`;
-                    // Y = size * 0.25 menempatkannya dekat puncak segitiga
                     ctx.fillText(labelText, size / 2, size * 0.25);
                 }
 
                 // 3. Gambar Nilai/Matematika di bagian tengah bawah
                 if (text && text.trim() !== "") {
-                    const mathY = size * 0.65; // Titik Y lebih ke bawah karena ada label di atas
+                    const mathY = size * 0.65; 
 
                     if (isFallback || !imgElement) {
                         ctx.fillStyle = COLOR_TEXT;
@@ -303,13 +398,11 @@
                 canvasData.texture.needsUpdate = true;
             };
 
-            // Jika nilai kosong, gambar indeksnya saja
             if (!text || text.trim() === "") {
                 renderFinal(null, true);
                 return;
             }
 
-            // Render MathJax jika tersedia
             if (window.mathJaxReady) {
                 window.MathJax.tex2svgPromise(text, {display: true}).then((node) => {
                     const svg = node.querySelector('svg');
@@ -325,7 +418,6 @@
                     let pxWidth = vbWidth * 0.12;
                     let pxHeight = vbHeight * 0.12;
 
-                    // Beri margin atas agar rumus tidak menabrak label indeks
                     const maxWidth = size * 0.60;
                     const maxHeight = size * 0.40;
                     
@@ -359,15 +451,62 @@
             // Logika Toggle Panel Kiri
             BTN_TOGGLE_PANEL.addEventListener('click', () => {
                 LEFT_PANEL.classList.toggle('hidden');
-                // Panggil resize sedikit terlambat agar animasi hidden selesai diproses DOM
                 setTimeout(onWindowResize, 10);
             });
 
-            // Event listener untuk warna indeks global
+            // Kontrol Jumlah Dadu
+            const setDiceCount = (count) => {
+                diceCount = count;
+                [1, 2, 3].forEach(num => {
+                    const btn = document.getElementById(`btn-dice-${num}`);
+                    if (num === count) {
+                        btn.className = "flex-1 py-1.5 bg-indigo-600 text-white rounded text-sm font-bold shadow transition-colors";
+                    } else {
+                        btn.className = "flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-sm font-bold shadow transition-colors";
+                    }
+                });
+                updateDiceDisplay();
+            };
+
+            document.getElementById('btn-dice-1').addEventListener('click', () => setDiceCount(1));
+            document.getElementById('btn-dice-2').addEventListener('click', () => setDiceCount(2));
+            document.getElementById('btn-dice-3').addEventListener('click', () => setDiceCount(3));
+
+            // Logika Ganti Dadu yang Diedit
+            const setActiveEditDie = (index) => {
+                activeEditDie = index;
+                [0, 1, 2].forEach(num => {
+                    const btn = document.getElementById(`btn-edit-die-${num}`);
+                    if (num === index) {
+                        btn.className = "flex-1 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold shadow transition-colors";
+                    } else {
+                        btn.className = "flex-1 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs font-bold shadow transition-colors";
+                    }
+                });
+                // Sinkronisasi nilai UI dengan data dadu yang dipilih
+                for (let i = 0; i < 20; i++) {
+                    document.getElementById(`input-color-${i}`).value = allFaceData[activeEditDie][i].color;
+                    document.getElementById(`input-label-${i}`).value = allFaceData[activeEditDie][i].label;
+                    document.getElementById(`input-face-${i}`).value = allFaceData[activeEditDie][i].value;
+                }
+            };
+
+            document.getElementById('btn-edit-die-0').addEventListener('click', () => setActiveEditDie(0));
+            document.getElementById('btn-edit-die-1').addEventListener('click', () => setActiveEditDie(1));
+            document.getElementById('btn-edit-die-2').addEventListener('click', () => setActiveEditDie(2));
+
+            // Event listener Toggle & Color Indeks
+            document.getElementById('toggle-index').addEventListener('change', (e) => {
+                showIndex = e.target.checked;
+                for (let d = 0; d < 3; d++) {
+                    for (let i = 0; i < 20; i++) { updateFace(d, i); }
+                }
+            });
+
             document.getElementById('global-index-color').addEventListener('input', (e) => {
                 globalIndexColor = e.target.value;
-                for (let i = 0; i < 20; i++) {
-                    updateFace(i);
+                for (let d = 0; d < 3; d++) {
+                    for (let i = 0; i < 20; i++) { updateFace(d, i); }
                 }
             });
 
@@ -375,41 +514,37 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = "flex gap-2 items-center bg-slate-800/50 p-2 rounded border border-slate-700";
                 
-                // Kolom Baru: Pemilih Warna
                 const inputColor = document.createElement('input');
                 inputColor.type = "color";
                 inputColor.id = `input-color-${i}`;
                 inputColor.className = "w-8 h-8 shrink-0 cursor-pointer bg-slate-900 border border-slate-600 rounded p-0";
-                inputColor.value = faceData[i].color;
+                inputColor.value = allFaceData[activeEditDie][i].color;
                 inputColor.title = "Warna Sisi";
 
-                // Kolom Kiri: Indeks
                 const inputLabel = document.createElement('input');
                 inputLabel.type = "text";
                 inputLabel.id = `input-label-${i}`;
                 inputLabel.className = "w-10 md:w-12 shrink-0 bg-slate-900 border border-slate-600 rounded px-1 py-1.5 text-sm font-bold text-center text-slate-300 focus:outline-none focus:border-indigo-500 transition-all";
-                inputLabel.value = faceData[i].label; // Set otomatis A-T
+                inputLabel.value = allFaceData[activeEditDie][i].label;
                 inputLabel.title = "Indeks Sisi (Misal: A)";
                 
-                // Kolom Kanan: Nilai
                 const inputValue = document.createElement('input');
                 inputValue.type = "text";
                 inputValue.id = `input-face-${i}`;
                 inputValue.className = "flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all min-w-0";
                 inputValue.placeholder = "Nilai atau Rumus Latex";
                 
-                // Event listener Input
                 inputColor.addEventListener('input', (e) => {
-                    faceData[i].color = e.target.value;
-                    updateFace(i);
+                    allFaceData[activeEditDie][i].color = e.target.value;
+                    updateFace(activeEditDie, i);
                 });
                 inputLabel.addEventListener('input', (e) => {
-                    faceData[i].label = e.target.value;
-                    updateFace(i);
+                    allFaceData[activeEditDie][i].label = e.target.value;
+                    updateFace(activeEditDie, i);
                 });
                 inputValue.addEventListener('input', (e) => {
-                    faceData[i].value = e.target.value;
-                    updateFace(i);
+                    allFaceData[activeEditDie][i].value = e.target.value;
+                    updateFace(activeEditDie, i);
                 });
 
                 wrapper.appendChild(inputColor);
@@ -423,20 +558,47 @@
                 SPEED_DISPLAY.innerText = speedMultiplier.toFixed(1) + "x";
             });
 
-            // Hanya hapus nilai matematika, biarkan indeks A-T utuh
             document.getElementById('btn-reset').addEventListener('click', () => {
                 for (let i = 0; i < 20; i++) {
-                    faceData[i].value = "";
+                    allFaceData[activeEditDie][i].value = "";
                     document.getElementById(`input-face-${i}`).value = "";
-                    updateFace(i);
+                    updateFace(activeEditDie, i);
                 }
             });
 
             document.getElementById('btn-number').addEventListener('click', () => {
                 for (let i = 0; i < 20; i++) {
-                    faceData[i].value = (i + 1).toString();
-                    document.getElementById(`input-face-${i}`).value = faceData[i].value;
-                    updateFace(i);
+                    allFaceData[activeEditDie][i].value = (i + 1).toString();
+                    document.getElementById(`input-face-${i}`).value = allFaceData[activeEditDie][i].value;
+                    updateFace(activeEditDie, i);
+                }
+            });
+
+            document.getElementById('btn-letter').addEventListener('click', () => {
+                for (let i = 0; i < 20; i++) {
+                    allFaceData[activeEditDie][i].value = String.fromCharCode(65 + i);
+                    document.getElementById(`input-face-${i}`).value = allFaceData[activeEditDie][i].value;
+                    updateFace(activeEditDie, i);
+                }
+            });
+
+            document.getElementById('btn-random-color').addEventListener('click', () => {
+                const distinctColors = [
+                    "#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16",
+                    "#22c55e", "#10b981", "#14b8a6", "#06b6d4", "#0ea5e9",
+                    "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef",
+                    "#ec4899", "#f43f5e", "#9f1239", "#431407", "#0f766e"
+                ];
+                
+                for (let i = distinctColors.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [distinctColors[i], distinctColors[j]] = [distinctColors[j], distinctColors[i]];
+                }
+
+                for (let i = 0; i < 20; i++) {
+                    allFaceData[activeEditDie][i].color = distinctColors[i];
+                    document.getElementById(`input-color-${i}`).value = distinctColors[i];
+                    updateFace(activeEditDie, i);
                 }
             });
 
@@ -448,14 +610,14 @@
                     "1 \\frac{1}{2}", "\\frac{x}{y}", "x \\pm 1", "\\Delta", "10^3"
                 ];
                 for (let i = 0; i < 20; i++) {
-                    faceData[i].value = mathExamples[i];
-                    document.getElementById(`input-face-${i}`).value = faceData[i].value;
-                    updateFace(i);
+                    allFaceData[activeEditDie][i].value = mathExamples[i];
+                    document.getElementById(`input-face-${i}`).value = allFaceData[activeEditDie][i].value;
+                    updateFace(activeEditDie, i);
                 }
             });
 
             // --- LOGIKA PENYIMPANAN MULTI-SLOT (LOCAL STORAGE) ---
-            const SAVE_KEY = 'mathIcosahedronSaves_v2';
+            const SAVE_KEY = 'mathIcosahedronSaves_v3';
             const statusText = document.getElementById('save-status');
             const inputSaveName = document.getElementById('input-save-name');
             const savedList = document.getElementById('saved-list');
@@ -514,14 +676,15 @@
                 }
 
                 const saves = getSaves();
-                // Simpan data wajah dan warna indeks global sebagai object
                 saves[name] = {
-                    faces: faceData,
-                    indexColor: globalIndexColor
+                    allFaces: allFaceData,
+                    indexColor: globalIndexColor,
+                    showIndex: showIndex,
+                    diceCount: diceCount
                 };
                 localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
                 
-                inputSaveName.value = ''; // Kosongkan input
+                inputSaveName.value = '';
                 renderSaveList();
                 showStatus(`✅ "${name}" berhasil disimpan!`, "text-emerald-400");
             }
@@ -531,24 +694,30 @@
                 if (saves[name]) {
                     const savedItem = saves[name];
                     
-                    // Deteksi backward compatibility (kalau save lama cuma array faceData)
-                    let parsedFaces = Array.isArray(savedItem) ? savedItem : savedItem.faces;
-                    
-                    // Set Global Index Color
                     globalIndexColor = savedItem.indexColor || '#cbd5e1';
                     document.getElementById('global-index-color').value = globalIndexColor;
+                    
+                    showIndex = savedItem.showIndex !== false; 
+                    document.getElementById('toggle-index').checked = showIndex;
 
-                    for (let i = 0; i < 20; i++) {
-                        if(parsedFaces[i]) {
-                            faceData[i].color = parsedFaces[i].color || DEFAULT_FACE_COLOR;
-                            faceData[i].label = parsedFaces[i].label || '';
-                            faceData[i].value = parsedFaces[i].value || '';
+                    if (savedItem.diceCount) {
+                        setDiceCount(savedItem.diceCount);
+                    }
 
-                            document.getElementById(`input-color-${i}`).value = faceData[i].color;
-                            document.getElementById(`input-label-${i}`).value = faceData[i].label;
-                            document.getElementById(`input-face-${i}`).value = faceData[i].value;
+                    // Backward compatibility (mendukung file simpanan versi lama)
+                    if (savedItem.allFaces) {
+                        allFaceData = JSON.parse(JSON.stringify(savedItem.allFaces));
+                    } else if (savedItem.faces || Array.isArray(savedItem)) {
+                        let parsedFaces = Array.isArray(savedItem) ? savedItem : savedItem.faces;
+                        for(let d=0; d<3; d++) {
+                            allFaceData[d] = JSON.parse(JSON.stringify(parsedFaces));
+                        }
+                    }
 
-                            updateFace(i);
+                    setActiveEditDie(0); // Kembali ke tab edit Dadu 1
+                    for (let d = 0; d < 3; d++) {
+                        for (let i = 0; i < 20; i++) {
+                            updateFace(d, i);
                         }
                     }
                     showStatus(`📂 "${name}" dimuat.`, "text-indigo-400");
@@ -565,10 +734,7 @@
                 }
             }
 
-            // Pasang event ke tombol Simpan
             document.getElementById('btn-save').addEventListener('click', saveCurrentData);
-
-            // Render daftar simpanan saat aplikasi pertama kali dimuat
             renderSaveList();
         }
 
@@ -584,11 +750,12 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            if (icosahedron) {
-                icosahedron.rotation.x += baseRotationSpeed.x * speedMultiplier;
-                icosahedron.rotation.y += baseRotationSpeed.y * speedMultiplier;
-                icosahedron.rotation.z += baseRotationSpeed.z * speedMultiplier;
-            }
+            // Menganimasi rotasi pada SEMUA dadu yang ada di array
+            icosahedrons.forEach((die) => {
+                die.rotation.x += baseRotationSpeed.x * speedMultiplier;
+                die.rotation.y += baseRotationSpeed.y * speedMultiplier;
+                die.rotation.z += baseRotationSpeed.z * speedMultiplier;
+            });
 
             controls.update();
             renderer.render(scene, camera);
