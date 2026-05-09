@@ -41,12 +41,16 @@
 
     .game-grid {
       display: grid;
-      gap: 4px;
       width: 100%;
     }
 
+    /* Gap dinamis menyesuaikan kepadatan grid */
+    .grid-size-5 { gap: 4px; }
+    .grid-size-8 { gap: 2px; }
+    .grid-size-10 { gap: 1px; }
+
     .grid-cell {
-      aspect-ratio: 1/1;
+      /* aspect-ratio: 1/1; dihapus agar grid-template-rows dapat menahannya */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -58,16 +62,21 @@
       user-select: none;
       overflow: hidden;
       container-type: inline-size; /* Penting untuk responsivitas font internal */
-      padding: 2px;
+      padding: 1px;
     }
 
+    /* Penskalaan ukuran font otomatis berdasarkan ukuran Matrix Grid */
+    .grid-size-5 .cell-content { font-size: clamp(10px, 20cqw, 28px); }
+    .grid-size-8 .cell-content { font-size: clamp(8px, 25cqw, 20px); }
+    .grid-size-10 .cell-content { font-size: clamp(6px, 32cqw, 16px); }
+
     .cell-content {
-      font-size: clamp(10px, 20cqw, 28px);
       width: 100%;
       text-align: center;
       display: flex;
       justify-content: center;
       align-items: center;
+      line-height: 1;
     }
 
     /* Efek Klaim Sel */
@@ -532,8 +541,14 @@
 
     function renderSide(containerId, playerNum) {
       const container = document.getElementById(containerId);
-      // Set kolom sesuai ukuran grid yang dipilih (5, 8, atau 10)
-      container.style.gridTemplateColumns = `repeat(${State.gridSize}, 1fr)`;
+      
+      // Terapkan class dinamis untuk kepadatan grid, pastikan tidak meluap dari container
+      container.className = `game-grid grid-size-${State.gridSize} aspect-square max-h-full max-w-full mx-auto`;
+      
+      // Kunci Jumlah Kolom dan BARIS agar tidak terlempar keluar layar
+      container.style.gridTemplateColumns = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+      container.style.gridTemplateRows = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+      
       container.innerHTML = '';
 
       State.gridData.forEach((data, idx) => {
