@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
     
@@ -41,16 +42,12 @@
 
     .game-grid {
       display: grid;
+      gap: 4px;
       width: 100%;
     }
 
-    /* Gap dinamis menyesuaikan kepadatan grid */
-    .grid-size-5 { gap: 4px; }
-    .grid-size-8 { gap: 2px; }
-    .grid-size-10 { gap: 1px; }
-
     .grid-cell {
-      /* aspect-ratio: 1/1; dihapus agar grid-template-rows dapat menahannya */
+      aspect-ratio: 1/1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -61,22 +58,17 @@
       transition: all 0.1s ease;
       user-select: none;
       overflow: hidden;
-      container-type: inline-size; /* Penting untuk responsivitas font internal */
-      padding: 1px;
+      container-type: inline-size;
+      padding: 2px;
     }
 
-    /* Penskalaan ukuran font otomatis berdasarkan ukuran Matrix Grid */
-    .grid-size-5 .cell-content { font-size: clamp(10px, 20cqw, 28px); }
-    .grid-size-8 .cell-content { font-size: clamp(8px, 25cqw, 20px); }
-    .grid-size-10 .cell-content { font-size: clamp(6px, 32cqw, 16px); }
-
     .cell-content {
+      font-size: clamp(10px, 20cqw, 28px);
       width: 100%;
       text-align: center;
       display: flex;
       justify-content: center;
       align-items: center;
-      line-height: 1;
     }
 
     /* Efek Klaim Sel */
@@ -94,10 +86,31 @@
       pointer-events: none;
     }
 
+    /* Modifikasi class claimed agar warna hit tetap terlihat jika ada */
     .grid-cell.claimed {
       pointer-events: none;
-      filter: grayscale(1);
-      opacity: 0.5;
+      /* Hapus filter grayscale jika sel memiliki class p1-hit atau p2-hit */
+    }
+    
+    .grid-cell.claimed:not(.p1-hit):not(.p2-hit) {
+       filter: grayscale(1);
+       opacity: 0.5;
+    }
+    
+    /* Tambahkan style untuk inisial agar lebih terlihat di atas warna background */
+    .claim-initial {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 900;
+        color: white;
+        opacity: 0.8;
+        text-shadow: 0 0 5px black;
+        z-index: 10;
+        pointer-events: none;
     }
 
     .grid-cell.wrong {
@@ -350,6 +363,17 @@
         const s = Math.round(Math.sqrt(n));
         return s * s === n;
       },
+      // FUNGSI BARU: Mencari FPB (Faktor Persekutuan Terbesar) menggunakan algoritma Euclidean
+      gcd: (a, b) => {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        while (b !== 0) {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+      },
       // Fungsi untuk menghasilkan tampilan angka (bisa polos atau operasi/latex)
       generateDisplay: (targetVal, type) => {
         if (type === 'single') return { text: targetVal.toString(), isLatex: false };
@@ -361,10 +385,10 @@
         if (selectedType === 'operation') {
           const p = Math.floor(Math.random() * 50) + 10;
           const isAdd = Math.random() > 0.5;
-          if (isAdd) {
-             return { text: `${targetVal - p} + ${p}`, isLatex: false };
-          } else {
-             return { text: `${targetVal + p} - ${p}`, isLatex: false };
+          if (isAdd) { 
+            return { text: `${targetVal - p} + ${p}`, isLatex: false };
+          } else { 
+            return { text: `${targetVal + p} - ${p}`, isLatex: false };
           }
         } else if (selectedType === 'power_root') {
           const isRoot = Math.random() > 0.5;
@@ -393,6 +417,13 @@
       { id: 'square', name: 'KUADRAT', tag: 'KUADRAT SEMPURNA', check: MathUtils.isSquare },
       { id: 'ends1', name: 'AKHIRAN 1', tag: 'DIGIT TERAKHIR 1', check: n => n % 10 === 1 },
       { id: 'ends9', name: 'AKHIRAN 9', tag: 'DIGIT TERAKHIR 9', check: n => n % 10 === 9 },
+      
+      // KATEGORI BARU: Terlihat mengerikan (FPB dengan 1024), padahal triknya cuma mencari angka ganjil (karena 1024 = 2^10).
+      { id: 'fpb1024', name: 'FPB 1024 = 1', tag: 'FPB DENGAN 1024 ADALAH 1', check: n => MathUtils.gcd(n, 1024) === 1 },
+      
+      // KATEGORI BARU 2: Terlihat susah (FPB dengan 100), padahal triknya mencari angka ganjil yang tidak berakhiran 5 (100 = 2^2 * 5^2).
+      { id: 'fpb100', name: 'FPB 100 = 1', tag: 'FPB DENGAN 100 ADALAH 1', check: n => MathUtils.gcd(n, 100) === 1 },
+
       { id: 'rem13', name: 'SISA 13', tag: 'DIBAGI 20 SISA 13', check: n => n % 20 === 13 },
       { id: 'rem5', name: 'SISA 5', tag: 'DIBAGI 7 SISA 5', check: n => n % 7 === 5 }
     ];
@@ -404,8 +435,7 @@
       digits: 3,            // 3 or 4
       duration: 180,        // 60, 180, 300
       questionType: 'single', // 'single' or 'mixed'
-      selectedCategory: CATEGORIES[0],
-      
+      selectedCategory: CATEGORIES[0],      
       gridData: [], // Shared data source untuk grid
       scores: { p1: 0, p2: 0 },
       timeLeft: 180,
@@ -450,7 +480,7 @@
       const btn = document.createElement('button');
       // Default: Kategori pertama terpilih
       btn.className = `cat-btn p-3 border border-cyan-500/30 rounded bg-cyan-950/20 text-left transition-all ${idx === 0 ? 'border-yellow-500 bg-yellow-500/20' : ''}`;
-      btn.innerHTML = `<div class="text-[8px] opacity-50 font-bold font-orbitron">ALGORITMA</div><div class="font-bold text-xs font-orbitron text-white">${cat.name}</div>`;
+      btn.innerHTML = `<div class="text-[8px] opacity-50 font-bold font-orbitron">ALGORITMA</div><div class="font-bold text-[10px] md:text-xs font-orbitron text-white">${cat.name}</div>`;
       
       btn.onclick = () => {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('border-yellow-500', 'bg-yellow-500/20'));
@@ -541,14 +571,8 @@
 
     function renderSide(containerId, playerNum) {
       const container = document.getElementById(containerId);
-      
-      // Terapkan class dinamis untuk kepadatan grid, pastikan tidak meluap dari container
-      container.className = `game-grid grid-size-${State.gridSize} aspect-square max-h-full max-w-full mx-auto`;
-      
-      // Kunci Jumlah Kolom dan BARIS agar tidak terlempar keluar layar
-      container.style.gridTemplateColumns = `repeat(${State.gridSize}, minmax(0, 1fr))`;
-      container.style.gridTemplateRows = `repeat(${State.gridSize}, minmax(0, 1fr))`;
-      
+      // Set kolom sesuai ukuran grid yang dipilih (5, 8, atau 10)
+      container.style.gridTemplateColumns = `repeat(${State.gridSize}, 1fr)`;
       container.innerHTML = '';
 
       State.gridData.forEach((data, idx) => {
@@ -595,15 +619,18 @@
         State.scores[playerKey] += 10; // +10 POIN
         
         // Ubah warna sel untuk memberi tahu siapa yang berhasil klaim
+        // P1 akan mendapatkan class p1-hit (Hijau)
+        // P2 akan mendapatkan class p2-hit (Biru)
         cellSelf.classList.add(`${playerKey}-hit`);
         if (cellOther) cellOther.classList.add(`${playerKey}-hit`);
 
         if (State.gridMode === 'static') {
-            // Statis: Sel mati dan abu-abu, tinggalkan inisial yang mengklaim
+            // Statis: Sel mati, tinggalkan inisial yang mengklaim
+            // Warna akan tetap dipertahankan karena CSS p1-hit/p2-hit menggunakan !important
             cellSelf.classList.add('claimed');
             if (cellOther) cellOther.classList.add('claimed');
             
-            const initials = `<div class="absolute inset-0 flex items-center justify-center text-[12px] font-black opacity-40">${playerKey.toUpperCase()}</div>`;
+            const initials = `<div class="claim-initial">${playerKey.toUpperCase()}</div>`;
             cellSelf.innerHTML += initials;
             if (cellOther) cellOther.innerHTML += initials;
             
