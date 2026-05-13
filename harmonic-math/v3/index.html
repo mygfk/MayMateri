@@ -8,10 +8,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
         
         :root {
-            --primary: #FF5722; /* Orange ceria */
-            --secondary: #2196F3; /* Biru kalem */
-            --set1-color: #E91E63; /* Pink untuk Set 1 */
-            --set2-color: #4CAF50; /* Hijau untuk Set 2 */
+            --primary: #FF5722;
+            --secondary: #2196F3;
+            --set1-color: #E91E63;
+            --set2-color: #4CAF50;
             --bg-color: #F0F8FF;
             --text-color: #333;
         }
@@ -53,9 +53,8 @@
             font-size: 0.95rem;
         }
 
-        /* Setup Area Styles */
         #setup-area {
-            display: block; /* Tampil pertama kali */
+            display: block;
         }
 
         .menu-buttons {
@@ -130,9 +129,8 @@
             box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
         }
 
-        /* Main Game Area Styles */
         #main-game-area {
-            display: none; /* Sembunyi sampai menu dipilih */
+            display: none;
         }
 
         .controls {
@@ -243,6 +241,15 @@
 
         .btn-danger:hover {
             background-color: #D81B60;
+        }
+
+        .btn-teal {
+            background-color: #009688;
+            box-shadow: 0 5px 0 #00796B;
+        }
+
+        .btn-teal:hover {
+            background-color: #00897B;
         }
 
         .game-area {
@@ -380,7 +387,9 @@
     <div id="setup-area">
         <h2>Pilih Mode Permainan</h2>
         <div class="menu-buttons">
-            <button onclick="startDefaultMode()">🚀 Preset Campuran</button>
+            <button onclick="startDefaultMode()">🚀 Preset Campuran 1</button>
+            <!-- Tombol Preset Baru Ditambahkan di sini -->
+            <button onclick="startNewMixedMode()" class="btn-teal">🧩 Preset Campuran 2</button>
             <button onclick="startSimpleMode()" class="btn-purple">⚡ Preset Tambah-Kurang</button>
         </div>
         <div class="menu-buttons" style="margin-top: -10px;">
@@ -397,13 +406,13 @@
                 • <strong>Pecahan & Desimal:</strong> <code>: 1/2</code>, <code>x 1,2</code><br>
                 • <strong>Bilangan Negatif:</strong> <code>- -13</code> (Dikurangi negatif 13)<br>
                 • <strong>Pangkat:</strong> <code>+ 2^5</code> (Ditambah 2 pangkat 5)<br>
-                • <strong>Akar Angka:</strong> <code>v25</code> (Akar 25), <code>3v8</code> (Akar pangkat 3 dari 8)<br>
+                • <strong>Akar Angka:</strong> <code>v25</code> (Akar 25), <code>3v8</code> (Akar pangkat 3 dari 8), <code>6v729</code> (Akar pangkat 6 dari 729)<br>
                 • <strong>Akar Subtotal:</strong> Ketik huruf <code>v</code> atau <code>3v</code> sendirian di satu baris untuk mengakarkan total hitungan saat ini.
             </div>
             
             <div style="background: #FFF3E0; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #FF9800;">
                 <input type="checkbox" id="simpleSpeechCustom" style="transform: scale(1.3); margin-right: 10px;">
-                <label for="simpleSpeechCustom" style="font-weight: bold; color: #E65100; cursor: pointer;">Gunakan sebutan "Tambah" & "Kurang" saja (tanpa imbuhan di-kan)</label>
+                <label for="simpleSpeechCustom" style="font-weight: bold; color: #E65100; cursor: pointer;">Gunakan sebutan "Tambah", "Kurang", "Kali", "Bagi" (tanpa imbuhan di-kan)</label>
             </div>
 
             <div class="textarea-container">
@@ -523,7 +532,7 @@
         document.getElementById('pauseValue').textContent = parseFloat(this.value).toFixed(2) + ' detik';
     });
 
-    // Data Soal Default Campuran (Mode 1)
+    // Data Soal Default Campuran 1 (Mode 1 Lama)
     const defaultSet1Data = [
         { text: "712 + 215", speech: "Tujuh ratus dua belas ditambah dua ratus lima belas", expected: 927 },
         { text: "- 3³", speech: "dikurangi tiga pangkat tiga", expected: 900 },
@@ -580,7 +589,11 @@
         { text: "+ 269", speech: "ditambah dua ratus enam puluh sembilan", expected: 2669 }
     ];
 
-    // Data Soal Default Mode Tambah-Kurang Cepat (Mode 2)
+    // Data Soal Baru Campuran 2 (Dari Gambar)
+    const newMixedSet1Raw = "+ 736 + 228\n- 4^3\nv\nx 2,5\n- -15\n: 1/6\n- 90\n+ 112\n- -18\nx 0,5\n+ 701\n+ -91\nx 0,3\n- -42\n: 1/4\n- 624\n- -102\n- -58\nv\nx 55";
+    const newMixedSet2Raw = "6v729\n+ 52\n: 1/2\n+ 502\n- -13\nv\nx 40\n- 775\nx 4\n+ 2^5\n- 132\n+ v169\n+ 2^5\n: 1/2\n- 283\n+ 93\nx 1/20\n- -725\n: 1/3\n+ 269";
+
+    // Data Soal Default Mode Tambah-Kurang Cepat
     const simpleSet1Raw = "768\n+ v729\n- 488/4\n+ 427\n+ 537\n- 837\n+ 682\n- 298\n+ 348/3\n+ 759\n- 659\n- 397\n+ 768/4\n- -305\n+ -364\n+ v676\n+ 298\n+ 560/4\n- 528\n+ v576";
     const simpleSet2Raw = "836\n- v841\n+ 654/3\n- -275\n+ 486\n+ -786\n+ 543\n- 398\n+ 620/4\n+ 394\n- 594\n- 197\n+ 868/4\n+ 180\n- 427\n+ v961\n- -196\n- v529\n- 289\n+ 384/3";
 
@@ -639,7 +652,7 @@
             let femaleVoice = idVoices.find(v => v.name.toLowerCase().match(/female|gadis|wanita/));
             
             voiceSet1 = femaleVoice || idVoices[0]; 
-            voiceSet2 = maleVoice || idVoices[1];   
+            voiceSet2 = maleVoice || idVoices[1]; 
             
             if(!maleVoice) pitchSet2 = 0.5; 
             else pitchSet2 = 1.0; 
@@ -690,9 +703,19 @@
         enterGame();
     }
 
+    function startNewMixedMode() {
+        try {
+            // Gunakan parseCustomTextAuto dengan mode SimpleSpeech = true untuk penyebutan singkat
+            activeSet1Data = parseCustomTextAuto(newMixedSet1Raw, true);
+            activeSet2Data = parseCustomTextAuto(newMixedSet2Raw, true);
+            enterGame();
+        } catch (error) {
+            alert("Kesalahan Memuat Preset Campuran 2: \n" + error.message);
+        }
+    }
+
     function startSimpleMode() {
         try {
-            // Gunakan parseCustomTextAuto dengan mode SimpleSpeech = true
             activeSet1Data = parseCustomTextAuto(simpleSet1Raw, true);
             activeSet2Data = parseCustomTextAuto(simpleSet2Raw, true);
             enterGame();
@@ -735,14 +758,16 @@
             return str.split('').map(c => map[c] || c).join('');
         };
         const formatFraction = (n, d) => {
-            const map = {'1/2':'½','1/3':'⅓','2/3':'⅔','1/4':'¼','3/4':'¾','1/5':'⅕','1/6':'⅙','1/8':'⅛'};
+            const map = {'1/2':'½','1/3':'⅓','2/3':'⅔','1/4':'¼','3/4':'¾','1/5':'⅕','1/6':'⅙','1/8':'⅛','1/20':'¹/₂₀'};
             return map[`${n}/${d}`] || `${n}/${d}`;
         };
         const parseNum = (str) => parseFloat(str.replace(/[(),]/g, (m) => m === ',' ? '.' : '').trim());
 
-        // Kata ganti operasi berdasarkan checkbox mode
+        // Kata ganti operasi berdasarkan checkbox mode atau argumen fungsi
         const plusWord = isSimpleSpeech ? "tambah" : "ditambah";
         const minWord = isSimpleSpeech ? "kurang" : "dikurangi";
+        const mulWord = isSimpleSpeech ? "kali" : "dikali";
+        const divWord = isSimpleSpeech ? "bagi" : "dibagi";
 
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i].trim();
@@ -758,24 +783,61 @@
             if (lowerLine === 'v' || lowerLine === 'sqrt' || lowerLine === 'akar') {
                 runTotal = Math.sqrt(Math.max(0, runTotal));
                 text = "√...";
-                speech = "Diakarkan";
+                speech = "Akar"; // Disingkat untuk mode apapun saat akar total
             } else if (lowerLine === '3v' || lowerLine === 'cbrt') {
                 runTotal = Math.cbrt(runTotal);
                 text = "³√...";
-                speech = "Diakarkan pangkat tiga";
+                speech = "Akar pangkat tiga";
             } else {
-                let match = line.match(/^([+\-x*\/:]?)\s*(.+)$/i);
+                // Perbaikan: Mendukung format "A + B" di baris pertama dengan lebih aman
+                let match = null;
+                
+                // Coba match untuk kasus dua angka di baris pertama (misal: "736 + 228" atau "+ 736 + 228")
+                if (i === 0) {
+                     // Regex ini mencari: (opsional tanda awalan) (angka/ekspresi pertama) (operator) (angka/ekspresi kedua)
+                     let dualMatch = line.match(/^([+\-x*\/:]?)\s*([^+\-x*\/:]+)\s*([+\-x*\/:])\s*(.+)$/i);
+                     
+                     // Pastikan ini benar-benar dua operand, bukan misal "+ -15"
+                     if (dualMatch && dualMatch[3] && !dualMatch[3].match(/^[x*\/:]$/i) && dualMatch[4] && !dualMatch[4].startsWith('-')) {
+                          match = dualMatch;
+                     } else {
+                          // Jika hanya satu angka di awal tanpa operator awal (misal: "712")
+                          let singleMatchStart = line.match(/^([^+\-x*\/:]+)$/i);
+                          if(singleMatchStart) {
+                              match = ["", "", singleMatchStart[1], undefined, undefined];
+                          }
+                     }
+                }
+
+                // Fallback ke match standard jika bukan baris pertama atau bukan pola dual-operand
+                if (!match) {
+                     match = line.match(/^([+\-x*\/:]?)\s*(.+)$/i);
+                }
+
                 if (!match) throw new Error(`Format baris ke-${i+1} tidak dikenali: ${line}`);
 
-                let op = match[1].toLowerCase();
-                let valStr = match[2];
+                let op = match[1] ? match[1].toLowerCase() : "";
+                let valStr = match[2].trim();
                 let valLower = valStr.toLowerCase();
+                
+                let extraOp = match[3] ? match[3].toLowerCase() : null;
+                let extraValStr = match[4] ? match[4].trim() : null;
 
                 let opValue = 0;
                 let textOperand = valStr;
                 let speechOperand = valStr;
+                
+                let extraOpValue = 0;
+                let extraTextOperand = "";
+                let extraSpeechOperand = "";
 
-                if (valLower.startsWith('3v') || valLower.startsWith('cbrt') || valLower.startsWith('³√')) {
+                // Parsing nilai pertama
+                if (valLower.startsWith('6v')) {
+                    let numStr = valLower.replace(/^(6v\()?/, '').replace(/\)$/, '').trim();
+                    opValue = Math.pow(parseNum(numStr), 1/6);
+                    textOperand = `⁶√(${numStr})`;
+                    speechOperand = `akar pangkat enam dari ${numStr.replace('-', 'negatif ')}`;
+                } else if (valLower.startsWith('3v') || valLower.startsWith('cbrt') || valLower.startsWith('³√')) {
                     let numStr = valLower.replace(/^(3v|cbrt|³√\()?/, '').replace(/\)$/, '').trim();
                     opValue = Math.cbrt(parseNum(numStr));
                     textOperand = `³√(${numStr})`;
@@ -800,11 +862,32 @@
                     textOperand = (valStr.includes('-') && i > 0 && op !== '') ? `(${valStr})` : valStr;
                     speechOperand = valStr.replace('-', 'negatif ').replace('.', ' koma ').replace(',', ' koma ');
                 }
+                
+                // Parsing nilai kedua (jika ada) khusus untuk baris pertama
+                if (extraValStr) {
+                    let extraValLower = extraValStr.toLowerCase();
+                    if (extraValLower.includes('^')) {
+                        let parts = extraValLower.split('^');
+                        extraOpValue = Math.pow(parseNum(parts[0]), parseNum(parts[1]));
+                        extraTextOperand = `${parts[0]}${toSuperscript(parts[1])}`;
+                        extraSpeechOperand = `${parts[0].replace('-', 'negatif ')} pangkat ${parts[1].replace('-', 'negatif ')}`;
+                    } else if (extraValLower.includes('/')) {
+                        let parts = extraValLower.split('/');
+                        extraOpValue = parseNum(parts[0]) / parseNum(parts[1]);
+                        extraTextOperand = formatFraction(parts[0], parts[1]);
+                        extraSpeechOperand = `${parts[0].replace('-', 'negatif ')} per ${parts[1].replace('-', 'negatif ')}`;
+                    } else {
+                        extraOpValue = parseNum(extraValLower);
+                        extraTextOperand = (extraValStr.includes('-')) ? `(${extraValStr})` : extraValStr;
+                        extraSpeechOperand = extraValStr.replace('-', 'negatif ').replace('.', ' koma ').replace(',', ' koma ');
+                    }
+                    if (isNaN(extraOpValue)) throw new Error(`Angka kedua tidak valid pada baris ke-${i+1}: ${line}`);
+                }
 
                 if (isNaN(opValue)) throw new Error(`Angka tidak valid pada baris ke-${i+1}: ${line}`);
 
-                if (i === 0 || op === '') {
-                    if (i === 0 && op === '-') {
+                if (i === 0) {
+                    if (op === '-') {
                         opValue = -opValue;
                         textOperand = "-" + textOperand;
                         speechOperand = "negatif " + speechOperand;
@@ -812,6 +895,19 @@
                     runTotal = opValue;
                     text = textOperand;
                     speech = speechOperand;
+                    
+                    // Jika ada operasi tambahan di baris pertama
+                    if (extraOp) {
+                        if (extraOp === '+') {
+                            runTotal += extraOpValue;
+                            text += ` + ${extraTextOperand}`;
+                            speech += ` ${plusWord} ${extraSpeechOperand}`;
+                        } else if (extraOp === '-') {
+                            runTotal -= extraOpValue;
+                            text += ` - ${extraTextOperand}`;
+                            speech += ` ${minWord} ${extraSpeechOperand}`;
+                        }
+                    }
                 } else if (op === '+') {
                     runTotal += opValue;
                     text = `+ ${textOperand}`;
@@ -823,15 +919,15 @@
                 } else if (op === 'x' || op === '*') {
                     runTotal *= opValue;
                     text = `x ${textOperand}`;
-                    speech = `dikali ${speechOperand}`;
+                    speech = `${mulWord} ${speechOperand}`;
                 } else if (op === '/' || op === ':') {
                     runTotal /= opValue;
                     text = `: ${textOperand}`;
-                    speech = `dibagi ${speechOperand}`;
+                    speech = `${divWord} ${speechOperand}`;
                 }
             }
 
-            runTotal = Math.round(runTotal * 10000) / 10000;
+            runTotal = Math.round(runTotal * 1000000) / 1000000; // Presisi lebih tinggi
 
             parsedData.push({
                 text: text,
@@ -1140,8 +1236,10 @@
         const correct1 = activeSet1Data.length > 0 ? activeSet1Data[activeSet1Data.length - 1].expected : null;
         const correct2 = activeSet2Data.length > 0 ? activeSet2Data[activeSet2Data.length - 1].expected : null;
 
-        const isAns1Correct = ans1Str !== "" && parseFloat(ans1Str) === correct1;
-        const isAns2Correct = ans2Str !== "" && parseFloat(ans2Str) === correct2;
+        // Toleransi error sangat kecil untuk masalah presisi desimal JavaScript
+        const epsilon = 0.000001;
+        const isAns1Correct = ans1Str !== "" && Math.abs(parseFloat(ans1Str) - correct1) < epsilon;
+        const isAns2Correct = ans2Str !== "" && Math.abs(parseFloat(ans2Str) - correct2) < epsilon;
 
         let feedbackHTML = "";
         
@@ -1173,9 +1271,9 @@
             tr.innerHTML = `
                 <td>Langkah ${i+1}</td>
                 <td style="font-family: monospace; font-size: 1.1em;">${data1.text}</td>
-                <td><strong>${data1.expected}</strong></td>
+                <td><strong>${data1.expected !== '-' ? Number.isInteger(data1.expected) ? data1.expected : data1.expected.toFixed(4).replace(/\.?0+$/, '') : '-'}</strong></td>
                 <td style="font-family: monospace; font-size: 1.1em;">${data2.text}</td>
-                <td><strong>${data2.expected}</strong></td>
+                <td><strong>${data2.expected !== '-' ? Number.isInteger(data2.expected) ? data2.expected : data2.expected.toFixed(4).replace(/\.?0+$/, '') : '-'}</strong></td>
             `;
             tbody.appendChild(tr);
         }
@@ -1183,8 +1281,9 @@
         const trFinal = document.createElement('tr');
         trFinal.style.backgroundColor = '#ffffcc';
         
-        const check1 = (ans1 !== "" && parseFloat(ans1) === correct1) ? 'correct' : 'wrong';
-        const check2 = (ans2 !== "" && parseFloat(ans2) === correct2) ? 'correct' : 'wrong';
+        const epsilon = 0.000001;
+        const check1 = (ans1 !== "" && Math.abs(parseFloat(ans1) - correct1) < epsilon) ? 'correct' : 'wrong';
+        const check2 = (ans2 !== "" && Math.abs(parseFloat(ans2) - correct2) < epsilon) ? 'correct' : 'wrong';
 
         trFinal.innerHTML = `
             <td><strong>Jawabanmu:</strong></td>
