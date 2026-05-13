@@ -783,11 +783,11 @@
             if (lowerLine === 'v' || lowerLine === 'sqrt' || lowerLine === 'akar') {
                 runTotal = Math.sqrt(Math.max(0, runTotal));
                 text = "√...";
-                speech = "Akar"; // Disingkat untuk mode apapun saat akar total
+                speech = "diakarkan"; 
             } else if (lowerLine === '3v' || lowerLine === 'cbrt') {
                 runTotal = Math.cbrt(runTotal);
                 text = "³√...";
-                speech = "Akar pangkat tiga";
+                speech = "diakarkan pangkat tiga";
             } else {
                 // Perbaikan: Mendukung format "A + B" di baris pertama dengan lebih aman
                 let match = null;
@@ -836,12 +836,12 @@
                     let numStr = valLower.replace(/^(6v\()?/, '').replace(/\)$/, '').trim();
                     opValue = Math.pow(parseNum(numStr), 1/6);
                     textOperand = `⁶√(${numStr})`;
-                    speechOperand = `akar pangkat enam dari ${numStr.replace('-', 'negatif ')}`;
+                    speechOperand = `akar pangkat 6 dari ${numStr.replace('-', 'negatif ')}`;
                 } else if (valLower.startsWith('3v') || valLower.startsWith('cbrt') || valLower.startsWith('³√')) {
                     let numStr = valLower.replace(/^(3v|cbrt|³√\()?/, '').replace(/\)$/, '').trim();
                     opValue = Math.cbrt(parseNum(numStr));
                     textOperand = `³√(${numStr})`;
-                    speechOperand = `akar pangkat tiga dari ${numStr.replace('-', 'negatif ')}`;
+                    speechOperand = `akar pangkat 3 dari ${numStr.replace('-', 'negatif ')}`;
                 } else if (valLower.startsWith('v') || valLower.startsWith('sqrt') || valLower.startsWith('√')) {
                     let numStr = valLower.replace(/^(v|sqrt|√\()?/, '').replace(/\)$/, '').trim();
                     opValue = Math.sqrt(parseNum(numStr));
