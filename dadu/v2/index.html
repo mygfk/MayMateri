@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maze Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0f11;
+  --bg2: #161719;
+  --bg3: #1e2023;
+  --border: #2a2d33;
+  --border2: #3a3d44;
+  --text: #e8e9eb;
+  --text2: #8a8d96;
+  --text3: #464952;
+  --accent: #f0c040;
+  --accent2: #c89c20;
+  --blue: #4a90d9;
+  --green: #3dba6e;
+  --red: #e05050;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header {
+  width: 100%;
+  padding: 1.2rem 2rem .9rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+.logo span { color: var(--accent); }
+.subtitle { font-size: .65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .14em; }
+
+main {
+  width: 100%;
+  max-width: 1000px;
+  padding: 1.25rem 1.25rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Level bar */
+.level-bar { display: flex; gap: .4rem; margin-bottom: .9rem; align-items: center; }
+.lvl-btn {
+  padding: .3rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .65rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.lvl-btn:hover { border-color: var(--border2); color: var(--text); }
+.lvl-btn.active { background: var(--accent); border-color: var(--accent); color: #0e0f11; font-weight: 600; }
+
+/* Maze */
+.maze-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+}
+#cv { display: block; border-radius: 6px; width: 100%; }
+
+/* Status */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-top: .75rem;
+  font-size: .7rem;
+  color: var(--text2);
+}
+.s-step { color: var(--accent); font-weight: 600; font-size: .85rem; }
+.s-dir {
+  padding: .2rem .55rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--blue);
+  min-width: 72px;
+  text-align: center;
+  font-size: .65rem;
+}
+.s-dir.finish { color: var(--green); border-color: var(--green); }
+.prog-wrap { flex: 1; background: var(--bg3); border-radius: 100px; height: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width .3s ease; }
+
+/* D-pad controls */
+.dpad-wrap { margin-top: .75rem; display: flex; align-items: center; gap: 1rem; }
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  grid-template-rows: repeat(3, 40px);
+  gap: 3px;
+  flex-shrink: 0;
+}
+.dpad-btn {
+  width: 40px; height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg3);
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all .12s;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none;
+}
+.dpad-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
+.dpad-btn:active:not(:disabled) { transform: scale(.9); background: var(--accent); color: #0e0f11; border-color: var(--accent); }
+.dpad-btn:disabled { opacity: .25; cursor: default; }
+.dpad-btn.blocked { animation: shake .2s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+.dpad-center { background: var(--bg3); border-radius: 50%; border: 1px solid var(--border); }
+.dpad-actions { display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+
+.ctrl-btn {
+  width: 100%;
+  padding: .5rem .4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg3);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+}
+.ctrl-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
+.ctrl-btn:active:not(:disabled) { transform: scale(.97); }
+.ctrl-btn.primary { background: var(--accent); border-color: var(--accent); color: #0e0f11; font-weight: 600; }
+.ctrl-btn.primary:hover:not(:disabled) { background: var(--accent2); border-color: var(--accent2); }
+.ctrl-btn.muted { color: var(--text2); }
+.ctrl-btn:disabled { opacity: .3; cursor: default; }
+
+/* Panel */
+.panel { display: flex; flex-direction: column; gap: 1rem; }
+
+.card-label {
+  font-size: .6rem;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  color: var(--text3);
+  margin-bottom: .8rem;
+}
+
+/* Info cards */
+.info-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.info-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .65rem .8rem;
+}
+.info-card .lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin-bottom: .2rem; }
+.info-card .val { font-size: .95rem; font-weight: 600; }
+
+/* Answer picker */
+.answer-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  display: none;
+}
+.answer-card.show { display: block; animation: pop .35s cubic-bezier(.4,0,.2,1); }
+@keyframes pop { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.answer-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .45rem;
+  margin: .75rem 0 .5rem;
+}
+.pick-btn {
+  aspect-ratio: 1;
+  background: #f5f2ed;
+  border: 2px solid var(--border2);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: all .15s;
+  position: relative;
+}
+.pick-btn:hover:not(:disabled) { border-color: var(--accent); transform: scale(1.05); }
+.pick-btn:active:not(:disabled) { transform: scale(.96); }
+.pick-btn:disabled { cursor: default; }
+.pick-btn.correct { background: rgba(61,186,110,.15); border-color: var(--green); box-shadow: 0 0 14px rgba(61,186,110,.3); }
+.pick-btn.wrong { background: rgba(224,80,80,.1); border-color: var(--red); opacity: .6; }
+.pick-btn.reveal-correct { background: rgba(61,186,110,.15); border-color: var(--green); box-shadow: 0 0 14px rgba(61,186,110,.3); }
+
+.dot-grid {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  grid-template-rows: repeat(3,1fr);
+}
+.dot-cell { display: flex; align-items: center; justify-content: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #111; }
+
+.answer-result {
+  text-align: center;
+  font-size: .78rem;
+  min-height: 1.2rem;
+  margin-top: .3rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.answer-result.correct { color: var(--green); }
+.answer-result.wrong   { color: var(--red); }
+
+/* Instructions */
+.tips {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .9rem 1rem;
+}
+.tips li {
+  list-style: none;
+  font-size: .65rem;
+  color: var(--text2);
+  line-height: 1.6;
+  padding: .18rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: .5rem;
+}
+.tips li:last-child { border-bottom: none; }
+.tips li::before { content: '›'; color: var(--text3); flex-shrink: 0; }
+kbd {
+  display: inline-block;
+  padding: 0 .3rem;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  font-size: .6rem;
+  color: var(--text);
+  font-family: inherit;
+}
+
+@media (max-width: 660px) {
+  main { grid-template-columns: 1fr; }
+  .panel { order: -1; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Maze<span>Dice</span></div>
+  <div class="subtitle">Puzzle · Orientasi Dadu</div>
+</header>
+
+<main>
+  <div>
+    <div class="level-bar">
+      <button class="lvl-btn active" onclick="setLevel(0)">Easy 7×7</button>
+      <button class="lvl-btn" onclick="setLevel(1)">Medium 9×9</button>
+      <button class="lvl-btn" onclick="setLevel(2)">Hard 11×11</button>
+      <button class="lvl-btn" onclick="regenerate()" style="margin-left:.25rem">↺ Acak</button>
+    </div>
+
+    <div class="maze-wrap">
+      <canvas id="cv"></canvas>
+    </div>
+
+    <div class="status-bar">
+      <span class="s-step" id="stStep">0 langkah</span>
+      <span class="s-dir" id="stDir">START</span>
+      <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="dpad-wrap">
+      <div class="dpad">
+        <div></div>
+        <button class="dpad-btn" id="btnN" onclick="move('N')">↑</button>
+        <div></div>
+        <button class="dpad-btn" id="btnW" onclick="move('W')">←</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn" id="btnE" onclick="move('E')">→</button>
+        <div></div>
+        <button class="dpad-btn" id="btnS" onclick="move('S')">↓</button>
+        <div></div>
+      </div>
+      <div class="dpad-actions">
+        <button class="ctrl-btn" id="btnAnswer" onclick="openAnswer()">Tebak Jawaban</button>
+        <button class="ctrl-btn muted" onclick="reset()">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="info-row">
+      <div class="info-card"><div class="lbl">Level</div><div class="val" id="ic-lvl">Easy</div></div>
+      <div class="info-card"><div class="lbl">Langkah</div><div class="val" id="ic-step">0</div></div>
+    </div>
+
+    <div class="answer-card" id="ansCard">
+      <div class="card-label" id="ansCardLabel">Pilih tampak atas di titik finish</div>
+      <div class="answer-pick-grid" id="ansPickGrid">
+        <button class="pick-btn" onclick="pickAnswer(1)"><div class="dot-grid" id="pg-1"></div></button>
+        <button class="pick-btn" onclick="pickAnswer(2)"><div class="dot-grid" id="pg-2"></div></button>
+        <button class="pick-btn" onclick="pickAnswer(3)"><div class="dot-grid" id="pg-3"></div></button>
+        <button class="pick-btn" onclick="pickAnswer(4)"><div class="dot-grid" id="pg-4"></div></button>
+        <button class="pick-btn" onclick="pickAnswer(5)"><div class="dot-grid" id="pg-5"></div></button>
+        <button class="pick-btn" onclick="pickAnswer(6)"><div class="dot-grid" id="pg-6"></div></button>
+      </div>
+      <div class="answer-result" id="ansResult"></div>
+    </div>
+
+    <div class="tips">
+      <div class="card-label" style="margin-bottom:.5rem">Cara main</div>
+      <ul>
+        <li>Gunakan tombol arah <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> untuk jalan</li>
+        <li>Bawa dadu terus sampai mentok ke titik <b style="color:var(--red)">F</b> (Finish)</li>
+        <li>Kamu juga bisa klik <b style="color:var(--accent)">Tebak Jawaban</b> jika ingin menebak sisi atas dadu di titik finish!</li>
+        <li>Sisi berlawanan selalu berjumlah 7 (1↔6, 2↔5, 3↔4)</li>
+        <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> ganti level · <kbd>R</kbd> reset</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<script>
+// ══════════════════════════════════════════════════
+// ENGINE DADU (DICE ENGINE)
+// state = [top, front, right, bottom, back, left]
+// ══════════════════════════════════════════════════
+const INIT = [1, 2, 3, 6, 5, 4];
+
+function roll(s, d) {
+  const [T, F, R, B, Bk, L] = s;
+  if (d==='N') return [F,  B,  R, Bk, T,  L ];
+  if (d==='S') return [Bk, T,  R, F,  B,  L ];
+  if (d==='E') return [L,  F,  T, R,  Bk, B ];
+  if (d==='W') return [R,  F,  B, L,  Bk, T ];
+}
+
+const DOTS = {
+  1: [[1,1]],
+  2: [[0,0],[2,2]],
+  3: [[0,0],[1,1],[2,2]],
+  4: [[0,0],[0,2],[2,0],[2,2]],
+  5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+  6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+};
+
+function renderDots(el, n) {
+  el.innerHTML = '';
+  const cells = Array.from({length:9}, () => {
+    const c = document.createElement('div');
+    c.className = 'dot-cell';
+    el.appendChild(c);
+    return c;
+  });
+  for (const [r,c] of DOTS[n]) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    cells[r*3+c].appendChild(d);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// PEMBUAT LABIRIN (MAZE GENERATOR)
+// ══════════════════════════════════════════════════
+function generateMaze(R, C, seed) {
+  let s = seed >>> 0;
+  function rand() {
+    s = Math.imul(s ^ s >>> 15, s | 1);
+    s ^= s + Math.imul(s ^ s >>> 7, s | 61);
+    return ((s ^ s >>> 14) >>> 0) / 4294967296;
+  }
+  function shuffle(arr) {
+    for (let i = arr.length-1; i > 0; i--) {
+      const j = Math.floor(rand() * (i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const wH = Array.from({length:R+1}, ()=>Array(C).fill(1));
+  const wV = Array.from({length:R},   ()=>Array(C+1).fill(1));
+  const vis = Array.from({length:R},  ()=>Array(C).fill(false));
+
+  const DR = {N:-1, S:1, E:0, W:0};
+  const DC = {N:0,  S:0, E:1, W:-1};
+
+  function carve(r, c) {
+    vis[r][c] = true;
+    for (const d of shuffle(['N','S','E','W'])) {
+      const nr = r + DR[d], nc = c + DC[d];
+      if (nr>=0 && nr<R && nc>=0 && nc<C && !vis[nr][nc]) {
+        if (d==='N') wH[r][c]   = 0;
+        if (d==='S') wH[r+1][c] = 0;
+        if (d==='E') wV[r][c+1] = 0;
+        if (d==='W') wV[r][c]   = 0;
+        carve(nr, nc);
+      }
+    }
+  }
+  carve(0, 0);
+
+  const start=[0,0], end=[R-1,C-1];
+  return {R, C, wH, wV, start, end};
+}
+
+// Mencari rute terpendek untuk simulasi jawaban tebakan
+function getShortestPath(sr, sc, er, ec, mazeData) {
+  function canMove(r, c, d) {
+    if (d==='N') return r>0   && mazeData.wH[r][c]===0;
+    if (d==='S') return r<mazeData.R-1 && mazeData.wH[r+1][c]===0;
+    if (d==='E') return c<mazeData.C-1 && mazeData.wV[r][c+1]===0;
+    if (d==='W') return c>0   && mazeData.wV[r][c]===0;
+  }
+  
+  const visited = Array.from({length:mazeData.R},()=>Array(mazeData.C).fill(false));
+  const prev    = Array.from({length:mazeData.R},()=>Array(mazeData.C).fill(null));
+  const queue   = [[sr, sc]];
+  visited[sr][sc] = true;
+  
+  while (queue.length) {
+    const [r,c] = queue.shift();
+    if (r===er && c===ec) break;
+    for (const d of ['N','S','E','W']) {
+      if (canMove(r,c,d)) {
+        const nr = r + (d==='N'?-1:d==='S'?1:0);
+        const nc = c + (d==='E'?1:d==='W'?-1:0);
+        if (!visited[nr][nc]) {
+          visited[nr][nc]=true;
+          prev[nr][nc]={r,c,d};
+          queue.push([nr,nc]);
+        }
+      }
+    }
+  }
+  const path=[];
+  let [currR, currC] = [er, ec];
+  while (prev[currR][currC]) {
+    const {r,c,d} = prev[currR][currC];
+    path.unshift(d);
+    currR=r; currC=c;
+  }
+  return path;
+}
+
+// ══════════════════════════════════════════════════
+// STATUS PERMAINAN (GAME STATE)
+// ══════════════════════════════════════════════════
+const SIZES  = [[7,7],[9,9],[11,11]];
+const LNAMES = ['Easy','Medium','Hard'];
+
+let lvIdx = 0;
+let maze, seed;
+let diceState;       // dadu aktif [top,front,right,bottom,back,left]
+let pos;             // koordinat dadu aktif {r, c}
+let trail;           // jejak langkah {r, c, face} yang menyimpan posisi dan tampak atas dadu
+let answered = false;
+
+const DR = {N:-1, S:1, E:0, W:0};
+const DC = {N:0,  S:0, E:1, W:-1};
+
+function canGo(r, c, d) {
+  if (d==='N') return r > 0          && maze.wH[r][c]   === 0;
+  if (d==='S') return r < maze.R - 1 && maze.wH[r+1][c] === 0;
+  if (d==='E') return c < maze.C - 1 && maze.wV[r][c+1] === 0;
+  if (d==='W') return c > 0          && maze.wV[r][c]   === 0;
+}
+
+function newGame(si, newSeed) {
+  lvIdx    = si;
+  seed     = newSeed ?? (Date.now() & 0xffffffff);
+  const [R,C] = SIZES[si];
+  maze     = generateMaze(R, C, seed);
+  
+  // Hitung panjang jalur optimal murni untuk perkiraan UI
+  maze.optPathLength = getShortestPath(maze.start[0], maze.start[1], maze.end[0], maze.end[1], maze).length;
+  
+  diceState = [...INIT];
+  pos      = { r: maze.start[0], c: maze.start[1] };
+  trail    = [{ ...pos, face: diceState[0] }]; // Simpan tampak atas dadu awal di jejak
+  answered = false;
+
+  const ansCard = document.getElementById('ansCard');
+  ansCard.classList.remove('show');
+  document.getElementById('ansPickGrid').style.display = 'grid';
+  document.getElementById('ansResult').textContent = '';
+  document.getElementById('ansResult').className   = 'answer-result';
+  for (let n=1; n<=6; n++) renderDots(document.getElementById(`pg-${n}`), n);
+  
+  draw();
+  updateUI();
+}
+
+function setLevel(i) {
+  document.querySelectorAll('.lvl-btn').forEach((b,j)=>b.classList.toggle('active',i===j));
+  document.getElementById('ic-lvl').textContent = LNAMES[i];
+  newGame(i);
+}
+
+function regenerate() { newGame(lvIdx); }
+
+function move(d) {
+  // Cek tembok labirin
+  if (!canGo(pos.r, pos.c, d)) {
+    const btnId = {N:'btnN',S:'btnS',E:'btnE',W:'btnW'}[d];
+    const btn = document.getElementById(btnId);
+    btn.classList.remove('blocked');
+    void btn.offsetWidth;
+    btn.classList.add('blocked');
+    return;
+  }
+
+  const newR = pos.r + DR[d], newC = pos.c + DC[d];
+  const prevCell = trail.length >= 2 ? trail[trail.length - 2] : null;
+  const isBacktrack = prevCell && prevCell.r === newR && prevCell.c === newC;
+
+  // Ubah posisi dadu aktif dan putar orientasinya
+  pos = { r: newR, c: newC };
+  diceState = roll(diceState, d);
+
+  if (isBacktrack) {
+    // Jika mundur ke ubin sebelumnya, buang jejak ubin saat ini
+    trail.pop();
+  } else {
+    // Jika maju, tambahkan posisi baru beserta nilai tampak atas dadunya
+    trail.push({ ...pos, face: diceState[0] });
+  }
+
+  draw();
+  updateUI();
+
+  // Sampai di garis FINISH!
+  if (pos.r === maze.end[0] && pos.c === maze.end[1]) {
+    setTimeout(() => {
+      if (!answered) {
+         // Otomatis menang jika jalan kaki langsung sampai ke titik finish tanpa tebak manual
+         document.getElementById('ansResult').textContent = '🎉 Selesai! Kamu mencapai finish.';
+         document.getElementById('ansResult').className = 'answer-result correct';
+         document.getElementById('ansCard').classList.add('show');
+         document.getElementById('ansCardLabel').textContent = 'Level Selesai';
+         document.getElementById('ansPickGrid').style.display = 'none';
+         answered = true;
+         updateUI();
+      }
+    }, 150);
+  }
+}
+
+function reset() {
+  diceState = [...INIT];
+  pos       = { r: maze.start[0], c: maze.start[1] };
+  trail     = [{ ...pos, face: diceState[0] }];
+  answered  = false;
+
+  document.getElementById('ansCard').classList.remove('show');
+  document.getElementById('ansPickGrid').style.display = 'grid';
+  document.getElementById('ansResult').textContent = '';
+  document.getElementById('ansResult').className   = 'answer-result';
+  document.querySelectorAll('.pick-btn').forEach(b => {
+    b.disabled = false;
+    b.className = 'pick-btn';
+  });
+  draw();
+  updateUI();
+}
+
+function openAnswer() {
+  document.getElementById('ansCard').classList.add('show');
+  document.getElementById('ansCardLabel').textContent = 'Pilih tampak atas di titik finish';
+  document.getElementById('ansPickGrid').style.display = 'grid';
+  document.querySelectorAll('.pick-btn').forEach(b => {
+    b.disabled = false;
+    b.className = 'pick-btn';
+  });
+  document.getElementById('ansResult').textContent = '';
+}
+
+function pickAnswer(n) {
+  if (answered) return;
+  answered = true;
+
+  // Hitung jawaban dari titik saat ini ke finish
+  const remPath = getShortestPath(pos.r, pos.c, maze.end[0], maze.end[1], maze);
+  let simState = [...diceState];
+  for (const d of remPath) {
+    simState = roll(simState, d);
+  }
+  const correct = simState[0];
+  const isRight = n === correct;
+
+  for (let i = 1; i <= 6; i++) {
+    const btn = document.getElementById(`pg-${i}`).parentElement;
+    btn.disabled = true;
+    if (i === n && isRight)  btn.classList.add('correct');
+    else if (i === n)        btn.classList.add('wrong');
+    else if (i === correct)  btn.classList.add('reveal-correct');
+  }
+
+  const resultEl = document.getElementById('ansResult');
+  resultEl.textContent = isRight ? '✓ Benar! Sekarang jalan ke finish' : `✗ Salah. Jawaban: ${correct} titik`;
+  resultEl.className   = 'answer-result ' + (isRight ? 'correct' : 'wrong');
+
+  document.getElementById('ansCardLabel').textContent = isRight 
+    ? 'Tebakan benar!' 
+    : 'Jawaban salah — ini yang benar';
+
+  updateUI();
+}
+
+// ══════════════════════════════════════════════════
+// PEMBARUAN TAMPILAN (UI UPDATE)
+// ══════════════════════════════════════════════════
+function updateUI() {
+  const atFinish = pos.r === maze.end[0] && pos.c === maze.end[1];
+  const steps = trail.length - 1;
+
+  // Status langkah
+  document.getElementById('stStep').textContent  = `${steps} langkah`;
+  document.getElementById('ic-step').textContent = `${steps}`;
+  
+  // Progress bar berdasarkan rute optimal
+  const pct = Math.min(100, (steps / maze.optPathLength) * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+
+  // Kunci tombol navigasi hanya jika sudah finish
+  const locked = atFinish;
+  for (const d of ['N','S','E','W']) {
+    const btn = document.getElementById('btn'+d);
+    btn.disabled = locked || !canGo(pos.r, pos.c, d);
+  }
+
+  // Sembunyikan tombol "Tebak Jawaban" jika sudah tebak atau sudah finish
+  document.getElementById('btnAnswer').style.display = (answered || atFinish) ? 'none' : '';
+
+  // Label START / FINISH pada status chip
+  const dirEl = document.getElementById('stDir');
+  if (atFinish) { dirEl.textContent = 'FINISH!'; dirEl.className = 's-dir finish'; }
+  else { dirEl.textContent = steps === 0 ? 'START' : '—'; dirEl.className = 's-dir'; }
+}
+
+// ══════════════════════════════════════════════════
+// MENGGAMBAR KANVAS (CANVAS DRAW)
+// ══════════════════════════════════════════════════
+function draw() {
+  const cv  = document.getElementById('cv');
+  const wrap = cv.parentElement;
+  const maxW = Math.min(480, wrap.clientWidth - 32);
+  const S = Math.max(22, Math.floor(maxW / maze.C));
+  cv.width  = S * maze.C;
+  cv.height = S * maze.R;
+  const ctx = cv.getContext('2d');
+
+  // Latar lantai labirin
+  ctx.fillStyle = '#111316';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+
+  // Titik latar belakang halus (Grid)
+  ctx.fillStyle = 'rgba(255,255,255,0.035)';
+  for (let r=0; r<maze.R; r++)
+    for (let c=0; c<maze.C; c++) {
+      ctx.beginPath();
+      ctx.arc(c*S+S/2, r*S+S/2, 1, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+  // Gambarkan jejak ubin berupa dadu mini sejarah (trail)
+  // Kecuali ubin terakhir karena di sana letak dadu aktif utama yang sedang berjalan
+  for (let i = 0; i < trail.length - 1; i++) {
+    const {r, c, face} = trail[i];
+    
+    // Warnai dasar lantai jejak dengan latar biru transparan yang halus
+    ctx.fillStyle = `rgba(74,144,217,0.08)`;
+    ctx.fillRect(c*S+1, r*S+1, S-1, S-1);
+
+    // Gambarkan dadu sejarah pada posisi ini
+    const px = c * S;
+    const py = r * S;
+    const ratio = i / Math.max(trail.length - 1, 1);
+    
+    // Panggil fungsi gambar dadu mini dengan isActive = false
+    drawMiniDice(ctx, px, py, S, face, false, ratio);
+  }
+
+  // Tembok labirin
+  const WW = Math.max(1.5, S * 0.075);
+  ctx.strokeStyle = '#b8bcc6';
+  ctx.lineWidth   = WW;
+  ctx.lineCap     = 'square';
+  for (let r=0; r<=maze.R; r++)
+    for (let c=0; c<maze.C; c++)
+      if (maze.wH[r][c]) {
+        ctx.beginPath(); ctx.moveTo(c*S, r*S); ctx.lineTo((c+1)*S, r*S); ctx.stroke();
+      }
+  for (let r=0; r<maze.R; r++)
+    for (let c=0; c<=maze.C; c++)
+      if (maze.wV[r][c]) {
+        ctx.beginPath(); ctx.moveTo(c*S, r*S); ctx.lineTo(c*S, (r+1)*S); ctx.stroke();
+      }
+
+  // Penanda finish "F" (Selalu berada di bawah dadu agar tidak tertutup penuh)
+  const rm = S * 0.26;
+  marker(ctx, maze.end[1]*S+S/2, maze.end[0]*S+S/2, rm, '#e05050', '#fff', 'F', S);
+
+  // Gambarkan dadu aktif utama di posisi saat ini (isActive = true)
+  drawMiniDice(ctx, pos.c*S, pos.r*S, S, diceState[0], true);
+}
+
+// Fungsi menggambar dadu mini (mendukung status aktif maupun sejarah)
+function drawMiniDice(ctx, px, py, S, n, isActive, ratio = 1) {
+  const pad = S * 0.1;
+  const x = px + pad, y = py + pad;
+  const w = S - pad * 2, h = S - pad * 2;
+  const rx = w * 0.18; // radius sudut kelengkungan dadu
+
+  ctx.save();
+
+  if (isActive) {
+    // Efek cahaya berpijar untuk dadu utama yang aktif dijalankan
+    ctx.shadowBlur  = 14;
+    ctx.shadowColor = 'rgba(74,144,217,0.85)';
+    ctx.globalAlpha = 1.0;
+  } else {
+    // Efek transparansi yang estetik untuk dadu jejak langkah sejarah
+    // Semakin lama jejaknya ditinggalkan, ia akan sedikit memudar secara halus (gradual)
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 0.45 + (ratio * 0.35); 
+  }
+
+  // Badan dadu
+  ctx.fillStyle = '#f5f2ed';
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, rx);
+  ctx.fill();
+
+  // Garis luar dadu (Border)
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = isActive ? '#4a90d9' : '#2a2d33'; // Bingkai biru cerah untuk aktif, abu-abu gelap untuk sejarah
+  ctx.lineWidth = Math.max(1.5, S * 0.055);
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, rx);
+  ctx.stroke();
+
+  // Titik dadu (Dots)
+  const DOT_POS = {
+    1: [[.5,.5]],
+    2: [[.28,.28],[.72,.72]],
+    3: [[.28,.28],[.5,.5],[.72,.72]],
+    4: [[.28,.28],[.72,.28],[.28,.72],[.72,.72]],
+    5: [[.28,.28],[.72,.28],[.5,.5],[.28,.72],[.72,.72]],
+    6: [[.28,.28],[.72,.28],[.28,.5],[.72,.5],[.28,.72],[.72,.72]],
+  };
+  const dotR = Math.max(1.5, w * 0.085);
+  ctx.fillStyle = '#1a1a1a';
+  for (const [fx, fy] of DOT_POS[n]) {
+    ctx.beginPath();
+    ctx.arc(x + fx * w, y + fy * h, dotR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function marker(ctx, x, y, r, fill, fg, label, S) {
+  ctx.fillStyle = fill;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = fg;
+  ctx.font = `bold ${Math.round(r)}px "JetBrains Mono",monospace`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y+1);
+}
+
+// ══════════════════════════════════════════════════
+// KONTROL KEYBOARD & INISIALISASI AWAL
+// ══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowUp')    { e.preventDefault(); move('N'); }
+  if (e.key==='ArrowDown')  { e.preventDefault(); move('S'); }
+  if (e.key==='ArrowRight') { e.preventDefault(); move('E'); }
+  if (e.key==='ArrowLeft')  { e.preventDefault(); move('W'); }
+  if (e.key==='r'||e.key==='R') reset();
+  if (e.key==='1') setLevel(0);
+  if (e.key==='2') setLevel(1);
+  if (e.key==='3') setLevel(2);
+});
+
+window.addEventListener('resize', draw);
+
+document.querySelectorAll('.lvl-btn').forEach((b,i) => {
+  if (i < 3) b.onclick = () => setLevel(i);
+});
+
+// Mulai Game
+newGame(0);
+</script>
+</body>
+</html>
