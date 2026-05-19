@@ -1,298 +1,177 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maze Dice</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0e0f11;
-  --bg2: #161719;
-  --bg3: #1e2023;
-  --border: #2a2d33;
-  --border2: #3a3d44;
-  --text: #e8e9eb;
-  --text2: #8a8d96;
-  --text3: #464952;
-  --accent: #f0c040;
-  --accent2: #c89c20;
-  --blue: #4a90d9;
-  --green: #3dba6e;
-  --red: #e05050;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body {
-  font-family: 'JetBrains Mono', monospace;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Dice 3D Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <style>
+        :root {
+          --bg: #0e0f11; --bg2: #161719; --bg3: #1e2023;
+          --border: #2a2d33; --border2: #3a3d44;
+          --text: #e8e9eb; --text2: #8a8d96; --text3: #464952;
+          --accent: #f0c040; --accent2: #c89c20;
+          --blue: #4a90d9; --green: #3dba6e; --red: #e05050; --purple: #b388ff; --orange: #ff9100;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+          font-family: 'JetBrains Mono', monospace;
+          background: var(--bg);
+          color: var(--text);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
 
-header {
-  width: 100%;
-  padding: 1.2rem 2rem .9rem;
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-.logo {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -.02em;
-}
-.logo span { color: var(--accent); }
-.subtitle { font-size: .65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .14em; }
+        header {
+          width: 100%; padding: 1rem 2rem 0.8rem;
+          display: flex; align-items: baseline; gap: 1rem;
+          border-bottom: 1px solid var(--border);
+          flex-shrink: 0;
+        }
+        .logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+        .logo span { color: var(--accent); }
+        .subtitle { font-size: .65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .14em; }
 
-main {
-  width: 100%;
-  max-width: 1000px;
-  padding: 1.25rem 1.25rem 3rem;
-  display: grid;
-  grid-template-columns: 1fr 250px;
-  gap: 1.25rem;
-  align-items: start;
-}
+        main {
+          width: 100%; max-width: 1100px;
+          padding: 1.25rem;
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 1.25rem;
+          height: calc(100vh - 60px);
+          overflow-y: auto;
+        }
 
-/* Level bar */
-.level-bar { display: flex; gap: .4rem; margin-bottom: .9rem; align-items: center; }
-.lvl-btn {
-  padding: .3rem .85rem;
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  background: transparent;
-  color: var(--text2);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: .65rem;
-  cursor: pointer;
-  transition: all .2s;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.lvl-btn:hover { border-color: var(--border2); color: var(--text); }
-.lvl-btn.active { background: var(--accent); border-color: var(--accent); color: #0e0f11; font-weight: 600; }
+        /* Level bar */
+        .level-bar { display: flex; gap: .4rem; margin-bottom: .9rem; align-items: center; flex-wrap: wrap; }
+        .lvl-btn {
+          padding: .3rem .85rem; border: 1px solid var(--border); border-radius: 100px;
+          background: transparent; color: var(--text2); font-family: inherit; font-size: .65rem;
+          cursor: pointer; transition: all .2s; text-transform: uppercase; letter-spacing: .08em;
+        }
+        .lvl-btn:hover { border-color: var(--border2); color: var(--text); }
+        .lvl-btn.active { background: var(--accent); border-color: var(--accent); color: #0e0f11; font-weight: 600; }
+        .lvl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Maze */
-.maze-wrap {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
-  position: relative;
-}
-#cv { display: block; border-radius: 6px; width: 100%; }
+        /* 3D Container */
+        .maze-wrap {
+          background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+          padding: 0.5rem; position: relative;
+          height: 500px;
+          display: flex; flex-direction: column;
+        }
+        #canvas-container { 
+            width: 100%; height: 100%; 
+            border-radius: 8px; overflow: hidden; 
+            cursor: grab;
+        }
+        #canvas-container:active { cursor: grabbing; }
 
-/* Status */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-top: .75rem;
-  font-size: .7rem;
-  color: var(--text2);
-}
-.s-step { color: var(--accent); font-weight: 600; font-size: .85rem; }
-.s-dir {
-  padding: .2rem .55rem;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--blue);
-  min-width: 72px;
-  text-align: center;
-  font-size: .65rem;
-}
-.s-dir.finish { color: var(--green); border-color: var(--green); }
-.prog-wrap { flex: 1; background: var(--bg3); border-radius: 100px; height: 3px; overflow: hidden; }
-.prog-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width .3s ease; }
+        /* Status */
+        .status-bar { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; font-size: .7rem; color: var(--text2); }
+        .s-step { color: var(--accent); font-weight: 600; font-size: .85rem; }
+        .s-dir { padding: .2rem .55rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--blue); min-width: 85px; text-align: center; font-size: .65rem; }
+        .s-dir.finish { color: var(--green); border-color: var(--green); }
+        .prog-wrap { flex: 1; background: var(--bg3); border-radius: 100px; height: 3px; overflow: hidden; }
+        .prog-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width .3s ease; }
 
-/* D-pad controls */
-.dpad-wrap { margin-top: .75rem; display: flex; align-items: center; gap: 1rem; }
-.dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 40px);
-  grid-template-rows: repeat(3, 40px);
-  gap: 3px;
-  flex-shrink: 0;
-}
-.dpad-btn {
-  width: 40px; height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg3);
-  color: var(--text);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all .12s;
-  display: flex; align-items: center; justify-content: center;
-  user-select: none;
-}
-.dpad-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
-.dpad-btn:active:not(:disabled) { transform: scale(.9); background: var(--accent); color: #0e0f11; border-color: var(--accent); }
-.dpad-btn:disabled { opacity: .25; cursor: default; }
-.dpad-btn.blocked { animation: shake .2s ease; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
-.dpad-center { background: var(--bg3); border-radius: 50%; border: 1px solid var(--border); }
-.dpad-actions { display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+        /* D-pad controls */
+        .dpad-wrap { margin-top: .75rem; display: flex; align-items: center; gap: 1rem; }
+        .dpad { display: grid; grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(3, 40px); gap: 3px; flex-shrink: 0; }
+        .dpad-btn { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); color: var(--text); font-size: 1rem; cursor: pointer; transition: all .12s; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .dpad-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
+        .dpad-btn:active:not(:disabled) { transform: scale(.9); background: var(--accent); color: #0e0f11; border-color: var(--accent); }
+        .dpad-btn:disabled { opacity: .25; cursor: default; }
+        .dpad-btn.blocked { animation: shake .2s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
+        .dpad-center { background: var(--bg3); border-radius: 50%; border: 1px solid var(--border); }
+        .dpad-actions { display: flex; flex-direction: column; gap: .4rem; flex: 1; }
 
-.ctrl-btn {
-  width: 100%;
-  padding: .5rem .4rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg3);
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: .72rem;
-  cursor: pointer;
-  transition: all .15s;
-  text-align: center;
-}
-.ctrl-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
-.ctrl-btn:active:not(:disabled) { transform: scale(.97); }
-.ctrl-btn.primary { background: var(--accent); border-color: var(--accent); color: #0e0f11; font-weight: 600; }
-.ctrl-btn.primary:hover:not(:disabled) { background: var(--accent2); border-color: var(--accent2); }
-.ctrl-btn.muted { color: var(--text2); }
-.ctrl-btn:disabled { opacity: .3; cursor: default; }
+        .ctrl-btn { width: 100%; padding: .5rem .4rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); color: var(--text); font-family: inherit; font-size: .72rem; cursor: pointer; transition: all .15s; text-align: center; }
+        .ctrl-btn:hover:not(:disabled) { border-color: var(--border2); background: var(--bg2); }
+        .ctrl-btn:active:not(:disabled) { transform: scale(.97); }
 
-/* Panel */
-.panel { display: flex; flex-direction: column; gap: 1rem; }
+        /* Panel */
+        .panel { display: flex; flex-direction: column; gap: 1rem; padding-bottom: 2rem;}
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+        .card-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .12em; color: var(--text3); margin-bottom: .8rem; display: flex; justify-content: space-between; align-items: center; }
 
-.card-label {
-  font-size: .6rem;
-  text-transform: uppercase;
-  letter-spacing: .13em;
-  color: var(--text3);
-  margin-bottom: .8rem;
-}
+        /* Mode Selector */
+        .mode-selector { display: flex; gap: 0.5rem; margin-bottom: 1rem; background: var(--bg3); padding: 0.3rem; border-radius: 10px; border: 1px solid var(--border); }
+        .mode-toggle-btn { flex: 1; padding: 0.6rem; border: none; border-radius: 8px; background: transparent; color: var(--text2); font-family: inherit; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; }
+        .mode-toggle-btn:hover { color: var(--text); }
+        .mode-toggle-btn.active { background: var(--accent); color: #0e0f11; }
 
-/* Info cards */
-.info-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.info-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: .65rem .8rem;
-}
-.info-card .lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin-bottom: .2rem; }
-.info-card .val { font-size: .95rem; font-weight: 600; }
+        /* Click Mode Selector */
+        .click-mode-selector { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; background: var(--bg3); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border); }
+        .mode-btn { flex: 1; padding: 0.45rem; border: none; border-radius: 6px; background: transparent; color: var(--text2); font-family: inherit; font-size: 0.65rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
+        .mode-btn:hover { color: var(--text); }
+        .mode-btn.active { background: var(--accent); color: #0e0f11; }
+        .mode-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Answer picker */
-.answer-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.1rem;
-  display: none;
-}
-.answer-card.show { display: block; animation: pop .35s cubic-bezier(.4,0,.2,1); }
-@keyframes pop { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Info cards */
+        .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+        .info-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: .65rem .8rem; }
+        .info-card .lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin-bottom: .2rem; }
+        .info-card .val { font-size: .95rem; font-weight: 600; }
 
-.answer-pick-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: .45rem;
-  margin: .75rem 0 .5rem;
-}
-.pick-btn {
-  aspect-ratio: 1;
-  background: #f5f2ed;
-  border: 2px solid var(--border2);
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  transition: all .15s;
-  position: relative;
-}
-.pick-btn:hover:not(:disabled) { border-color: var(--accent); transform: scale(1.05); }
-.pick-btn:active:not(:disabled) { transform: scale(.96); }
-.pick-btn:disabled { cursor: default; }
-.pick-btn.correct { background: rgba(61,186,110,.15); border-color: var(--green); box-shadow: 0 0 14px rgba(61,186,110,.3); }
-.pick-btn.wrong { background: rgba(224,80,80,.1); border-color: var(--red); opacity: .6; }
-.pick-btn.reveal-correct { background: rgba(61,186,110,.15); border-color: var(--green); box-shadow: 0 0 14px rgba(61,186,110,.3); }
+        /* Target Tracker */
+        .clear-targets-btn { background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--red); font-size: 0.55rem; padding: 0.2rem 0.5rem; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: all 0.15s; }
+        .clear-targets-btn:hover { background: rgba(224, 80, 80, 0.1); border-color: var(--red); }
+        .clear-targets-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .target-instructions { font-size: 0.6rem; color: var(--text2); margin-bottom: 0.8rem; line-height: 1.4; }
+        .target-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .target-item { display: flex; align-items: center; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.6rem; gap: 0.6rem; transition: all 0.2s; }
+        .target-item.reached { border-color: rgba(61,186,110,0.35); background: rgba(61,186,110,0.04); }
+        .target-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; color: #fff; flex-shrink: 0; }
+        .target-info { flex: 1; display: flex; flex-direction: column; }
+        .target-coords { font-size: 0.65rem; color: var(--text); font-weight: 600; }
+        .target-status { font-size: 0.58rem; color: var(--text3); }
+        .target-item.reached .target-status { color: var(--green); }
+        
+        .target-result-face { width: 28px; height: 28px; background: #f5f2ed; border: 1px solid #ddd; border-radius: 5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .target-result-face .mini-dot-grid { width: 20px; height: 20px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+        .target-result-face .mini-dot-grid .dot-cell { display: flex; align-items: center; justify-content: center; }
+        .target-result-face .mini-dot { width: 3.5px; height: 3.5px; border-radius: 50%; background: #111; }
+        .target-empty-face { width: 28px; height: 28px; border: 1px dashed var(--border2); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 0.7rem; font-weight: bold; }
 
-.dot-grid {
-  width: 100%; height: 100%;
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  grid-template-rows: repeat(3,1fr);
-}
-.dot-cell { display: flex; align-items: center; justify-content: center; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: #111; }
+        /* Custom Notification */
+        #notification { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--red); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; }
 
-.answer-result {
-  text-align: center;
-  font-size: .78rem;
-  min-height: 1.2rem;
-  margin-top: .3rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-}
-.answer-result.correct { color: var(--green); }
-.answer-result.wrong   { color: var(--red); }
-
-/* Instructions */
-.tips {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: .9rem 1rem;
-}
-.tips li {
-  list-style: none;
-  font-size: .65rem;
-  color: var(--text2);
-  line-height: 1.6;
-  padding: .18rem 0;
-  border-bottom: 1px solid var(--border);
-  display: flex; gap: .5rem;
-}
-.tips li:last-child { border-bottom: none; }
-.tips li::before { content: '›'; color: var(--text3); flex-shrink: 0; }
-kbd {
-  display: inline-block;
-  padding: 0 .3rem;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 3px;
-  font-size: .6rem;
-  color: var(--text);
-  font-family: inherit;
-}
-
-@media (max-width: 660px) {
-  main { grid-template-columns: 1fr; }
-  .panel { order: -1; }
-}
-</style>
+        @media (max-width: 800px) {
+          main { grid-template-columns: 1fr; height: auto; overflow: visible; }
+          .panel { order: 2; }
+          .maze-wrap { height: 60vw; min-height: 350px; }
+          body { overflow: auto; }
+        }
+    </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Maze<span>Dice</span></div>
-  <div class="subtitle">Puzzle · Orientasi Dadu</div>
+  <div class="logo">Maze<span>3D</span></div>
+  <div class="subtitle">Simulasi Dadu Interaktif</div>
 </header>
 
 <main>
-  <div>
-    <div class="level-bar">
+  <div class="main-left">
+    <div class="level-bar" id="levelBar">
       <button class="lvl-btn active" onclick="setLevel(0)">Easy 7×7</button>
       <button class="lvl-btn" onclick="setLevel(1)">Medium 9×9</button>
       <button class="lvl-btn" onclick="setLevel(2)">Hard 11×11</button>
-      <button class="lvl-btn" onclick="regenerate()" style="margin-left:.25rem">↺ Acak</button>
+      <button class="lvl-btn" onclick="regenerate()" style="margin-left:auto">↺ Acak Labirin</button>
     </div>
 
+    <!-- 3D Viewport menggantikan Canvas 2D -->
     <div class="maze-wrap">
-      <canvas id="cv"></canvas>
+      <div id="notification">Peringatan</div>
+      <div id="canvas-container"></div>
     </div>
 
     <div class="status-bar">
@@ -304,62 +183,62 @@ kbd {
     <div class="dpad-wrap">
       <div class="dpad">
         <div></div>
-        <button class="dpad-btn" id="btnN" onclick="move('N')">↑</button>
+        <button class="dpad-btn" id="btnN" onclick="move('N')" title="Atas (North)">↑</button>
         <div></div>
-        <button class="dpad-btn" id="btnW" onclick="move('W')">←</button>
+        <button class="dpad-btn" id="btnW" onclick="move('W')" title="Kiri (West)">←</button>
         <div class="dpad-center"></div>
-        <button class="dpad-btn" id="btnE" onclick="move('E')">→</button>
+        <button class="dpad-btn" id="btnE" onclick="move('E')" title="Kanan (East)">→</button>
         <div></div>
-        <button class="dpad-btn" id="btnS" onclick="move('S')">↓</button>
+        <button class="dpad-btn" id="btnS" onclick="move('S')" title="Bawah (South)">↓</button>
         <div></div>
       </div>
       <div class="dpad-actions">
-        <button class="ctrl-btn" id="btnAnswer" onclick="openAnswer()">Tebak Jawaban</button>
-        <button class="ctrl-btn muted" onclick="reset()">↺ Reset</button>
+        <button class="ctrl-btn" onclick="reset()" style="color:var(--blue)">↺ Reset Dadu ke Start</button>
+        <div style="font-size: 0.6rem; color: var(--text3); text-align: center; margin-top: 5px;">Bisa juga seret (drag) kanvas untuk memutar kamera.</div>
       </div>
     </div>
   </div>
 
   <div class="panel">
+    <!-- Pilihan Mode -->
+    <div class="mode-selector">
+        <button id="modeMazeBtn" class="mode-toggle-btn active" onclick="setGameMode('maze')">Mode Maze</button>
+        <button id="modeFreeBtn" class="mode-toggle-btn" onclick="setGameMode('free')">Mode Bebas</button>
+    </div>
+
     <div class="info-row">
       <div class="info-card"><div class="lbl">Level</div><div class="val" id="ic-lvl">Easy</div></div>
       <div class="info-card"><div class="lbl">Langkah</div><div class="val" id="ic-step">0</div></div>
     </div>
 
-    <div class="answer-card" id="ansCard">
-      <div class="card-label" id="ansCardLabel">Pilih tampak atas di titik finish</div>
-      <div class="answer-pick-grid" id="ansPickGrid">
-        <button class="pick-btn" onclick="pickAnswer(1)"><div class="dot-grid" id="pg-1"></div></button>
-        <button class="pick-btn" onclick="pickAnswer(2)"><div class="dot-grid" id="pg-2"></div></button>
-        <button class="pick-btn" onclick="pickAnswer(3)"><div class="dot-grid" id="pg-3"></div></button>
-        <button class="pick-btn" onclick="pickAnswer(4)"><div class="dot-grid" id="pg-4"></div></button>
-        <button class="pick-btn" onclick="pickAnswer(5)"><div class="dot-grid" id="pg-5"></div></button>
-        <button class="pick-btn" onclick="pickAnswer(6)"><div class="dot-grid" id="pg-6"></div></button>
+    <div class="card" id="targetCard">
+      <div class="card-label">
+        <span id="targetLabelText">Target & Kustomisasi</span>
+        <button class="clear-targets-btn" id="clearTargetsBtn" onclick="clearTargets()">Hapus Semua</button>
       </div>
-      <div class="answer-result" id="ansResult"></div>
-    </div>
+      
+      <div class="click-mode-selector" id="clickModeSelector">
+        <button id="modeTargetBtn" class="mode-btn active" onclick="setClickMode('target')">🎯 Pasang Target</button>
+        <button id="modeStartBtn" class="mode-btn" onclick="setClickMode('start')">🎲 Pindah Start</button>
+      </div>
 
-    <div class="tips">
-      <div class="card-label" style="margin-bottom:.5rem">Cara main</div>
-      <ul>
-        <li>Gunakan tombol arah <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> untuk jalan</li>
-        <li>Bawa dadu terus sampai mentok ke titik <b style="color:var(--red)">F</b> (Finish)</li>
-        <li>Kamu juga bisa klik <b style="color:var(--accent)">Tebak Jawaban</b> jika ingin menebak sisi atas dadu di titik finish!</li>
-        <li>Sisi berlawanan selalu berjumlah 7 (1↔6, 2↔5, 3↔4)</li>
-        <li><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> ganti level · <kbd>R</kbd> reset</li>
-      </ul>
+      <div class="target-instructions" id="clickModeHelp">
+        Mode aktif: <b>Pasang Target</b>. Klik lantai ubin pada 3D View untuk memasang target ①-⑤.
+      </div>
+      <div class="target-list" id="targetList">
+        <!-- Dynamic Targets -->
+      </div>
     </div>
   </div>
 </main>
 
 <script>
 // ══════════════════════════════════════════════════
-// DICE ENGINE
-// state = [top, front, right, bottom, back, left]
+// 1. ENGINE DADU (LOGIKA 2D DENGAN STATE ARRAY)
+// State = [top, front, right, bottom, back, left]
 // ══════════════════════════════════════════════════
 const INIT = [1, 2, 3, 6, 5, 4];
-
-function roll(s, d) {
+function rollArray(s, d) {
   const [T, F, R, B, Bk, L] = s;
   if (d==='N') return [F,  B,  R, Bk, T,  L ];
   if (d==='S') return [Bk, T,  R, F,  B,  L ];
@@ -368,32 +247,33 @@ function roll(s, d) {
 }
 
 const DOTS = {
-  1: [[1,1]],
-  2: [[0,0],[2,2]],
-  3: [[0,0],[1,1],[2,2]],
-  4: [[0,0],[0,2],[2,0],[2,2]],
-  5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
-  6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+  1: [[1,1]], 2: [[0,0],[2,2]], 3: [[0,0],[1,1],[2,2]],
+  4: [[0,0],[0,2],[2,0],[2,2]], 5: [[0,0],[0,2],[1,1],[2,0],[2,2]], 6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
 };
 
-function renderDots(el, n) {
-  el.innerHTML = '';
-  const cells = Array.from({length:9}, () => {
-    const c = document.createElement('div');
-    c.className = 'dot-cell';
-    el.appendChild(c);
-    return c;
-  });
-  for (const [r,c] of DOTS[n]) {
-    const d = document.createElement('div');
-    d.className = 'dot';
-    cells[r*3+c].appendChild(d);
+// Helper UI Target Wajah Dadu
+function getMiniDotGridHTML(n) {
+  const dots = DOTS[n] || [];
+  let gridHTML = '<div class="mini-dot-grid">';
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const hasDot = dots.some(([dr, dc]) => dr === r && dc === c);
+      gridHTML += `<div class="dot-cell">${hasDot ? '<div class="mini-dot"></div>' : ''}</div>`;
+    }
   }
+  gridHTML += '</div>';
+  return gridHTML;
+}
+
+function showNotification(msg) {
+    const notif = document.getElementById('notification');
+    notif.textContent = msg;
+    notif.style.opacity = 1;
+    setTimeout(() => { notif.style.opacity = 0; }, 2000);
 }
 
 // ══════════════════════════════════════════════════
-// MAZE GENERATOR
-// Produces a perfect maze: exactly one path between any two cells
+// 2. MAZE GENERATOR
 // ══════════════════════════════════════════════════
 function generateMaze(R, C, seed) {
   let s = seed >>> 0;
@@ -431,96 +311,374 @@ function generateMaze(R, C, seed) {
     }
   }
   carve(0, 0);
-
-  const start=[0,0], end=[R-1,C-1];
-  return {R, C, wH, wV, start, end};
-}
-
-// Find shortest path from current pos to end (for answer simulation)
-function getShortestPath(sr, sc, er, ec, mazeData) {
-  function canMove(r, c, d) {
-    if (d==='N') return r>0   && mazeData.wH[r][c]===0;
-    if (d==='S') return r<mazeData.R-1 && mazeData.wH[r+1][c]===0;
-    if (d==='E') return c<mazeData.C-1 && mazeData.wV[r][c+1]===0;
-    if (d==='W') return c>0   && mazeData.wV[r][c]===0;
-  }
-  
-  const visited = Array.from({length:mazeData.R},()=>Array(mazeData.C).fill(false));
-  const prev    = Array.from({length:mazeData.R},()=>Array(mazeData.C).fill(null));
-  const queue   = [[sr, sc]];
-  visited[sr][sc] = true;
-  
-  while (queue.length) {
-    const [r,c] = queue.shift();
-    if (r===er && c===ec) break;
-    for (const d of ['N','S','E','W']) {
-      if (canMove(r,c,d)) {
-        const nr = r + (d==='N'?-1:d==='S'?1:0);
-        const nc = c + (d==='E'?1:d==='W'?-1:0);
-        if (!visited[nr][nc]) {
-          visited[nr][nc]=true;
-          prev[nr][nc]={r,c,d};
-          queue.push([nr,nc]);
-        }
-      }
-    }
-  }
-  const path=[];
-  let [currR, currC] = [er, ec];
-  while (prev[currR][currC]) {
-    const {r,c,d} = prev[currR][currC];
-    path.unshift(d);
-    currR=r; currC=c;
-  }
-  return path;
+  return {R, C, wH, wV, start: [0, 0]};
 }
 
 // ══════════════════════════════════════════════════
-// GAME STATE
+// 3. THREE.JS SETUP & VARIABEL GLOBAL 3D
 // ══════════════════════════════════════════════════
+let scene, camera, renderer, orbitControls;
+let diceMesh, startMarker, floorGroup, wallsGroup, targetsGroup, trailGroup;
+const UNIT = 10; // Ukuran 1 tile di 3D world
+let floorTilesData = []; // Untuk raycaster
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+
+let isAnimating = false; // Mencegah input bertumpuk
+
 const SIZES  = [[7,7],[9,9],[11,11]];
 const LNAMES = ['Easy','Medium','Hard'];
+const TARGET_COLORS = [0xff5252, 0xb388ff, 0x00e676, 0xffd600, 0xff9100];
 
+let gameMode = 'maze'; // 'maze' atau 'free'
 let lvIdx = 0;
 let maze, seed;
-let diceState;       // current [top,front,right,bottom,back,left]
-let pos;             // current {r, c}
-let trail;           // array of {r,c} visited in order
-let answered = false;
+let diceState = [...INIT];
+let pos = { r: 0, c: 0 };
+let trail = [];
+let targets = [];
+let clickMode = 'target';
 
 const DR = {N:-1, S:1, E:0, W:0};
 const DC = {N:0,  S:0, E:1, W:-1};
 
+function initThree() {
+    const container = document.getElementById('canvas-container');
+    
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('#161719');
+    
+    // Kamera Isometrik Semu
+    camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 1000);
+    
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+    
+    // Pencahayaan Premium
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambient);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(20, 50, 20);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 150;
+    const d = 60;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    scene.add(dirLight);
+
+    // Gruping Objek
+    floorGroup = new THREE.Group(); scene.add(floorGroup);
+    wallsGroup = new THREE.Group(); scene.add(wallsGroup);
+    targetsGroup = new THREE.Group(); scene.add(targetsGroup);
+    trailGroup = new THREE.Group(); scene.add(trailGroup);
+    
+    // Kontrol Kamera
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.05;
+    orbitControls.maxPolarAngle = Math.PI / 2.2; // Jangan tembus lantai
+    orbitControls.minDistance = 30;
+    orbitControls.maxDistance = 150;
+
+    // Pembuatan Tekstur Dadu
+    create3DDice();
+
+    // Event Listener Interaksi Mouse/Touch
+    container.addEventListener('pointerdown', onPointerDown);
+    container.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('resize', onWindowResize);
+
+    // Animasi Loop
+    function animate() {
+        requestAnimationFrame(animate);
+        orbitControls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+}
+
+function generateDiceTexture(num) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    
+    // Background Dadu
+    ctx.fillStyle = '#f5f2ed';
+    ctx.fillRect(0, 0, 256, 256);
+    
+    // Border halus
+    ctx.strokeStyle = '#d0cdc7';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(0,0,256,256);
+
+    // Titik Hitam
+    ctx.fillStyle = '#1a1a1a';
+    const offset = 65, center = 128, radius = 22;
+    
+    const positions = {
+        1: [[center, center]],
+        2: [[center-offset, center-offset], [center+offset, center+offset]],
+        3: [[center-offset, center-offset], [center, center], [center+offset, center+offset]],
+        4: [[center-offset, center-offset], [center+offset, center-offset], [center-offset, center+offset], [center+offset, center+offset]],
+        5: [[center-offset, center-offset], [center+offset, center-offset], [center, center], [center-offset, center+offset], [center+offset, center+offset]],
+        6: [[center-offset, center-offset], [center+offset, center-offset], [center-offset, center], [center+offset, center], [center-offset, center+offset], [center+offset, center+offset]]
+    };
+
+    positions[num].forEach(pos => {
+        ctx.beginPath();
+        ctx.arc(pos[0], pos[1], radius, 0, Math.PI*2);
+        ctx.fill();
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return texture;
+}
+
+function create3DDice() {
+    // Array material berdasarkan INIT = [1, 2, 3, 6, 5, 4] (Top, Front, Right, Bottom, Back, Left)
+    // Pemetaan standar ThreeJS BoxGeometry: [ Right(+x), Left(-x), Top(+y), Bottom(-y), Front(+z), Back(-z) ]
+    // Sesuai INIT awal kita: Right=3, Left=4, Top=1, Bottom=6, Front=2, Back=5
+    const materials = [
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(3), roughness: 0.2 }), // +x Right
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(4), roughness: 0.2 }), // -x Left
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(1), roughness: 0.2 }), // +y Top
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(6), roughness: 0.2 }), // -y Bottom
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(2), roughness: 0.2 }), // +z Front
+        new THREE.MeshStandardMaterial({ map: generateDiceTexture(5), roughness: 0.2 }), // -z Back
+    ];
+
+    const size = UNIT * 0.8; // Ukuran dadu sedikit lebih kecil dari ubin
+    const geometry = new THREE.BoxGeometry(size, size, size, 4, 4, 4);
+    
+    // Membuat sedikit membulat (opsional)
+    diceMesh = new THREE.Mesh(geometry, materials);
+    diceMesh.castShadow = true;
+    diceMesh.receiveShadow = true;
+    
+    scene.add(diceMesh);
+}
+
+function buildMaze3D() {
+    // Bersihkan grup sebelumnya
+    while(floorGroup.children.length > 0) floorGroup.remove(floorGroup.children[0]);
+    while(wallsGroup.children.length > 0) wallsGroup.remove(wallsGroup.children[0]);
+    while(targetsGroup.children.length > 0) targetsGroup.remove(targetsGroup.children[0]);
+    while(trailGroup.children.length > 0) trailGroup.remove(trailGroup.children[0]);
+    floorTilesData = [];
+
+    const R = gameMode === 'maze' ? maze.R : 15; // Ukuran lantai di mode bebas
+    const C = gameMode === 'maze' ? maze.C : 15;
+
+    // Geometri & Material Dasar
+    const floorGeo = new THREE.PlaneGeometry(UNIT, UNIT);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e2023, roughness: 0.8 });
+    
+    const wallHeight = UNIT * 0.6;
+    const wallThick = Math.max(2, UNIT * 0.1);
+    const wallGeoH = new THREE.BoxGeometry(UNIT + wallThick, wallHeight, wallThick);
+    const wallGeoV = new THREE.BoxGeometry(wallThick, wallHeight, UNIT + wallThick);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x3a3d44, metalness: 0.2, roughness: 0.5 });
+
+    // Offset agar map berada di tengah scene
+    const offsetX = (C * UNIT) / 2 - (UNIT / 2);
+    const offsetZ = (R * UNIT) / 2 - (UNIT / 2);
+
+    // Bangun Lantai
+    for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+            const tile = new THREE.Mesh(floorGeo, floorMat.clone());
+            tile.rotation.x = -Math.PI / 2;
+            tile.position.set(c * UNIT - offsetX, 0, r * UNIT - offsetZ);
+            tile.receiveShadow = true;
+            tile.userData = { r, c };
+            floorGroup.add(tile);
+            floorTilesData.push(tile);
+        }
+    }
+
+    if (gameMode === 'maze') {
+        // Bangun Tembok Horizontal (Baris)
+        for (let r = 0; r <= maze.R; r++) {
+            for (let c = 0; c < maze.C; c++) {
+                if (maze.wH[r][c]) {
+                    const wall = new THREE.Mesh(wallGeoH, wallMat);
+                    wall.position.set(c * UNIT - offsetX, wallHeight/2, r * UNIT - (UNIT/2) - offsetZ);
+                    wall.castShadow = true; wall.receiveShadow = true;
+                    wallsGroup.add(wall);
+                }
+            }
+        }
+
+        // Bangun Tembok Vertikal (Kolom)
+        for (let r = 0; r < maze.R; r++) {
+            for (let c = 0; c <= maze.C; c++) {
+                if (maze.wV[r][c]) {
+                    const wall = new THREE.Mesh(wallGeoV, wallMat);
+                    wall.position.set(c * UNIT - (UNIT/2) - offsetX, wallHeight/2, r * UNIT - offsetZ);
+                    wall.castShadow = true; wall.receiveShadow = true;
+                    wallsGroup.add(wall);
+                }
+            }
+        }
+    }
+
+    // Marker Posisi Start (Lingkaran Biru) - Hanya di mode Maze
+    if(!startMarker) {
+        const smGeo = new THREE.RingGeometry(UNIT*0.1, UNIT*0.3, 32);
+        const smMat = new THREE.MeshBasicMaterial({ color: 0x4a90d9, side: THREE.DoubleSide });
+        startMarker = new THREE.Mesh(smGeo, smMat);
+        startMarker.rotation.x = -Math.PI / 2;
+        scene.add(startMarker);
+    }
+    
+    if (gameMode === 'maze') {
+        startMarker.visible = true;
+        startMarker.position.set(maze.start[1] * UNIT - offsetX, 0.1, maze.start[0] * UNIT - offsetZ);
+    } else {
+        startMarker.visible = false;
+        // Di mode bebas, mulai dari tengah
+        pos = { r: Math.floor(R/2), c: Math.floor(C/2) };
+        diceMesh.position.set(pos.c * UNIT - offsetX, UNIT * 0.4, pos.r * UNIT - offsetZ);
+    }
+
+    // Sesuaikan Kamera
+    const maxDim = Math.max(R, C) * UNIT;
+    camera.position.set(0, maxDim * 1.2, maxDim * 0.8);
+    orbitControls.target.set(0, 0, 0);
+    orbitControls.update();
+    
+    if (gameMode === 'maze') {
+        renderTargets3D();
+    }
+}
+
+let hoveredTile = null;
+
+function onPointerMove(event) {
+    if (gameMode === 'free') {
+        document.getElementById('canvas-container').style.cursor = 'grab';
+        if (hoveredTile) {
+             hoveredTile.material.color.setHex(0x1e2023);
+             hoveredTile = null;
+        }
+        return;
+    }
+
+    const container = document.getElementById('canvas-container');
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(floorTilesData);
+
+    if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        if (hoveredTile !== obj) {
+            if (hoveredTile) hoveredTile.material.color.setHex(0x1e2023); // Reset
+            hoveredTile = obj;
+            hoveredTile.material.color.setHex(0x2a2d33); // Highlight
+            container.style.cursor = 'pointer';
+        }
+    } else {
+        if (hoveredTile) {
+            hoveredTile.material.color.setHex(0x1e2023);
+            hoveredTile = null;
+            container.style.cursor = 'grab';
+        }
+    }
+}
+
+function onPointerDown(event) {
+    if (isAnimating || gameMode === 'free') return;
+    if (hoveredTile) {
+        const { r, c } = hoveredTile.userData;
+        if (clickMode === 'target') {
+            toggleTarget(r, c);
+        } else if (clickMode === 'start') {
+            setStartPosition(r, c);
+        }
+    }
+}
+
 function canGo(r, c, d) {
+  if (gameMode === 'free') return true; // Bebas bergerak di mode free
+
   if (d==='N') return r > 0          && maze.wH[r][c]   === 0;
   if (d==='S') return r < maze.R - 1 && maze.wH[r+1][c] === 0;
   if (d==='E') return c < maze.C - 1 && maze.wV[r][c+1] === 0;
   if (d==='W') return c > 0          && maze.wV[r][c]   === 0;
 }
 
-function newGame(si, newSeed) {
-  lvIdx    = si;
-  seed     = newSeed ?? (Date.now() & 0xffffffff);
-  const [R,C] = SIZES[si];
-  maze     = generateMaze(R, C, seed);
-  
-  // Calculate full optimal path length just for UI progress estimation
-  maze.optPathLength = getShortestPath(maze.start[0], maze.start[1], maze.end[0], maze.end[1], maze).length;
-  
-  diceState = [...INIT];
-  pos      = { r: maze.start[0], c: maze.start[1] };
-  trail    = [{ ...pos }];
-  answered = false;
+function setGameMode(mode) {
+    gameMode = mode;
+    document.getElementById('modeMazeBtn').classList.toggle('active', mode === 'maze');
+    document.getElementById('modeFreeBtn').classList.toggle('active', mode === 'free');
 
-  const ansCard = document.getElementById('ansCard');
-  ansCard.classList.remove('show');
-  document.getElementById('ansPickGrid').style.display = 'grid';
-  document.getElementById('ansResult').textContent = '';
-  document.getElementById('ansResult').className   = 'answer-result';
-  for (let n=1; n<=6; n++) renderDots(document.getElementById(`pg-${n}`), n);
+    // Update UI state based on mode
+    const levelBtns = document.querySelectorAll('.lvl-btn');
+    const clickModeBtns = document.querySelectorAll('.mode-btn');
+    const clearTargetsBtn = document.getElementById('clearTargetsBtn');
+
+    levelBtns.forEach(btn => btn.disabled = (mode === 'free'));
+    clickModeBtns.forEach(btn => btn.disabled = (mode === 'free'));
+    clearTargetsBtn.disabled = (mode === 'free');
+    document.getElementById('stDir').textContent = mode === 'maze' ? 'START' : 'MODE BEBAS';
+
+    document.getElementById('ic-lvl').textContent = mode === 'maze' ? LNAMES[lvIdx] : 'Bebas';
+    
+    if (mode === 'free') {
+        targets = []; trail = [];
+        updateTargetUI();
+        updateUI();
+    }
+    
+    // Rebuild 3D world
+    newGame(lvIdx, seed);
+}
+
+function newGame(si, newSeed) {
+  lvIdx = si;
+  seed = newSeed ?? (Date.now() & 0xffffffff);
   
-  draw();
-  updateUI();
+  if (gameMode === 'maze') {
+      const [R,C] = SIZES[si];
+      maze = generateMaze(R, C, seed);
+      
+      // Set default targets only in maze mode
+      targets = [];
+      if (R === 7) {
+        targets.push({ r: 0, c: 4, reached: false, face: null, stepNum: null });
+        targets.push({ r: 3, c: 3, reached: false, face: null, stepNum: null });
+      } else if (R === 9) {
+        targets.push({ r: 0, c: 6, reached: false, face: null, stepNum: null });
+        targets.push({ r: 8, c: 7, reached: false, face: null, stepNum: null });
+      } else {
+        targets.push({ r: 0, c: 8, reached: false, face: null, stepNum: null });
+        targets.push({ r: 10, c: 9, reached: false, face: null, stepNum: null });
+      }
+  } else {
+      // Mode bebas tidak perlu maze object
+      maze = null;
+  }
+
+  if(!scene) initThree();
+  buildMaze3D();
+  
+  if (gameMode === 'maze') {
+      setClickMode('target');
+  }
+  reset(); 
 }
 
 function setLevel(i) {
@@ -531,278 +689,369 @@ function setLevel(i) {
 
 function regenerate() { newGame(lvIdx); }
 
-function move(d) {
-  // Check wall
-  if (!canGo(pos.r, pos.c, d)) {
-    const btnId = {N:'btnN',S:'btnS',E:'btnE',W:'btnW'}[d];
-    const btn = document.getElementById(btnId);
-    btn.classList.remove('blocked');
-    void btn.offsetWidth;
-    btn.classList.add('blocked');
+function reset() {
+  if(isAnimating) return;
+  diceState = [...INIT];
+  
+  if (gameMode === 'maze') {
+      pos = { r: maze.start[0], c: maze.start[1] };
+  } else {
+      const R = 15, C = 15;
+      pos = { r: Math.floor(R/2), c: Math.floor(C/2) };
+  }
+
+  trail = [{ ...pos, face: diceState[0] }];
+  
+  // Reset posisi & rotasi 3D Dadu
+  const R = gameMode === 'maze' ? maze.R : 15;
+  const C = gameMode === 'maze' ? maze.C : 15;
+  const offsetX = (C * UNIT) / 2 - (UNIT / 2);
+  const offsetZ = (R * UNIT) / 2 - (UNIT / 2);
+  diceMesh.position.set(pos.c * UNIT - offsetX, UNIT * 0.4, pos.r * UNIT - offsetZ);
+  diceMesh.rotation.set(0, 0, 0); // Kembali ke orientasi murni
+  
+  if (gameMode === 'maze') {
+      startMarker.position.set(maze.start[1] * UNIT - offsetX, 0.1, maze.start[0] * UNIT - offsetZ);
+      evaluateTargets();
+      updateTargetUI();
+      renderTargets3D();
+  }
+
+  // Bersihkan Jejak 3D
+  while(trailGroup.children.length > 0) trailGroup.remove(trailGroup.children[0]);
+  
+  updateUI();
+}
+
+function setClickMode(mode) {
+  if (gameMode === 'free') return;
+  clickMode = mode;
+  document.getElementById('modeTargetBtn').classList.toggle('active', mode === 'target');
+  document.getElementById('modeStartBtn').classList.toggle('active', mode === 'start');
+  const helpEl = document.getElementById('clickModeHelp');
+  helpEl.innerHTML = mode === 'target' 
+    ? 'Mode aktif: <b>Pasang Target</b>. Klik lantai ubin pada 3D View untuk memasang target ①-⑤.' 
+    : 'Mode aktif: <b>Posisi Awal</b>. Klik lantai ubin untuk mengubah lokasi awal dadu (Tanda Biru).';
+}
+
+function setStartPosition(r, c) {
+  const tgtIdx = targets.findIndex(t => t.r === r && t.c === c);
+  if (tgtIdx !== -1) targets.splice(tgtIdx, 1);
+  maze.start = [r, c];
+  reset();
+}
+
+function toggleTarget(r, c) {
+  if (r === maze.start[0] && c === maze.start[1]) {
+    showNotification("Tidak bisa menaruh di posisi START!");
     return;
   }
-
-  const newR = pos.r + DR[d], newC = pos.c + DC[d];
-  const prevCell = trail.length >= 2 ? trail[trail.length - 2] : null;
-  const isBacktrack = prevCell && prevCell.r === newR && prevCell.c === newC;
-
-  // Move freely
-  pos = { r: newR, c: newC };
-  diceState = roll(diceState, d);
-
-  if (isBacktrack) {
-    trail.pop();
+  const idx = targets.findIndex(t => t.r === r && t.c === c);
+  if (idx !== -1) {
+    targets.splice(idx, 1);
   } else {
-    trail.push({ ...pos });
+    if (targets.length < 5) {
+      targets.push({ r, c, reached: false, face: null, stepNum: null });
+    } else {
+      showNotification("Maksimal 5 Target!");
+      return;
+    }
   }
-
-  draw();
+  evaluateTargets();
   updateUI();
+  updateTargetUI();
+  renderTargets3D();
+}
 
-  // Reached finish line!
-  if (pos.r === maze.end[0] && pos.c === maze.end[1]) {
-    setTimeout(() => {
-      if (!answered) {
-         // Auto-win if they walked all the way to finish without guessing
-         document.getElementById('ansResult').textContent = '🎉 Selesai! Kamu mencapai finish.';
-         document.getElementById('ansResult').className = 'answer-result correct';
-         document.getElementById('ansCard').classList.add('show');
-         document.getElementById('ansCardLabel').textContent = 'Level Selesai';
-         document.getElementById('ansPickGrid').style.display = 'none';
-         answered = true;
-         updateUI();
+function clearTargets() {
+  if (gameMode === 'free') return;
+  targets = [];
+  evaluateTargets();
+  updateUI();
+  updateTargetUI();
+  renderTargets3D();
+}
+
+function move(d) {
+    if (isAnimating) return;
+
+    // Cek batas area di mode bebas agar dadu tidak jatuh dari lantai
+    if (gameMode === 'free') {
+        const R = 15, C = 15;
+        const nr = pos.r + DR[d], nc = pos.c + DC[d];
+        if (nr < 0 || nr >= R || nc < 0 || nc >= C) return;
+    }
+
+    if (!canGo(pos.r, pos.c, d)) {
+        const btnId = {N:'btnN',S:'btnS',E:'btnE',W:'btnW'}[d];
+        const btn = document.getElementById(btnId);
+        btn.classList.remove('blocked');
+        void btn.offsetWidth;
+        btn.classList.add('blocked');
+        return;
+    }
+
+    isAnimating = true;
+
+    // Logika Jejak (Backtracking) - Hanya relevan di mode Maze untuk tracking
+    const newR = pos.r + DR[d], newC = pos.c + DC[d];
+    let isBacktrack = false;
+    if (gameMode === 'maze') {
+        const prevCell = trail.length >= 2 ? trail[trail.length - 2] : null;
+        isBacktrack = prevCell && prevCell.r === newR && prevCell.c === newC;
+    }
+
+    // Tinggalkan Jejak Wajah (3D decal) di mode Maze
+    if (gameMode === 'maze') {
+        if (!isBacktrack) {
+            addTrailMark3D(pos.r, pos.c, diceState[0]);
+        } else {
+            if(trailGroup.children.length > 0) {
+                trailGroup.remove(trailGroup.children[trailGroup.children.length - 1]);
+            }
+        }
+    }
+
+    // Update State Array 2D
+    pos = { r: newR, c: newC };
+    diceState = rollArray(diceState, d);
+    
+    if (gameMode === 'maze') {
+        if (isBacktrack) trail.pop();
+        else trail.push({ ...pos, face: diceState[0] });
+    } else {
+        // Di mode bebas, kita hanya lacak langkah total
+        trail.push({ ...pos, face: diceState[0] });
+    }
+
+    // Animasi GSAP 3D Bergulir (Tumbling)
+    const R = gameMode === 'maze' ? maze.R : 15;
+    const C = gameMode === 'maze' ? maze.C : 15;
+    const offsetX = (C * UNIT) / 2 - (UNIT / 2);
+    const offsetZ = (R * UNIT) / 2 - (UNIT / 2);
+    const targetX = newC * UNIT - offsetX;
+    const targetZ = newR * UNIT - offsetZ;
+
+    // Hitung Sumbu Rotasi Dunia berdasarkan Arah
+    let axis = new THREE.Vector3();
+    if(d === 'N') axis.set(-1, 0, 0); // Putar maju mengelilingi sumbu -X
+    if(d === 'S') axis.set(1, 0, 0);  // Mundur (+X)
+    if(d === 'E') axis.set(0, 0, -1); // Kanan (-Z)
+    if(d === 'W') axis.set(0, 0, 1);  // Kiri (+Z)
+
+    // Hitung Quaternion Target
+    const qDelta = new THREE.Quaternion().setFromAxisAngle(axis, Math.PI / 2);
+    const targetQ = new THREE.Quaternion().copy(diceMesh.quaternion);
+    targetQ.premultiply(qDelta); // Rotasi Relatif terhadap Sumbu Dunia
+
+    // Animasi Posisi X/Z
+    gsap.to(diceMesh.position, {
+        x: targetX,
+        z: targetZ,
+        duration: 0.35,
+        ease: "power1.inOut"
+    });
+
+    // Animasi Melompat sedikit (Bouncing effect during roll)
+    gsap.to(diceMesh.position, {
+        y: UNIT * 0.8,
+        duration: 0.175,
+        yoyo: true,
+        repeat: 1,
+        ease: "sine.inOut"
+    });
+
+    // Animasi Rotasi
+    gsap.to(diceMesh.quaternion, {
+        x: targetQ.x, y: targetQ.y, z: targetQ.z, w: targetQ.w,
+        duration: 0.35,
+        ease: "power1.inOut",
+        onComplete: () => {
+            // Normalisasi agar presisi
+            diceMesh.quaternion.normalize();
+            isAnimating = false;
+            
+            if (gameMode === 'maze') {
+                evaluateTargets();
+                updateTargetUI();
+                renderTargets3D();
+            }
+            updateUI();
+        }
+    });
+}
+
+function evaluateTargets() {
+  targets.forEach((tgt) => {
+    tgt.reached = false; tgt.face = null; tgt.stepNum = null;
+    for (let i = 0; i < trail.length; i++) {
+      if (trail[i].r === tgt.r && trail[i].c === tgt.c) {
+        tgt.reached = true; tgt.face = trail[i].face; tgt.stepNum = i; 
       }
-    }, 150);
-  }
-}
-
-function reset() {
-  diceState = [...INIT];
-  pos       = { r: maze.start[0], c: maze.start[1] };
-  trail     = [{ ...pos }];
-  answered  = false;
-
-  document.getElementById('ansCard').classList.remove('show');
-  document.getElementById('ansPickGrid').style.display = 'grid';
-  document.getElementById('ansResult').textContent = '';
-  document.getElementById('ansResult').className   = 'answer-result';
-  document.querySelectorAll('.pick-btn').forEach(b => {
-    b.disabled = false;
-    b.className = 'pick-btn';
+    }
   });
-  draw();
-  updateUI();
 }
 
-function openAnswer() {
-  document.getElementById('ansCard').classList.add('show');
-  document.getElementById('ansCardLabel').textContent = 'Pilih tampak atas di titik finish';
-  document.getElementById('ansPickGrid').style.display = 'grid';
-  document.querySelectorAll('.pick-btn').forEach(b => {
-    b.disabled = false;
-    b.className = 'pick-btn';
-  });
-  document.getElementById('ansResult').textContent = '';
+function addTrailMark3D(r, c, face) {
+    const R = maze.R;
+    const C = maze.C;
+    const offsetX = (C * UNIT) / 2 - (UNIT / 2);
+    const offsetZ = (R * UNIT) / 2 - (UNIT / 2);
+    
+    const geo = new THREE.PlaneGeometry(UNIT*0.6, UNIT*0.6);
+    const mat = new THREE.MeshBasicMaterial({ 
+        map: generateDiceTexture(face),
+        transparent: true,
+        opacity: 0.35
+    });
+    
+    const mark = new THREE.Mesh(geo, mat);
+    mark.rotation.x = -Math.PI / 2;
+    mark.position.set(c * UNIT - offsetX, 0.05, r * UNIT - offsetZ);
+    trailGroup.add(mark);
 }
 
-function pickAnswer(n) {
-  if (answered) return;
-  answered = true;
+function renderTargets3D() {
+    while(targetsGroup.children.length > 0) targetsGroup.remove(targetsGroup.children[0]);
+    const R = maze.R;
+    const C = maze.C;
+    const offsetX = (C * UNIT) / 2 - (UNIT / 2);
+    const offsetZ = (R * UNIT) / 2 - (UNIT / 2);
 
-  // Simulate rolling from current pos to end to get the accurate answer
-  const remPath = getShortestPath(pos.r, pos.c, maze.end[0], maze.end[1], maze);
-  let simState = [...diceState];
-  for (const d of remPath) {
-    simState = roll(simState, d);
-  }
-  const correct = simState[0];
-  const isRight = n === correct;
+    targets.forEach((tgt, idx) => {
+        const color = TARGET_COLORS[idx % TARGET_COLORS.length];
+        
+        // Cincin luar
+        const geo = new THREE.RingGeometry(UNIT*0.2, UNIT*0.4, 32);
+        const mat = new THREE.MeshBasicMaterial({ 
+            color: color, 
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: tgt.reached ? 0.2 : 0.8
+        });
+        const ring = new THREE.Mesh(geo, mat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(tgt.c * UNIT - offsetX, 0.06, tgt.r * UNIT - offsetZ);
+        targetsGroup.add(ring);
 
-  for (let i = 1; i <= 6; i++) {
-    const btn = document.getElementById(`pg-${i}`).parentElement;
-    btn.disabled = true;
-    if (i === n && isRight)  btn.classList.add('correct');
-    else if (i === n)        btn.classList.add('wrong');
-    else if (i === correct)  btn.classList.add('reveal-correct');
-  }
+        // Angka Target (Sprite)
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+        ctx.beginPath(); ctx.arc(64,64,60,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 80px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(idx + 1, 64, 70);
+        
+        const tex = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: tgt.reached ? 0.5 : 1 });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.scale.set(UNIT*0.5, UNIT*0.5, 1);
+        sprite.position.set(tgt.c * UNIT - offsetX, UNIT * 0.5, tgt.r * UNIT - offsetZ);
+        
+        // Animasi melayang
+        gsap.to(sprite.position, {
+            y: UNIT * 0.7,
+            duration: 1 + Math.random(),
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut"
+        });
 
-  const resultEl = document.getElementById('ansResult');
-  resultEl.textContent = isRight ? '✓ Benar! Sekarang jalan ke finish' : `✗ Salah. Jawaban: ${correct} titik`;
-  resultEl.className   = 'answer-result ' + (isRight ? 'correct' : 'wrong');
-
-  document.getElementById('ansCardLabel').textContent = isRight 
-    ? 'Tebakan benar!' 
-    : 'Jawaban salah — ini yang benar';
-
-  updateUI();
+        targetsGroup.add(sprite);
+    });
 }
 
-// ══════════════════════════════════════════════════
-// UI UPDATE
-// ══════════════════════════════════════════════════
 function updateUI() {
-  const atFinish = pos.r === maze.end[0] && pos.c === maze.end[1];
   const steps = trail.length - 1;
-
-  // Step counter (Just showing the numbers of steps taken)
   document.getElementById('stStep').textContent  = `${steps} langkah`;
   document.getElementById('ic-step').textContent = `${steps}`;
   
-  // Progress bar based on optimal length vs taken
-  const pct = Math.min(100, (steps / maze.optPathLength) * 100);
-  document.getElementById('progFill').style.width = pct + '%';
+  if (gameMode === 'maze') {
+      const reachedCount = targets.filter(t => t.reached).length;
+      const totalTargets = targets.length;
+      const pct = totalTargets > 0 ? (reachedCount / totalTargets) * 100 : 0;
+      document.getElementById('progFill').style.width = pct + '%';
 
-  // Direction buttons — disable only if at finish
-  const locked = atFinish;
-  for (const d of ['N','S','E','W']) {
-    const btn = document.getElementById('btn'+d);
-    btn.disabled = locked || !canGo(pos.r, pos.c, d);
-  }
-
-  // Hide Answer button if already answered or at finish
-  document.getElementById('btnAnswer').style.display = (answered || atFinish) ? 'none' : '';
-
-  // Status direction chip
-  const dirEl = document.getElementById('stDir');
-  if (atFinish) { dirEl.textContent = 'FINISH!'; dirEl.className = 's-dir finish'; }
-  else { dirEl.textContent = steps === 0 ? 'START' : '—'; dirEl.className = 's-dir'; }
-}
-
-// ══════════════════════════════════════════════════
-// CANVAS DRAW
-// ══════════════════════════════════════════════════
-function draw() {
-  const cv  = document.getElementById('cv');
-  const wrap = cv.parentElement;
-  const maxW = Math.min(480, wrap.clientWidth - 32);
-  const S = Math.max(22, Math.floor(maxW / maze.C));
-  cv.width  = S * maze.C;
-  cv.height = S * maze.R;
-  const ctx = cv.getContext('2d');
-
-  // Floor
-  ctx.fillStyle = '#111316';
-  ctx.fillRect(0, 0, cv.width, cv.height);
-
-  // Subtle dot grid
-  ctx.fillStyle = 'rgba(255,255,255,0.035)';
-  for (let r=0; r<maze.R; r++)
-    for (let c=0; c<maze.C; c++) {
-      ctx.beginPath();
-      ctx.arc(c*S+S/2, r*S+S/2, 1, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-  // Trail cells
-  for (let i = 0; i < trail.length; i++) {
-    const {r, c} = trail[i];
-    const alpha = 0.07 + (i / Math.max(trail.length-1, 1)) * 0.2;
-    ctx.fillStyle = `rgba(74,144,217,${alpha})`;
-    ctx.fillRect(c*S+1, r*S+1, S-1, S-1);
-  }
-
-  // Walls
-  const WW = Math.max(1.5, S * 0.075);
-  ctx.strokeStyle = '#b8bcc6';
-  ctx.lineWidth   = WW;
-  ctx.lineCap     = 'square';
-  for (let r=0; r<=maze.R; r++)
-    for (let c=0; c<maze.C; c++)
-      if (maze.wH[r][c]) {
-        ctx.beginPath(); ctx.moveTo(c*S, r*S); ctx.lineTo((c+1)*S, r*S); ctx.stroke();
-      }
-  for (let r=0; r<maze.R; r++)
-    for (let c=0; c<=maze.C; c++)
-      if (maze.wV[r][c]) {
-        ctx.beginPath(); ctx.moveTo(c*S, r*S); ctx.lineTo(c*S, (r+1)*S); ctx.stroke();
+      for (const d of ['N','S','E','W']) {
+        document.getElementById('btn'+d).disabled = !canGo(pos.r, pos.c, d);
       }
 
-  // Finish marker (always visible behind dice)
-  const rm = S * 0.26;
-  marker(ctx, maze.end[1]*S+S/2, maze.end[0]*S+S/2, rm, '#e05050', '#fff', 'F', S);
-
-  // Dice at current position
-  drawMiniDice(ctx, pos.c*S, pos.r*S, S, diceState[0]);
+      const dirEl = document.getElementById('stDir');
+      if (totalTargets > 0 && reachedCount === totalTargets) {
+        dirEl.textContent = 'COMPLETE!'; dirEl.className = 's-dir finish';
+      } else {
+        dirEl.textContent = 'SIMULASI'; dirEl.className = 's-dir';
+      }
+  } else {
+      // UI Mode Bebas
+      document.getElementById('progFill').style.width = '0%';
+      for (const d of ['N','S','E','W']) {
+        document.getElementById('btn'+d).disabled = false;
+      }
+  }
 }
 
-// Draw a mini dice at cell pixel position (px, py)
-function drawMiniDice(ctx, px, py, S, n) {
-  const pad = S * 0.1;
-  const x = px + pad, y = py + pad;
-  const w = S - pad * 2, h = S - pad * 2;
-  const rx = w * 0.18; // corner radius
-
-  ctx.save();
-
-  // Glow
-  ctx.shadowBlur  = 14;
-  ctx.shadowColor = 'rgba(74,144,217,0.85)';
-
-  // Dice body
-  ctx.fillStyle = '#f5f2ed';
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, rx);
-  ctx.fill();
-
-  // Border
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#4a90d9';
-  ctx.lineWidth = Math.max(1.5, S * 0.055);
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, rx);
-  ctx.stroke();
-
-  // Dots
-  const DOT_POS = {
-    1: [[.5,.5]],
-    2: [[.28,.28],[.72,.72]],
-    3: [[.28,.28],[.5,.5],[.72,.72]],
-    4: [[.28,.28],[.72,.28],[.28,.72],[.72,.72]],
-    5: [[.28,.28],[.72,.28],[.5,.5],[.28,.72],[.72,.72]],
-    6: [[.28,.28],[.72,.28],[.28,.5],[.72,.5],[.28,.72],[.72,.72]],
-  };
-  const dotR = Math.max(1.5, w * 0.085);
-  ctx.fillStyle = '#1a1a1a';
-  for (const [fx, fy] of DOT_POS[n]) {
-    ctx.beginPath();
-    ctx.arc(x + fx * w, y + fy * h, dotR, 0, Math.PI * 2);
-    ctx.fill();
+function updateTargetUI() {
+  const listEl = document.getElementById('targetList');
+  const helpEl = document.getElementById('clickModeHelp');
+  listEl.innerHTML = '';
+  
+  if (gameMode === 'free') {
+      helpEl.innerHTML = 'Mode Bebas aktif. Gulirkan dadu untuk melihat rotasi 3D. Tidak ada target atau labirin.';
+      listEl.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text3); font-size: 0.65rem; border: 1px dashed var(--border); border-radius: 8px;">Mode Bebas aktif.</div>`;
+      return;
   }
 
-  ctx.restore();
+  if (targets.length === 0) {
+    listEl.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text3); font-size: 0.65rem; border: 1px dashed var(--border); border-radius: 8px;">Belum ada target.</div>`;
+    return;
+  }
+  
+  targets.forEach((tgt, idx) => {
+    const colorStr = '#' + TARGET_COLORS[idx % TARGET_COLORS.length].toString(16).padStart(6, '0');
+    const reachedClass = tgt.reached ? 'reached' : '';
+    const statusText = tgt.reached ? `Terbaca di langkah ke-${tgt.stepNum}` : 'Belum terlewati';
+    const faceHTML = tgt.reached ? `<div class="target-result-face" title="Mata Dadu: ${tgt.face}">${getMiniDotGridHTML(tgt.face)}</div>` : `<div class="target-empty-face">?</div>`;
+    
+    listEl.insertAdjacentHTML('beforeend', `
+      <div class="target-item ${reachedClass}">
+        <div class="target-badge" style="background: ${colorStr}">${idx + 1}</div>
+        <div class="target-info">
+          <span class="target-coords">Ubin [Kolom ${tgt.c + 1}, Baris ${tgt.r + 1}]</span>
+          <span class="target-status">${statusText}</span>
+        </div>
+        ${faceHTML}
+      </div>
+    `);
+  });
 }
 
-function marker(ctx, x, y, r, fill, fg, label, S) {
-  ctx.fillStyle = fill;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = fg;
-  ctx.font = `bold ${Math.round(r)}px "JetBrains Mono",monospace`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(label, x, y+1);
+function onWindowResize() {
+    const container = document.getElementById('canvas-container');
+    if(!camera || !renderer) return;
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
-// ══════════════════════════════════════════════════
-// KEYBOARD & INIT
-// ══════════════════════════════════════════════════
+// Event Keyboard
 document.addEventListener('keydown', e => {
-  if (e.key==='ArrowUp')    { e.preventDefault(); move('N'); }
-  if (e.key==='ArrowDown')  { e.preventDefault(); move('S'); }
-  if (e.key==='ArrowRight') { e.preventDefault(); move('E'); }
-  if (e.key==='ArrowLeft')  { e.preventDefault(); move('W'); }
+  if(isAnimating) return;
+  if (e.key==='ArrowUp' || e.key === 'w')    { e.preventDefault(); move('N'); }
+  if (e.key==='ArrowDown' || e.key === 's')  { e.preventDefault(); move('S'); }
+  if (e.key==='ArrowRight' || e.key === 'd') { e.preventDefault(); move('E'); }
+  if (e.key==='ArrowLeft' || e.key === 'a')  { e.preventDefault(); move('W'); }
   if (e.key==='r'||e.key==='R') reset();
-  if (e.key==='1') setLevel(0);
-  if (e.key==='2') setLevel(1);
-  if (e.key==='3') setLevel(2);
 });
 
-window.addEventListener('resize', draw);
+// Mulai
+window.onload = () => {
+    newGame(0);
+};
 
-document.querySelectorAll('.lvl-btn').forEach((b,i) => {
-  if (i < 3) b.onclick = () => setLevel(i);
-});
-
-// Start
-newGame(0);
 </script>
 </body>
 </html>
