@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Blitz 2.0 - Split Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+    
+    :root {
+      --bg: #030509;
+      --panel: #080d14;
+      --border: #0ff3;
+      --cyan: #00f5ff;
+      --p1: #00ff88; 
+      --p2: #00d9ff; 
+      --red: #ff2244;
+      --gold: #ffd700;
+      --text: #c8e8f8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .font-orbitron { font-family: 'Orbitron', monospace; }
+    
+    .cyber-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .game-grid {
+      display: grid;
+      width: 100%;
+    }
+
+    /* Gap dinamis menyesuaikan kepadatan grid */
+    .grid-size-5 { gap: 4px; }
+    .grid-size-7 { gap: 3px; }
+    .grid-size-8 { gap: 2px; }
+    .grid-size-10 { gap: 1px; }
+
+    .grid-cell {
+      /* aspect-ratio: 1/1; dihapus agar grid-template-rows dapat menahannya */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(26, 42, 58, 0.4);
+      border: 1px solid rgba(0, 245, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      user-select: none;
+      overflow: hidden;
+      container-type: inline-size; /* Penting untuk responsivitas font internal */
+      padding: 1px;
+    }
+
+    /* Penskalaan ukuran font otomatis berdasarkan ukuran Matrix Grid */
+    .grid-size-5 .cell-content { font-size: clamp(10px, 20cqw, 28px); }
+    .grid-size-7 .cell-content { font-size: clamp(9px, 22cqw, 24px); }
+    .grid-size-8 .cell-content { font-size: clamp(8px, 25cqw, 20px); }
+    .grid-size-10 .cell-content { font-size: clamp(6px, 32cqw, 16px); }
+
+    .cell-content {
+      width: 100%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: 1;
+    }
+
+    /* Efek Klaim Sel */
+    .grid-cell.p1-hit {
+      background: rgba(0, 255, 136, 0.4) !important;
+      border-color: var(--p1) !important;
+      box-shadow: inset 0 0 10px var(--p1);
+      pointer-events: none;
+    }
+
+    .grid-cell.p2-hit {
+      background: rgba(0, 217, 255, 0.4) !important;
+      border-color: var(--p2) !important;
+      box-shadow: inset 0 0 10px var(--p2);
+      pointer-events: none;
+    }
+
+    .grid-cell.claimed {
+      pointer-events: none;
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+
+    .grid-cell.wrong {
+      background: rgba(255, 34, 68, 0.2) !important;
+      border-color: var(--red) !important;
+      animation: cell-shake 0.3s ease-in-out;
+    }
+
+    @keyframes cell-shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
+
+    /* Overrides KaTeX untuk sel */
+    .katex { font-size: 1.1em; color: white; pointer-events: none; }
+    
+    #setup-screen { overflow-y: auto; max-height: 100vh; }
+
+    .split-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100%;
+      width: 100%;
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .player-side {
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      height: 100%;
+      position: relative;
+    }
+
+    .p1-side { border-right: 2px solid var(--p1); }
+    .p2-side { border-left: 2px solid var(--p2); }
+
+    /* Button styles untuk Setup Menu */
+    .opt-btn {
+      padding: 0.75rem 0;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 0.25rem;
+      transition: all 0.2s;
+      text-align: center;
+      cursor: pointer;
+    }
+    
+    .opt-active {
+      background-color: rgba(0, 245, 255, 0.2);
+      border: 1px solid #00f5ff;
+      color: #00f5ff;
+    }
+    .opt-inactive {
+      background-color: rgba(8, 13, 20, 0.5);
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      color: rgba(0, 245, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center">
+
+  <div id="setup-screen" class="w-full max-w-5xl p-6 space-y-6">
+    <div class="text-center space-y-1 mb-8">
+      <h1 class="text-5xl md:text-7xl font-black font-orbitron text-[#00f5ff] tracking-tighter italic drop-shadow-[0_0_15px_rgba(0,245,255,0.4)]">NUMBER BLITZ <span class="text-white">2.0</span></h1>
+      <p class="text-cyan-500/50 tracking-[0.6em] font-bold text-[10px]">DUAL GRID PROTOCOL</p>
+    </div>
+
+    <!-- Grid Pengaturan Utama -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+      <!-- 1. Mode Pemain -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">1. Mode Scan</label>
+        <div class="grid grid-cols-2 gap-2" id="player-opts">
+          <div class="opt-btn mode-p-btn opt-inactive" data-players="1">SOLO PLAY</div>
+          <div class="opt-btn mode-p-btn opt-active" data-players="2">2P VERSUS</div>
+        </div>
+      </div>
+
+      <!-- 2. Sistem Grid -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">2. Sistem Grid</label>
+        <div class="grid grid-cols-2 gap-2" id="gmode-opts">
+          <div class="opt-btn gmode-btn opt-inactive" data-gmode="static">STATIS</div>
+          <div class="opt-btn gmode-btn opt-active" data-gmode="dynamic">DINAMIS</div>
+        </div>
+      </div>
+
+      <!-- 3. Ukuran Grid -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">3. Ukuran Matrix</label>
+        <div class="grid grid-cols-4 gap-2" id="size-opts">
+          <div class="opt-btn size-btn opt-inactive" data-size="5">5x5</div>
+          <div class="opt-btn size-btn opt-active" data-size="7">7x7</div>
+          <div class="opt-btn size-btn opt-inactive" data-size="8">8x8</div>
+          <div class="opt-btn size-btn opt-inactive" data-size="10">10x10</div>
+        </div>
+      </div>
+
+      <!-- 4. Jumlah Digit -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">4. Tingkat Digit</label>
+        <div class="grid grid-cols-2 gap-2" id="digit-opts">
+          <div class="opt-btn digit-btn opt-active" data-digit="3">3 DIGIT</div>
+          <div class="opt-btn digit-btn opt-inactive" data-digit="4">4 DIGIT</div>
+        </div>
+      </div>
+
+      <!-- 5. Durasi Scan -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">5. Durasi Waktu</label>
+        <div class="grid grid-cols-3 gap-2" id="dur-opts">
+          <div class="opt-btn dur-btn opt-inactive" data-time="60">1 MNT</div>
+          <div class="opt-btn dur-btn opt-active" data-time="180">3 MNT</div>
+          <div class="opt-btn dur-btn opt-inactive" data-time="300">5 MNT</div>
+        </div>
+      </div>
+
+      <!-- 6. Tampilan Soal -->
+      <div class="cyber-panel p-4 rounded-lg">
+        <label class="block text-[10px] font-bold text-cyan-400 mb-2 tracking-widest font-orbitron uppercase">6. Tipe Enkripsi</label>
+        <div class="grid grid-cols-2 gap-2" id="qtype-opts">
+          <div class="opt-btn qtype-btn opt-active" data-type="single">ANGKA</div>
+          <div class="opt-btn qtype-btn opt-inactive" data-type="mixed">CAMPURAN</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 7. Algoritma Target -->
+    <div class="cyber-panel p-4 rounded-lg">
+      <label class="block text-[10px] font-bold text-yellow-500 mb-2 tracking-widest font-orbitron uppercase">7. Algoritma Target Pencarian</label>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="cat-list"></div>
+    </div>
+
+    <!-- Start Button -->
+    <button id="start-btn" class="w-full py-5 bg-cyan-500 text-black font-black font-orbitron rounded-lg hover:bg-white transition-all shadow-[0_0_30px_rgba(0,245,255,0.4)] uppercase tracking-widest">
+      Inisialisasi Blitz
+    </button>
+  </div>
+
+  <div id="game-screen" class="hidden fixed inset-0 flex flex-col bg-black">
+    
+    <!-- Global Header (HUD) -->
+    <div class="h-16 bg-[#080d14] border-b border-cyan-500/20 flex items-center justify-between px-4 md:px-8 z-50 shadow-md">
+        <div id="game-cat-title" class="text-sm md:text-xl font-black text-yellow-400 font-orbitron uppercase italic drop-shadow-[0_0_10px_rgba(255,215,0,0.4)]">TARGET: BILANGAN PRIMA</div>
+        <div class="flex items-center gap-6">
+            <div class="text-center">
+                <div class="text-[8px] md:text-[10px] text-red-500 font-bold font-orbitron tracking-widest">WAKTU TERSISA</div>
+                <div id="timer-val" class="text-2xl md:text-3xl font-black font-orbitron text-red-500 drop-shadow-[0_0_10px_#ff2244]">180</div>
+            </div>
+            <button id="finish-btn" class="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 text-[10px] md:text-xs font-black font-orbitron rounded transition-colors">END SCAN</button>
+        </div>
+    </div>
+
+    <!-- The Dual Grids -->
+    <div id="dual-view" class="flex-1 split-container bg-black min-h-0">
+        
+        <!-- P1 Area -->
+        <div class="player-side p1-side bg-[#030509]">
+            <div class="flex justify-between items-center mb-2 px-2 shrink-0">
+                <div class="text-green-400 font-orbitron font-bold text-xs uppercase flex items-center gap-2">
+                   <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> P1 Area
+                </div>
+                <div id="p1-score-val" class="text-3xl font-black font-orbitron text-green-400">0</div>
+            </div>
+            <!-- Arena Grid 1 -->
+            <div class="flex-1 flex items-center justify-center overflow-hidden relative" id="p1-arena">
+                <div id="grid-p1" class="game-grid aspect-square max-h-full"></div>
+            </div>
+            <!-- Tombol Complete P1 (Mode Dinamis) -->
+            <button id="p1-complete-btn" class="hidden shrink-0 mt-2 py-3 bg-green-500/10 border border-green-500 text-green-400 font-orbitron font-black text-xs md:text-sm rounded hover:bg-green-500 hover:text-black transition-all shadow-[0_0_15px_rgba(0,255,136,0.2)]">
+                ✅ COMPLETE (NO TARGETS)
+            </button>
+        </div>
+
+        <!-- P2 Area -->
+        <div id="p2-container" class="player-side p2-side bg-[#030509]">
+            <div class="flex justify-between items-center mb-2 px-2 shrink-0">
+                <div class="text-cyan-400 font-orbitron font-bold text-xs uppercase flex items-center gap-2">
+                   <span class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span> P2 Area
+                </div>
+                <div id="p2-score-val" class="text-3xl font-black font-orbitron text-cyan-400">0</div>
+            </div>
+            <!-- Arena Grid 2 -->
+            <div class="flex-1 flex items-center justify-center overflow-hidden relative" id="p2-arena">
+                <div id="grid-p2" class="game-grid aspect-square max-h-full"></div>
+            </div>
+            <!-- Tombol Complete P2 (Mode Dinamis) -->
+            <button id="p2-complete-btn" class="hidden shrink-0 mt-2 py-3 bg-cyan-500/10 border border-cyan-500 text-cyan-400 font-orbitron font-black text-xs md:text-sm rounded hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_15px_rgba(0,245,255,0.2)]">
+                ✅ COMPLETE (NO TARGETS)
+            </button>
+        </div>
+    </div>
+  </div>
+
+  <div id="result-screen" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+    <div class="w-full max-w-xl text-center space-y-8">
+      <div class="space-y-1">
+        <div class="text-cyan-500 font-orbitron tracking-[0.6em] text-xs font-bold">DIAGNOSIS COMPLETE</div>
+        <h2 id="result-title" class="text-5xl font-black font-orbitron text-white italic drop-shadow-md">SESSION ENDED</h2>
+      </div>
+      
+      <div class="cyber-panel p-8 rounded-xl relative overflow-hidden border-2 border-cyan-500/50 shadow-[0_0_40px_rgba(0,245,255,0.1)]">
+        <div id="final-winner-msg" class="text-xs font-bold text-white/50 mb-2 uppercase tracking-widest">Statistical Summary</div>
+        
+        <!-- Mode Solo Tampilan -->
+        <div id="solo-result-view" class="mb-6">
+          <div id="final-score-display" class="text-8xl font-black font-orbitron text-yellow-400 drop-shadow-[0_0_20px_rgba(255,215,0,0.5)]">0</div>
+        </div>
+        
+        <!-- Mode Versus Tampilan -->
+        <div id="versus-details" class="hidden grid grid-cols-2 gap-8 border-b border-white/10 pb-6 mb-6">
+            <div>
+                <div class="text-[10px] text-green-400 font-bold uppercase mb-1 tracking-widest font-orbitron">Player 1</div>
+                <div id="final-p1-score" class="text-5xl font-black font-orbitron text-green-400">0</div>
+            </div>
+            <div>
+                <div class="text-[10px] text-cyan-400 font-bold uppercase mb-1 tracking-widest font-orbitron">Player 2</div>
+                <div id="final-p2-score" class="text-5xl font-black font-orbitron text-cyan-400">0</div>
+            </div>
+        </div>
+        
+        <!-- Statistik Detail -->
+        <div class="grid grid-cols-3 gap-4 text-xs font-orbitron border-t border-white/5 pt-6">
+            <div>ACCURACY<div id="res-acc" class="font-black text-xl text-white mt-1">0%</div></div>
+            <div>TARGETS<div id="res-found" class="font-black text-xl text-white mt-1">0/0</div></div>
+            <div>MISSES<div id="res-wrong" class="font-black text-xl text-red-500 mt-1">0</div></div>
+        </div>
+      </div>
+      
+      <button onclick="location.reload()" class="w-full bg-cyan-500/10 border-2 border-cyan-500 text-cyan-400 py-4 rounded-lg font-black font-orbitron text-sm hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_20px_rgba(0,245,255,0.2)]">
+        RE-INITIALIZE PROTOCOL
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const MathUtils = {
+      isPrime: (n) => {
+        if (n < 2) return false;
+        if (n === 2) return true;
+        if (n % 2 === 0) return false;
+        for (let i = 3; i <= Math.sqrt(n); i+=2) if (n % i === 0) return false;
+        return true;
+      },
+      isSquare: (n) => {
+        const s = Math.round(Math.sqrt(n));
+        return s * s === n;
+      },
+      // Fungsi untuk menghasilkan tampilan angka (bisa polos atau operasi/latex)
+      generateDisplay: (targetVal, type) => {
+        if (type === 'single') return { text: targetVal.toString(), isLatex: false };
+        
+        // Mode Mixed: Acak tipe operasi
+        const types = ['operation', 'power_root', 'fraction'];
+        const selectedType = types[Math.floor(Math.random() * types.length)];
+
+        if (selectedType === 'operation') {
+          const p = Math.floor(Math.random() * 50) + 10;
+          const isAdd = Math.random() > 0.5;
+          if (isAdd) {
+             return { text: `${targetVal - p} + ${p}`, isLatex: false };
+          } else {
+             return { text: `${targetVal + p} - ${p}`, isLatex: false };
+          }
+        } else if (selectedType === 'power_root') {
+          const isRoot = Math.random() > 0.5;
+          if (isRoot) {
+            const r = Math.floor(Math.random() * 10) + 2;
+            const diff = targetVal - r;
+            return { text: `\\sqrt{${r*r}} ${diff >= 0 ? '+' : ''} ${diff}`, isLatex: true };
+          } else {
+            const base = Math.floor(Math.random() * 8) + 2;
+            const diff = targetVal - (base * base);
+            return { text: `${base}^2 ${diff >= 0 ? '+' : ''} ${diff}`, isLatex: true };
+          }
+        } else if (selectedType === 'fraction') {
+          const den = Math.floor(Math.random() * 4) + 2; // penyebut 2, 3, 4, 5
+          return { text: `\\frac{${targetVal * den}}{${den}}`, isLatex: true };
+        }
+        
+        return { text: targetVal.toString(), isLatex: false };
+      }
+    };
+
+    const CATEGORIES = [
+      { id: 'prime', name: 'PRIMA', tag: 'BILANGAN PRIMA', check: MathUtils.isPrime },
+      { id: 'mult7', name: 'MULT 7', tag: 'KELIPATAN 7', check: n => n % 7 === 0 },
+      { id: 'mult13', name: 'MULT 13', tag: 'KELIPATAN 13', check: n => n % 13 === 0 },
+      { id: 'square', name: 'KUADRAT', tag: 'KUADRAT SEMPURNA', check: MathUtils.isSquare },
+      { id: 'ends1', name: 'AKHIRAN 1', tag: 'DIGIT TERAKHIR 1', check: n => n % 10 === 1 },
+      { id: 'ends9', name: 'AKHIRAN 9', tag: 'DIGIT TERAKHIR 9', check: n => n % 10 === 9 },
+      { id: 'rem13', name: 'SISA 13', tag: 'DIBAGI 20 SISA 13', check: n => n % 20 === 13 },
+      { id: 'rem5', name: 'SISA 5', tag: 'DIBAGI 7 SISA 5', check: n => n % 7 === 5 }
+    ];
+
+    const State = {
+      players: 2,           // 1 or 2
+      gridMode: 'dynamic',  // 'static' or 'dynamic'
+      gridSize: 7,          // DEFAULT KE 7x7
+      digits: 3,            // 3 or 4
+      duration: 180,        // 60, 180, 300
+      questionType: 'single', // 'single' or 'mixed'
+      selectedCategory: CATEGORIES[0],
+      
+      gridData: [], // Shared data source untuk grid
+      scores: { p1: 0, p2: 0 },
+      timeLeft: 180,
+      foundCount: 0,
+      totalTargets: 0,
+      isGameActive: false,
+      stats: { wrong: 0, total: 0 },
+      timerInterval: null
+    };
+
+    // Helper function untuk menghubungkan tombol opsi UI ke variabel State
+    function setupOption(selector, stateKey, dataType) {
+      document.querySelectorAll(selector).forEach(btn => {
+        btn.onclick = () => {
+          // Reset styling ke inactive untuk semua tombol dalam grup yang sama
+          document.querySelectorAll(selector).forEach(b => {
+            b.classList.remove('opt-active');
+            b.classList.add('opt-inactive');
+          });
+          // Set styling tombol yang diklik ke active
+          btn.classList.remove('opt-inactive');
+          btn.classList.add('opt-active');
+          
+          // Simpan nilai ke State
+          const val = btn.getAttribute(dataType);
+          State[stateKey] = (dataType === 'data-type' || dataType === 'data-gmode') ? val : parseInt(val);
+        };
+      });
+    }
+
+    // Mapping tombol ke variabel State
+    setupOption('.mode-p-btn', 'players', 'data-players');
+    setupOption('.gmode-btn', 'gridMode', 'data-gmode');
+    setupOption('.size-btn', 'gridSize', 'data-size');
+    setupOption('.digit-btn', 'digits', 'data-digit');
+    setupOption('.dur-btn', 'duration', 'data-time');
+    setupOption('.qtype-btn', 'questionType', 'data-type');
+
+    // Generate Daftar Kategori Target
+    const catList = document.getElementById('cat-list');
+    CATEGORIES.forEach((cat, idx) => {
+      const btn = document.createElement('button');
+      // Default: Kategori pertama terpilih
+      btn.className = `cat-btn p-3 border border-cyan-500/30 rounded bg-cyan-950/20 text-left transition-all ${idx === 0 ? 'border-yellow-500 bg-yellow-500/20' : ''}`;
+      btn.innerHTML = `<div class="text-[8px] opacity-50 font-bold font-orbitron">ALGORITMA</div><div class="font-bold text-xs font-orbitron text-white">${cat.name}</div>`;
+      
+      btn.onclick = () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('border-yellow-500', 'bg-yellow-500/20'));
+        btn.classList.add('border-yellow-500', 'bg-yellow-500/20');
+        State.selectedCategory = cat;
+      };
+      catList.appendChild(btn);
+    });
+
+    document.getElementById('start-btn').onclick = initGame;
+    document.getElementById('finish-btn').onclick = endGame;
+    document.getElementById('p1-complete-btn').onclick = () => checkComplete(1);
+    document.getElementById('p2-complete-btn').onclick = () => checkComplete(2);
+
+    function initGame() {
+      // Sembunyikan layar setup, tampilkan arena
+      document.getElementById('setup-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      
+      // Reset State
+      State.scores = { p1: 0, p2: 0 };
+      State.stats = { wrong: 0, total: 0 };
+      State.foundCount = 0;
+      State.timeLeft = State.duration;
+      State.isGameActive = true;
+
+      // Atur View: Split (2P) atau Full (1P)
+      const dualView = document.getElementById('dual-view');
+      const p2Container = document.getElementById('p2-container');
+
+      if (State.players === 1) {
+          dualView.style.gridTemplateColumns = "1fr"; // Full width
+          p2Container.classList.add('hidden');
+      } else {
+          dualView.style.gridTemplateColumns = "1fr 1fr"; // Split
+          p2Container.classList.remove('hidden');
+      }
+
+      // Tampilkan tombol Complete HANYA di mode Dinamis
+      if (State.gridMode === 'dynamic') {
+          document.getElementById('p1-complete-btn').classList.remove('hidden');
+          if (State.players === 2) document.getElementById('p2-complete-btn').classList.remove('hidden');
+      } else {
+          document.getElementById('p1-complete-btn').classList.add('hidden');
+          document.getElementById('p2-complete-btn').classList.add('hidden');
+      }
+      
+      document.getElementById('game-cat-title').textContent = `SCAN TARGET: ${State.selectedCategory.tag}`;
+      
+      generateSyncGrid();
+      startTimer();
+      updateHUD();
+    }
+
+    function generateSyncGrid() {
+      State.gridData = [];
+      State.totalTargets = 0;
+      const count = State.gridSize * State.gridSize;
+
+      // 1. Buat data sel yang identik untuk dibagikan ke layar
+      for (let i = 0; i < count; i++) {
+        State.gridData.push(createSingleData(i));
+      }
+
+      // 2. Render UI sel ke sisi pemain yang aktif
+      renderSide('grid-p1', 1);
+      if (State.players === 2) renderSide('grid-p2', 2);
+    }
+
+    // Fungsi pembuat 1 butir soal/angka
+    function createSingleData(idx) {
+      // Range 3 Digit: 100-999. Range 4 Digit: 1000-9999.
+      const min = State.digits === 3 ? 100 : 1000;
+      const max = State.digits === 3 ? 999 : 9999;
+      let val = Math.floor(Math.random() * (max - min + 1)) + min;
+      
+      let isTarget = State.selectedCategory.check(val);
+      if (isTarget) State.totalTargets++;
+      
+      return {
+        id: idx,
+        value: val,
+        display: MathUtils.generateDisplay(val, State.questionType),
+        isTarget,
+        claimedBy: null
+      };
+    }
+
+    function renderSide(containerId, playerNum) {
+      const container = document.getElementById(containerId);
+      
+      // Terapkan class dinamis untuk kepadatan grid, pastikan tidak meluap dari container
+      container.className = `game-grid grid-size-${State.gridSize} aspect-square max-h-full max-w-full mx-auto`;
+      
+      // Kunci Jumlah Kolom dan BARIS agar tidak terlempar keluar layar
+      container.style.gridTemplateColumns = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+      container.style.gridTemplateRows = `repeat(${State.gridSize}, minmax(0, 1fr))`;
+      
+      container.innerHTML = '';
+
+      State.gridData.forEach((data, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.id = `${containerId}-cell-${idx}`;
+        cell.onclick = () => handleGlobalClick(idx, playerNum);
+        
+        // Pembungkus konten dengan container query agar ukuran font adaptif
+        const content = document.createElement('div');
+        content.className = 'cell-content font-orbitron font-bold';
+        
+        // Render menggunakan KaTeX jika berupa rumus, jika bukan text biasa
+        if (data.display.isLatex) {
+            katex.render(data.display.text, content, { throwOnError: false });
+        } else {
+            content.textContent = data.display.text;
+        }
+
+        cell.appendChild(content);
+        container.appendChild(cell);
+      });
+    }
+
+    function handleGlobalClick(idx, playerNum) {
+      if (!State.isGameActive) return;
+      
+      const data = State.gridData[idx];
+      if (data.claimedBy) return; // Mencegah double claim jika lawan sudah klik
+
+      const playerKey = playerNum === 1 ? 'p1' : 'p2';
+      const otherPlayerNum = playerNum === 1 ? 2 : 1;
+      
+      // Ambil elemen DOM dari kedua grid
+      const cellSelf = document.getElementById(`grid-p${playerNum}-cell-${idx}`);
+      const cellOther = document.getElementById(`grid-p${otherPlayerNum}-cell-${idx}`);
+
+      State.stats.total++;
+
+      if (data.isTarget) {
+        // --- JAWABAN BENAR ---
+        data.claimedBy = playerKey; // Lock datanya
+        State.foundCount++;
+        State.scores[playerKey] += 10; // +10 POIN
+        
+        // Ubah warna sel untuk memberi tahu siapa yang berhasil klaim
+        cellSelf.classList.add(`${playerKey}-hit`);
+        if (cellOther) cellOther.classList.add(`${playerKey}-hit`);
+
+        if (State.gridMode === 'static') {
+            // Statis: Sel mati dan abu-abu, tinggalkan inisial yang mengklaim
+            cellSelf.classList.add('claimed');
+            if (cellOther) cellOther.classList.add('claimed');
+            
+            const initials = `<div class="absolute inset-0 flex items-center justify-center text-[12px] font-black opacity-40">${playerKey.toUpperCase()}</div>`;
+            cellSelf.innerHTML += initials;
+            if (cellOther) cellOther.innerHTML += initials;
+            
+            // Cek kemenangan instan (semua target habis)
+            if (State.foundCount === State.totalTargets) endGame();
+        } else {
+            // Dinamis: Target langsung diganti angka baru setelah sepersekian detik
+            setTimeout(() => {
+                State.gridData[idx] = createSingleData(idx);
+                updateSingleCellUI(idx);
+            }, 250);
+        }
+
+      } else {
+        // --- JAWABAN SALAH ---
+        State.scores[playerKey] -= 5; // -5 POIN (BISA MINUS)
+        State.stats.wrong++;
+        
+        // Efek goyang (shake) HANYA di layar pemain yang salah klik
+        cellSelf.classList.add('wrong');
+        setTimeout(() => cellSelf.classList.remove('wrong'), 300);
+      }
+
+      updateHUD();
+    }
+
+    function updateSingleCellUI(idx) {
+        const data = State.gridData[idx];
+        const players = State.players === 1 ? [1] : [1, 2];
+        
+        players.forEach(pNum => {
+            const cell = document.getElementById(`grid-p${pNum}-cell-${idx}`);
+            if (!cell) return;
+            
+            // Reset class ke default
+            cell.className = 'grid-cell';
+            
+            // Render ulang isi konten
+            const content = document.createElement('div');
+            content.className = 'cell-content font-orbitron font-bold';
+            
+            if (data.display.isLatex) {
+                katex.render(data.display.text, content, { throwOnError: false });
+            } else {
+                content.textContent = data.display.text;
+            }
+            
+            cell.innerHTML = '';
+            cell.appendChild(content);
+            
+            // Animasi Pop-in untuk sel baru
+            content.animate([
+                { opacity: 0, transform: 'scale(0.3)' },
+                { opacity: 1, transform: 'scale(1)' }
+            ], { duration: 300, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' });
+        });
+    }
+
+    function checkComplete(playerNum) {
+        if (!State.isGameActive || State.gridMode !== 'dynamic') return;
+        const playerKey = playerNum === 1 ? 'p1' : 'p2';
+        
+        // Hitung berapa target sisa yang aktif (belum diklaim)
+        const currentTargets = State.gridData.filter(d => d.isTarget && !d.claimedBy).length;
+        
+        if (currentTargets === 0) {
+            // SUCCESS: Benar tidak ada target
+            State.scores[playerKey] += 30; // Bonus +30
+            showFloatingFeedback(playerNum, "CLEAR! +30", "text-green-400 drop-shadow-[0_0_15px_#00ff88]");
+            // Regenerasi ulang seluruh arena
+            generateSyncGrid();
+        } else {
+            // FAIL: Masih ada target bersembunyi
+            State.scores[playerKey] -= 10; // Penalti -10
+            showFloatingFeedback(playerNum, "MISS! (-10)", "text-red-500 drop-shadow-[0_0_15px_#ff2244]");
+        }
+        updateHUD();
+    }
+
+    function showFloatingFeedback(playerNum, text, colorClass) {
+        const arena = document.getElementById(`p${playerNum}-arena`);
+        const msg = document.createElement('div');
+        msg.className = `absolute z-50 font-black font-orbitron text-4xl md:text-6xl ${colorClass} pointer-events-none`;
+        msg.textContent = text;
+        msg.style.top = '50%';
+        msg.style.left = '50%';
+        msg.style.transform = 'translate(-50%, -50%)';
+        
+        arena.appendChild(msg);
+        
+        msg.animate([
+            { opacity: 0, transform: 'translate(-50%, -30%) scale(0.5)' },
+            { opacity: 1, transform: 'translate(-50%, -50%) scale(1.1)' },
+            { opacity: 0, transform: 'translate(-50%, -80%) scale(0.8)' }
+        ], { duration: 1500, easing: 'ease-out' });
+        
+        setTimeout(() => msg.remove(), 1500);
+    }
+
+    function updateHUD() {
+      document.getElementById('p1-score-val').textContent = State.scores.p1;
+      document.getElementById('p2-score-val').textContent = State.scores.p2;
+      
+      const m = Math.floor(State.timeLeft / 60).toString().padStart(2, '0');
+      const s = (State.timeLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timer-val').textContent = `${m}:${s}`;
+    }
+
+    function startTimer() {
+      clearInterval(State.timerInterval);
+      State.timerInterval = setInterval(() => {
+        State.timeLeft--;
+        updateHUD();
+        if (State.timeLeft <= 0) {
+            State.timeLeft = 0;
+            updateHUD();
+            endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      State.isGameActive = false;
+      clearInterval(State.timerInterval);
+      
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+
+      const totalFound = State.foundCount;
+      const acc = State.stats.total > 0 ? Math.round((totalFound / State.stats.total) * 100) : 0;
+      
+      document.getElementById('res-acc').textContent = `${acc}%`;
+      
+      // Dinamis = Endless (tampilkan jumlah yang ditemukan saja), Statis = Targetnya tetap
+      if (State.gridMode === 'dynamic') {
+          document.getElementById('res-found').textContent = `${totalFound} Targets`;
+      } else {
+          document.getElementById('res-found').textContent = `${totalFound} / ${State.totalTargets}`;
+      }
+      
+      document.getElementById('res-wrong').textContent = State.stats.wrong;
+
+      // Render Judul dan Angka Skor Akhir
+      if (State.players === 1) {
+          document.getElementById('solo-result-view').classList.remove('hidden');
+          document.getElementById('versus-details').classList.add('hidden');
+          document.getElementById('final-score-display').textContent = State.scores.p1;
+          document.getElementById('result-title').textContent = "TOTAL SKOR";
+      } else {
+          document.getElementById('solo-result-view').classList.add('hidden');
+          document.getElementById('versus-details').classList.remove('hidden');
+          
+          document.getElementById('final-p1-score').textContent = State.scores.p1;
+          document.getElementById('final-p2-score').textContent = State.scores.p2;
+          
+          if (State.scores.p1 === State.scores.p2) {
+            document.getElementById('result-title').textContent = "DRAW SESSION";
+          } else {
+            const winner = State.scores.p1 > State.scores.p2 ? "P1" : "P2";
+            document.getElementById('result-title').textContent = `${winner} DOMINATION`;
+          }
+      }
+    }
+  </script>
+</body>
+</html>
