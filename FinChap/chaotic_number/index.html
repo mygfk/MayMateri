@@ -10,14 +10,27 @@
             font-family: 'Inter', sans-serif;
             background-color: #0f172a; /* Tailwind slate-900 */
             color: #f8fafc; /* Tailwind slate-50 */
-            overflow: hidden; /* Prevent scrollbars from moving numbers */
-            touch-action: none; /* Prevent pinch-zoom on mobile */
+            overflow-x: hidden; /* Mencegah scroll menyamping */
+            overflow-y: auto; /* Membuka scroll atas bawah jika box diperbesar */
+            touch-action: pan-y;
         }
         
+        #game-wrapper {
+            resize: both; /* Fitur ajaib agar kotak bisa ditarik/diubah ukurannya */
+            overflow: hidden; /* Syarat wajib agar resize handle muncul di pojok */
+            width: 100%;
+            height: 60vh; 
+            min-height: 300px; /* Batas minimal kecilnya kotak */
+            min-width: 300px;
+            max-width: 100%;
+            max-height: 85vh; /* Batas maksimal tinggi tarikan */
+            background-color: #1e293b;
+        }
+
         #game-area {
             position: relative;
             width: 100%;
-            height: calc(100vh - 150px); /* Leave space for controls */
+            height: 100%; /* Mengisi penuh wrapper yang ditarik */
             background-color: #1e293b; /* Tailwind slate-800 */
             border-radius: 0.5rem;
             overflow: hidden;
@@ -79,7 +92,7 @@
         }
     </style>
 </head>
-<body class="flex flex-col h-screen p-4">
+<body class="flex flex-col min-h-screen p-4 pb-12"> <!-- Ubah agar bisa digulir jika layar terlalu kecil dan tambah jarak bawah -->
 
     <div id="controls" class="w-full max-w-5xl mx-auto mb-4 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center justify-between z-10">
         
@@ -142,11 +155,15 @@
         </div>
     </div>
 
-    <div id="game-wrapper" class="w-full max-w-6xl mx-auto flex-grow relative rounded-xl border border-slate-700">
+    <!-- Menghapus flex-grow, mempertegas frame border, dan memberi margin bawah -->
+    <div id="game-wrapper" class="w-full max-w-6xl mx-auto relative rounded-xl border-4 border-slate-600 overflow-hidden shadow-2xl mb-8 group">
         <div id="game-area">
             <!-- Numbers will be injected here by JS -->
-            <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4">
-                Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!
+            <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
+                Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
+                <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
+                    💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                </span>
             </div>
         </div>
     </div>
@@ -442,8 +459,11 @@
             
             // Kembalikan ke tampilan teks awal
             gameArea.innerHTML = `
-                <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4">
-                    Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!
+                <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
+                    Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
+                    <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
+                        💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                    </span>
                 </div>
             `;
             numbersData = [];
@@ -486,21 +506,21 @@
                 p.x += p.vx * deltaTime;
                 p.y += p.vy * deltaTime;
 
-                // Wall collisions (Bounce)
+                // Wall collisions (Bounce) dengan pelindungan ekstra jika frame diperkecil paksa
                 if (p.x <= 0) {
                     p.x = 0;
-                    p.vx *= -1;
+                    p.vx = Math.abs(p.vx); // Paksa pantul ke kanan
                 } else if (p.x >= areaWidth - p.size) {
-                    p.x = areaWidth - p.size;
-                    p.vx *= -1;
+                    p.x = Math.max(0, areaWidth - p.size); // Jangan sampai angka minus/keluar
+                    p.vx = -Math.abs(p.vx); // Paksa pantul ke kiri
                 }
 
                 if (p.y <= 0) {
                     p.y = 0;
-                    p.vy *= -1;
+                    p.vy = Math.abs(p.vy); // Paksa pantul ke bawah
                 } else if (p.y >= areaHeight - p.size) {
-                    p.y = areaHeight - p.size;
-                    p.vy *= -1;
+                    p.y = Math.max(0, areaHeight - p.size);
+                    p.vy = -Math.abs(p.vy); // Paksa pantul ke atas
                 }
                 
                 // Apply new position
@@ -561,19 +581,21 @@
             animationFrameId = requestAnimationFrame(animate);
         }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
+        // Handle wrapper resize using ResizeObserver instead of window resize
+        const resizeObserver = new ResizeObserver(() => {
             if (!isPlaying && numbersData.length > 0) {
-                // If stopped, just ensure they stay within bounds visually
+                // Saat status "Berhenti", pastikan angka tidak tertinggal di luar kotak kalau diperkecil
                 const areaWidth = gameArea.clientWidth;
                 const areaHeight = gameArea.clientHeight;
                 numbersData.forEach(p => {
-                    if (p.x > areaWidth - p.size) p.x = areaWidth - p.size;
-                    if (p.y > areaHeight - p.size) p.y = areaHeight - p.size;
+                    if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);
+                    if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);
                     p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
                 });
             }
         });
+        
+        resizeObserver.observe(gameArea);
     </script>
 </body>
 </html>
