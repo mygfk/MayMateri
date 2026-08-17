@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Math Moving Numbers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Tailwind slate-900 */
+            color: #f8fafc; /* Tailwind slate-50 */
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            touch-action: pan-y;
+        }
+        
+        #game-wrapper {
+            resize: both; 
+            overflow: hidden; 
+            width: 100%;
+            height: 60vh; 
+            min-height: 300px; 
+            min-width: 300px;
+            max-width: 100%;
+            max-height: 85vh; 
+            background-color: #1e293b;
+        }
+
+        #game-area {
+            position: relative;
+            width: 100%;
+            height: 100%; 
+            background-color: #1e293b; 
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .number-bubble {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background-color: #3b82f6; 
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+            border-radius: 50%;
+            user-select: none;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: opacity 0.3s;
+        }
+
+        .glass-panel {
+            backdrop-filter: blur(10px);
+            background-color: rgba(30, 41, 59, 0.8);
+        }
+
+        input[type=range] {
+            accent-color: #3b82f6;
+        }
+        
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 50; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.7); 
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #1e293b;
+            padding: 20px;
+            border: 1px solid #334155;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            animation: modalFadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Smooth transition for settings collapse */
+        #settings-content {
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            max-height: 1000px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        #settings-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen p-4 pb-12">
+
+    <div id="controls" class="glass-panel w-full max-w-6xl mx-auto mb-4 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col gap-4 z-10">
+        
+        <!-- Top Action Bar: Toggle Settings & Preset Management -->
+        <div class="flex flex-col md:flex-row justify-between items-center pb-4 border-b border-slate-600 gap-4">
+            <button id="toggle-settings-btn" class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-lg transition-colors w-full md:w-auto justify-center">
+                <span id="toggle-icon">🔽</span> 
+                <span id="toggle-text">Sembunyikan Pengaturan</span>
+            </button>
+
+            <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto items-center">
+                <span class="text-sm text-slate-300 font-medium">Mode Preset:</span>
+                <select id="preset-select" class="bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors w-full md:w-48">
+                    <option value="">-- Pilih Preset --</option>
+                </select>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button id="btn-save-preset" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-md transition-colors">
+                        💾 Simpan
+                    </button>
+                    <button id="btn-delete-preset" class="flex-1 md:flex-none px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg shadow-md transition-colors hidden">
+                        🗑️ Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-content" class="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center justify-between pb-2 border-b border-slate-700">
+            <!-- Mode Selection -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="mode-select" class="text-sm font-medium text-slate-300">Mode Angka:</label>
+                <select id="mode-select" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
+                    <option value="auto">Otomatis (Target Total)</option>
+                    <option value="custom">Input Sendiri</option>
+                </select>
+            </div>
+
+            <!-- Auto Controls -->
+            <div id="auto-controls" class="flex flex-col md:flex-row gap-4 w-full md:w-1/3">
+                <div class="flex flex-col gap-2 w-full md:w-1/2">
+                    <label for="num-count" class="text-sm font-medium text-slate-300 flex justify-between">
+                        <span>Jumlah Angka:</span>
+                        <span id="num-count-display" class="text-blue-400 font-bold">15</span>
+                    </label>
+                    <input type="range" id="num-count" min="5" max="30" step="1" value="15" class="w-full">
+                </div>
+                <div class="flex flex-col gap-2 w-full md:w-1/2">
+                    <label for="target-total" class="text-sm font-medium text-slate-300">Target Penjumlahan:</label>
+                    <input type="number" id="target-total" min="15" max="9999" value="150" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+            </div>
+
+            <!-- Custom Controls -->
+            <div id="custom-controls" class="flex flex-col gap-2 w-full md:w-1/3 hidden">
+                <label for="custom-numbers" class="text-sm font-medium text-slate-300">Masukkan Angka (koma/spasi):</label>
+                <textarea id="custom-numbers" rows="1" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors resize-none" placeholder="Contoh: 12, 34, 56"></textarea>
+                <span id="custom-error" class="text-xs text-red-400 hidden">Masukkan minimal 1 angka valid!</span>
+            </div>
+
+            <!-- Color Selection -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="color-mode" class="text-sm font-medium text-slate-300">Warna Angka:</label>
+                <select id="color-mode" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
+                    <option value="single">1 Warna (Biru)</option>
+                    <option value="even_odd">2 Warna (Ganjil/Genap)</option>
+                    <option value="random">Warna-warni</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-2 w-full md:w-1/5">
+                <label for="speed" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Kecepatan:</span>
+                    <span id="speed-display" class="text-blue-400 font-bold">Sedang</span>
+                </label>
+                <input type="range" id="speed" min="1" max="10" step="1" value="5" class="w-full">
+            </div>
+        </div>
+
+        <div id="game-actions" class="flex gap-2 w-full flex-wrap items-center justify-center pt-2">
+            <button id="start-btn" class="flex-1 md:flex-none px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg shadow-md transition-colors duration-200 text-lg">
+                ▶️ Mulai Game
+            </button>
+            <button id="stop-btn" class="flex-1 md:flex-none px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg shadow-md transition-colors duration-200 text-lg hidden">
+                ⏹️ Berhenti
+            </button>
+            <button id="answer-btn" class="flex-1 md:flex-none px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-colors duration-200 text-lg hidden">
+                💡 Lihat Jawaban
+            </button>
+            <button id="reset-btn" class="flex-1 md:flex-none px-8 py-3 bg-slate-600 hover:bg-slate-500 text-white font-bold rounded-lg shadow-md transition-colors duration-200 text-lg hidden">
+                🔄 Reset
+            </button>
+        </div>
+    </div>
+
+    <div id="game-wrapper" class="w-full max-w-6xl mx-auto relative rounded-xl border-4 border-slate-600 overflow-hidden shadow-2xl mb-8 group">
+        <div id="game-area">
+            <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
+                Atur pengaturan, simpan jika perlu, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
+                <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
+                    💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Answer (Hilangkan class flex bawaan agar tidak muncul di awal) -->
+    <div id="answer-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-white mb-4">Hasil Penjumlahan</h2>
+            <div class="text-6xl font-black text-emerald-400 mb-6 drop-shadow-md" id="final-answer">0</div>
+            <p class="text-slate-300 mb-6 text-sm" id="answer-details">Menghitung...</p>
+            <button id="close-modal-btn" class="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors duration-200">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Prompt (Save Preset) (Hilangkan class flex bawaan) -->
+    <div id="prompt-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold text-white mb-2">Simpan Preset</h2>
+            <p class="text-slate-300 mb-4 text-sm">Masukkan nama untuk pengaturan saat ini:</p>
+            <input type="text" id="preset-name-input" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 mb-2 focus:outline-none focus:border-blue-500" placeholder="Contoh: Setting Sulit 1">
+            <p id="prompt-error" class="text-xs text-red-400 hidden mb-4">Nama preset tidak boleh kosong!</p>
+            <div class="flex gap-2">
+                <button id="cancel-prompt-btn" class="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg transition-colors">Batal</button>
+                <button id="confirm-prompt-btn" class="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let animationFrameId;
+        let numbersData = []; 
+        let totalSum = 0;
+        let currentTargetSum = 70; 
+        const PRESETS_KEY = 'mentalMathPresetsData';
+
+        // DOM Elements
+        const gameArea = document.getElementById('game-area');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const answerBtn = document.getElementById('answer-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        const settingsContent = document.getElementById('settings-content');
+        const toggleSettingsBtn = document.getElementById('toggle-settings-btn');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const toggleText = document.getElementById('toggle-text');
+
+        const presetSelect = document.getElementById('preset-select');
+        const btnSavePreset = document.getElementById('btn-save-preset');
+        const btnDeletePreset = document.getElementById('btn-delete-preset');
+
+        const modeSelect = document.getElementById('mode-select');
+        const autoControls = document.getElementById('auto-controls');
+        const customControls = document.getElementById('custom-controls');
+        const customNumbersInput = document.getElementById('custom-numbers');
+        const customError = document.getElementById('custom-error');
+
+        const numCountInput = document.getElementById('num-count');
+        const numCountDisplay = document.getElementById('num-count-display');
+        const targetTotalInput = document.getElementById('target-total');
+        const speedInput = document.getElementById('speed');
+        const speedDisplay = document.getElementById('speed-display');
+        const colorModeSelect = document.getElementById('color-mode');
+        
+        // Modals (Menghapus modal alert info yang mengganggu)
+        const answerModal = document.getElementById('answer-modal');
+        const promptModal = document.getElementById('prompt-modal');
+
+        document.getElementById('close-modal-btn').addEventListener('click', () => {
+            answerModal.style.display = 'none';
+        });
+
+        // Hide modala if clicked outside
+        window.onclick = function(event) {
+            if (event.target == answerModal) answerModal.style.display = "none";
+            if (event.target == promptModal) promptModal.style.display = "none";
+        }
+
+        // Settings Toggle Logic
+        toggleSettingsBtn.addEventListener('click', () => {
+            const isCollapsed = settingsContent.classList.contains('collapsed');
+            if (isCollapsed) {
+                settingsContent.classList.remove('collapsed');
+                toggleIcon.textContent = '🔽';
+                toggleText.textContent = 'Sembunyikan Pengaturan';
+            } else {
+                settingsContent.classList.add('collapsed');
+                toggleIcon.textContent = '▶️';
+                toggleText.textContent = 'Tampilkan Pengaturan';
+            }
+        });
+
+        // Update labels on range change
+        numCountInput.addEventListener('input', (e) => numCountDisplay.textContent = e.target.value);
+        speedInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            let text = 'Sedang';
+            if (val <= 3) text = 'Lambat';
+            else if (val >= 8) text = 'Cepat';
+            speedDisplay.textContent = text;
+        });
+
+        // Toggle between Auto and Custom mode
+        modeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                autoControls.classList.add('hidden');
+                customControls.classList.remove('hidden');
+            } else {
+                autoControls.classList.remove('hidden');
+                customControls.classList.add('hidden');
+            }
+            customError.classList.add('hidden');
+        });
+
+        function loadPresets() {
+            const saved = localStorage.getItem(PRESETS_KEY);
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        function savePresetsToStorage(presets) {
+            localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+        }
+
+        function updatePresetDropdown() {
+            const presets = loadPresets();
+            const currentSelection = presetSelect.value;
+            
+            presetSelect.innerHTML = '<option value="">-- Pilih Preset --</option>';
+            for (const name in presets) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                presetSelect.appendChild(opt);
+            }
+            
+            if (presets[currentSelection]) {
+                presetSelect.value = currentSelection;
+                btnDeletePreset.classList.remove('hidden');
+            } else {
+                presetSelect.value = "";
+                btnDeletePreset.classList.add('hidden');
+            }
+        }
+
+        // Save Preset Actions
+        btnSavePreset.addEventListener('click', () => {
+            document.getElementById('preset-name-input').value = "";
+            document.getElementById('prompt-error').classList.add('hidden');
+            promptModal.style.display = 'flex';
+        });
+
+        document.getElementById('cancel-prompt-btn').addEventListener('click', () => {
+            promptModal.style.display = 'none';
+        });
+
+        document.getElementById('confirm-prompt-btn').addEventListener('click', () => {
+            const name = document.getElementById('preset-name-input').value.trim();
+            if (!name) {
+                document.getElementById('prompt-error').classList.remove('hidden');
+                return;
+            }
+            
+            const config = {
+                mode: modeSelect.value,
+                numCount: numCountInput.value,
+                targetTotal: targetTotalInput.value,
+                customNumbers: customNumbersInput.value,
+                color: colorModeSelect.value,
+                speed: speedInput.value
+            };
+            
+            const presets = loadPresets();
+            presets[name] = config;
+            savePresetsToStorage(presets);
+            updatePresetDropdown();
+            
+            presetSelect.value = name;
+            btnDeletePreset.classList.remove('hidden');
+            
+            promptModal.style.display = 'none';
+        });
+
+        // Load Preset Action
+        presetSelect.addEventListener('change', (e) => {
+            const name = e.target.value;
+            if (!name) {
+                btnDeletePreset.classList.add('hidden');
+                return;
+            }
+            
+            btnDeletePreset.classList.remove('hidden');
+            const presets = loadPresets();
+            const config = presets[name];
+            if (!config) return;
+
+            modeSelect.value = config.mode;
+            numCountInput.value = config.numCount;
+            if (config.targetTotal) targetTotalInput.value = config.targetTotal;
+            customNumbersInput.value = config.customNumbers || "";
+            colorModeSelect.value = config.color;
+            speedInput.value = config.speed;
+
+            // Trigger events to update UI displays properly
+            modeSelect.dispatchEvent(new Event('change'));
+            numCountInput.dispatchEvent(new Event('input'));
+            speedInput.dispatchEvent(new Event('input'));
+        });
+
+        // Delete Preset Action
+        btnDeletePreset.addEventListener('click', () => {
+            const name = presetSelect.value;
+            if (!name) return;
+            
+            const presets = loadPresets();
+            delete presets[name];
+            savePresetsToStorage(presets);
+            
+            updatePresetDropdown();
+        });
+
+        // Initialize Presets on load
+        updatePresetDropdown();
+
+        // --- Auto-Save Sistem: Menyimpan otomatis settingan yang kamu geser ---
+        const LAST_SETTINGS_KEY = 'mentalMathLastSettings';
+
+        function saveCurrentSettings() {
+            const config = {
+                mode: modeSelect.value,
+                numCount: numCountInput.value,
+                targetTotal: targetTotalInput.value,
+                customNumbers: customNumbersInput.value,
+                color: colorModeSelect.value,
+                speed: speedInput.value,
+                preset: presetSelect.value
+            };
+            localStorage.setItem(LAST_SETTINGS_KEY, JSON.stringify(config));
+        }
+
+        function loadLastSettings() {
+            const saved = localStorage.getItem(LAST_SETTINGS_KEY);
+            if (saved) {
+                const config = JSON.parse(saved);
+                if (config.mode) modeSelect.value = config.mode;
+                if (config.numCount) numCountInput.value = config.numCount;
+                if (config.targetTotal) targetTotalInput.value = config.targetTotal;
+                if (config.customNumbers) customNumbersInput.value = config.customNumbers;
+                if (config.color) colorModeSelect.value = config.color;
+                if (config.speed) speedInput.value = config.speed;
+                
+                // Memicu trigger UI agar angkanya berubah secara visual
+                modeSelect.dispatchEvent(new Event('change'));
+                numCountInput.dispatchEvent(new Event('input'));
+                speedInput.dispatchEvent(new Event('input'));
+
+                if (config.preset && loadPresets()[config.preset]) {
+                    presetSelect.value = config.preset;
+                    btnDeletePreset.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Pantau jika ada perubahan di pengaturan, lalu otomatis simpan ke memori sementara
+        [modeSelect, numCountInput, targetTotalInput, customNumbersInput, colorModeSelect, speedInput, presetSelect].forEach(el => {
+            el.addEventListener('change', saveCurrentSettings);
+            el.addEventListener('input', saveCurrentSettings);
+        });
+
+        // Panggil saat pertama web dibuka
+        loadLastSettings();
+        // -------------------------------
+
+        startBtn.addEventListener('click', startGame);
+        stopBtn.addEventListener('click', stopGame);
+        answerBtn.addEventListener('click', showAnswer);
+        resetBtn.addEventListener('click', resetGame);
+
+        function generateNumbersList(count, targetTotal) {
+            totalSum = parseInt(targetTotal);
+            const list = [];
+            
+            // Pastikan target total minimal sama dengan jumlah angka (agar tidak ada angka 0)
+            if (totalSum < count) {
+                totalSum = count;
+                targetTotalInput.value = totalSum;
+            }
+
+            // Metode Breakpoint: Memotong total ke N bagian acak
+            let breakpoints = new Set();
+            let safetyCounter = 0;
+            
+            // Buat titik potong acak di antara rentang total sum
+            while (breakpoints.size < count - 1 && safetyCounter < 10000) {
+                breakpoints.add(Math.floor(Math.random() * (totalSum - 1)) + 1);
+                safetyCounter++;
+            }
+
+            // Jika target terlalu kecil sehingga angkanya mentok, beri nilai 1 rata
+            if (breakpoints.size < count - 1) {
+                let currentSum = 0;
+                for (let i = 0; i < count - 1; i++) {
+                    list.push(1);
+                    currentSum += 1;
+                }
+                list.push(totalSum - currentSum);
+            } else {
+                let bpArray = Array.from(breakpoints).sort((a, b) => a - b);
+                let prev = 0;
+                for (let i = 0; i < bpArray.length; i++) {
+                    list.push(bpArray[i] - prev);
+                    prev = bpArray[i];
+                }
+                list.push(totalSum - prev);
+            }
+
+            // Acak urutan array yang terbentuk
+            for (let i = list.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [list[i], list[j]] = [list[j], list[i]];
+            }
+
+            return {
+                list: list,
+                target: totalSum
+            };
+        }
+
+        function startGame() {
+            if (isPlaying) return;                        
+            
+            let customNumbersArray = [];
+            if (modeSelect.value === 'custom') {
+                const rawInput = customNumbersInput.value;
+                customNumbersArray = rawInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));                                
+                if (customNumbersArray.length === 0) {
+                    customError.classList.remove('hidden');
+                    return; 
+                }
+                customError.classList.add('hidden');
+            }
+
+            // Collapse settings automatically on start for better view
+            settingsContent.classList.add('collapsed');
+            toggleIcon.textContent = '▶️';
+            toggleText.textContent = 'Tampilkan Pengaturan';
+
+            isPlaying = true;            
+            gameArea.innerHTML = ''; 
+            numbersData = [];                        
+            
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            answerBtn.classList.add('hidden');
+            resetBtn.classList.remove('hidden');                        
+            
+            // Disable inputs while playing
+            numCountInput.disabled = true;
+            targetTotalInput.disabled = true;
+            speedInput.disabled = true;
+            modeSelect.disabled = true;
+            customNumbersInput.disabled = true;
+            colorModeSelect.disabled = true;
+            presetSelect.disabled = true;
+
+            let coloredNumbers = []; // Menyimpan objek { value, color }
+            let detailsHtml = '';
+            const palette = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+
+            if (modeSelect.value === 'auto') {
+                const count = parseInt(numCountInput.value);
+                const targetVal = parseInt(targetTotalInput.value);
+                
+                if (colorModeSelect.value === 'random') {
+                    // WARNA AJAIB: Membagi angka ke grup warna yang totalnya puluhan bulat
+                    totalSum = targetVal;
+                    if (totalSum < count) { totalSum = count; targetTotalInput.value = totalSum; }
+
+                    // Tentukan berapa banyak warna yang dipakai (3-5 warna biasanya pas)
+                    let numGroups = Math.max(2, Math.min(palette.length, Math.floor(count / 3) || 1));
+                    let shuffledPalette = [...palette].sort(() => 0.5 - Math.random());
+                    
+                    // Bagi jumlah balon ke tiap grup warna
+                    let counts = Array(numGroups).fill(1);
+                    for(let i=0; i < count - numGroups; i++) {
+                        counts[Math.floor(Math.random() * numGroups)]++;
+                    }
+
+                    let sums = [];
+                    let currentTotal = 0;
+                    for(let i=0; i < numGroups - 1; i++) {
+                        // Memaksa total angka di warna ini jadi kelipatan 10 (belakangnya 0)
+                        let share10 = Math.round(((counts[i] / count) * totalSum) / 10) * 10;
+                        if (share10 < counts[i]) share10 = Math.ceil(counts[i] / 10) * 10; 
+                        
+                        if (currentTotal + share10 >= totalSum) {
+                            share10 = totalSum - currentTotal - (numGroups - 1 - i); 
+                        }
+                        sums.push(share10);
+                        currentTotal += share10;
+                    }
+                    sums.push(totalSum - currentTotal); // Grup warna terakhir mengambil sisa target
+
+                    // Buat angkanya
+                    for(let i=0; i < numGroups; i++) {
+                        let gCount = counts[i];
+                        let gSum = sums[i];
+                        let color = shuffledPalette[i];
+
+                        let breakpoints = new Set();
+                        let safety = 0;
+                        while (breakpoints.size < gCount - 1 && safety < 10000) {
+                            breakpoints.add(Math.floor(Math.random() * (gSum - 1)) + 1);
+                            safety++;
+                        }
+
+                        let gNums = [];
+                        if (breakpoints.size < gCount - 1) {
+                            for(let j=0; j<gCount-1; j++) gNums.push(1);
+                            gNums.push(gSum - (gCount - 1));
+                        } else {
+                            let bpArray = Array.from(breakpoints).sort((a,b)=>a-b);
+                            let prev = 0;
+                            for(let bp of bpArray) { gNums.push(bp - prev); prev = bp; }
+                            gNums.push(gSum - prev);
+                        }
+
+                        gNums.forEach(v => coloredNumbers.push({ value: v, color: color }));
+                    }
+
+                    // Acak urutan array yang sudah diwarnai agar munculnya menyebar
+                    for (let i = coloredNumbers.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [coloredNumbers[i], coloredNumbers[j]] = [coloredNumbers[j], coloredNumbers[i]];
+                    }
+
+                    detailsHtml = `Mode <strong>Target Total</strong> dengan <strong class="text-pink-400">Warna Ajaib</strong>!<br>`;
+                    detailsHtml += `<span class="bg-slate-800 p-2 block mt-2 mb-2 rounded border border-slate-600 shadow-inner text-xs text-yellow-300">💡 <strong>Rahasia:</strong> Jika kamu menjumlahkan angka-angka yang warnanya SAMA terlebih dahulu, sebagian besar hasilnya pasti bilangan puluhan bulat (belakangnya 0)!</span>`;
+                    detailsHtml += `Total Akhir: <strong class="text-xl text-emerald-400">${totalSum}</strong>`;
+
+                } else {
+                    // Logic lama untuk warna biasa / tunggal
+                    const generationData = generateNumbersList(count, targetVal);
+                    coloredNumbers = generationData.list.map(val => {
+                        let col = '#3b82f6';
+                        if (colorModeSelect.value === 'even_odd') col = (val % 2 === 0) ? '#3b82f6' : '#ef4444';
+                        return { value: val, color: col };
+                    });
+
+                    detailsHtml = `Mode Target Total: Kamu menargetkan hasil penjumlahan <strong>${generationData.target}</strong> dengan ${count} angka.<br><br>`;
+                    detailsHtml += `Total: <strong class="text-xl text-emerald-400">${totalSum}</strong>`;
+                }
+            } else {
+                totalSum = customNumbersArray.reduce((a, b) => a + b, 0);
+                
+                if (colorModeSelect.value === 'random') {
+                    // Coba paksa warna manual agar jumlah warnanya kelipatan 10 jika memungkinkan
+                    let shuffledPalette = [...palette].sort(() => 0.5 - Math.random());
+                    let cIndex = 0;
+                    let runSum = 0;
+                    
+                    for(let i=0; i<customNumbersArray.length; i++) {
+                        let val = customNumbersArray[i];
+                        coloredNumbers.push({ value: val, color: shuffledPalette[cIndex % shuffledPalette.length] });
+                        runSum += val;
+                        // Ganti warna tiap kali jumlahan sementaranya menyentuh kelipatan 10
+                        if (runSum % 10 === 0 && i < customNumbersArray.length - 1) {
+                            cIndex++;
+                            runSum = 0;
+                        }
+                    }
+                    detailsHtml = `Mode Input Manual dengan warna-warni berkelompok (puluhan).<br>`;
+                } else {
+                    coloredNumbers = customNumbersArray.map(val => {
+                        let col = '#3b82f6';
+                        if (colorModeSelect.value === 'even_odd') col = (val % 2 === 0) ? '#3b82f6' : '#ef4444';
+                        return { value: val, color: col };
+                    });
+                    detailsHtml = `Kamu menggunakan input angka manual sebanyak <strong>${customNumbersArray.length}</strong> angka.<br>`;
+                }
+                detailsHtml += `Total: <strong class="text-xl text-emerald-400">${totalSum}</strong>`;
+            }
+
+            document.getElementById('answer-details').innerHTML = detailsHtml;
+
+            const areaWidth = gameArea.clientWidth;
+            const areaHeight = gameArea.clientHeight;
+            const bubbleSize = 50;
+            const baseSpeed = parseInt(speedInput.value); 
+
+            coloredNumbers.forEach((item) => {
+                const val = item.value;
+                const el = document.createElement('div');
+                el.className = 'number-bubble';                                
+                
+                el.style.backgroundColor = item.color;
+
+                if (val.toString().length > 3) el.style.fontSize = '0.8rem';
+                else if (val.toString().length > 2) el.style.fontSize = '1rem';
+
+                el.textContent = val;                                
+                
+                const x = Math.random() * (Math.max(1, areaWidth - bubbleSize));
+                const y = Math.random() * (Math.max(1, areaHeight - bubbleSize));                                
+                
+                const speedMultiplier = (baseSpeed * 0.5) + 0.5; 
+                let vx = (Math.random() - 0.5) * 4 * speedMultiplier;
+                let vy = (Math.random() - 0.5) * 4 * speedMultiplier;                                
+                
+                if (Math.abs(vx) < 0.5) vx = vx < 0 ? -1 : 1;
+                if (Math.abs(vy) < 0.5) vy = vy < 0 ? -1 : 1;
+
+                el.style.transform = `translate(${x}px, ${y}px)`;                                
+                gameArea.appendChild(el);
+
+                numbersData.push({ el, x, y, vx, vy, size: bubbleSize, value: val });
+            });
+
+            lastTime = performance.now();
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function stopGame() {
+            if (!isPlaying) return;
+            isPlaying = false;
+            cancelAnimationFrame(animationFrameId);
+
+            stopBtn.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            startBtn.innerHTML = "▶️ Ulangi Game";
+            answerBtn.classList.remove('hidden');                         
+            
+            numbersData.forEach(data => {
+                data.el.style.boxShadow = "0 0 15px 5px rgba(255, 255, 255, 0.4)"; 
+                data.el.style.transition = "transform 0.5s ease-out, box-shadow 0.3s";
+            });
+        }
+
+        function resetGame() {
+            isPlaying = false;
+            cancelAnimationFrame(animationFrameId);                        
+            
+            gameArea.innerHTML = `
+                <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
+                    Atur pengaturan, simpan jika perlu, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
+                    <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
+                        💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                    </span>
+                </div>
+            `;
+            numbersData = [];                        
+            
+            startBtn.classList.remove('hidden');
+            startBtn.innerHTML = "▶️ Mulai Game";
+            stopBtn.classList.add('hidden');
+            answerBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');                        
+            
+            // Expand settings back automatically
+            settingsContent.classList.remove('collapsed');
+            toggleIcon.textContent = '🔽';
+            toggleText.textContent = 'Sembunyikan Pengaturan';
+
+            numCountInput.disabled = false;
+            targetTotalInput.disabled = false;
+            speedInput.disabled = false;
+            modeSelect.disabled = false;
+            customNumbersInput.disabled = false;
+            colorModeSelect.disabled = false;
+            presetSelect.disabled = false;
+        }
+
+        function showAnswer() {
+            document.getElementById('final-answer').textContent = totalSum;
+            answerModal.style.display = "flex";
+        }
+
+        let lastTime = 0;        
+        function animate(currentTime) {
+            if (!isPlaying) return;
+
+            const deltaTime = (currentTime - lastTime) / 16.66; 
+            lastTime = currentTime;
+
+            const areaWidth = gameArea.clientWidth;            
+            const areaHeight = gameArea.clientHeight;
+
+            for (let i = 0; i < numbersData.length; i++) {
+                let p = numbersData[i];
+
+                p.x += p.vx * deltaTime;                
+                p.y += p.vy * deltaTime;
+
+                if (p.x <= 0) {
+                    p.x = 0;                    
+                    p.vx = Math.abs(p.vx); 
+                } else if (p.x >= areaWidth - p.size) {
+                    p.x = Math.max(0, areaWidth - p.size); 
+                    p.vx = -Math.abs(p.vx); 
+                }
+
+                if (p.y <= 0) {
+                    p.y = 0;                    
+                    p.vy = Math.abs(p.vy); 
+                } else if (p.y >= areaHeight - p.size) {
+                    p.y = Math.max(0, areaHeight - p.size);
+                    p.vy = -Math.abs(p.vy); 
+                }                                
+                
+                p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;            
+            }
+
+            for (let i = 0; i < numbersData.length; i++) {
+                for (let j = i + 1; j < numbersData.length; j++) {
+                    let p1 = numbersData[i];                    
+                    let p2 = numbersData[j];                                        
+                    
+                    let c1x = p1.x + p1.size / 2;                    
+                    let c1y = p1.y + p1.size / 2;                    
+                    let c2x = p2.x + p2.size / 2;                    
+                    let c2y = p2.y + p2.size / 2;
+
+                    let dx = c2x - c1x;                    
+                    let dy = c2y - c1y;                    
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < p1.size) { 
+                        let angle = Math.atan2(dy, dx);                        
+                        let sin = Math.sin(angle);                        
+                        let cos = Math.cos(angle);
+
+                        let v1n = p1.vx * cos + p1.vy * sin;                        
+                        let v2n = p2.vx * cos + p2.vy * sin;
+
+                        let temp = v1n;                        
+                        v1n = v2n;                        
+                        v2n = temp;
+
+                        let v1t = p1.vy * cos - p1.vx * sin; 
+                        let v2t = p2.vy * cos - p2.vx * sin;
+
+                        p1.vx = v1n * cos - v1t * sin;                        
+                        p1.vy = v1n * sin + v1t * cos;                        
+                        p2.vx = v2n * cos - v2t * sin;                        
+                        p2.vy = v2n * sin + v2t * cos;                                                
+                        
+                        let overlap = p1.size - distance;                        
+                        p1.x -= (overlap/2) * cos;                        
+                        p1.y -= (overlap/2) * sin;                        
+                        p2.x += (overlap/2) * cos;                        
+                        p2.y += (overlap/2) * sin;                    
+                    }                
+                }            
+            }
+            animationFrameId = requestAnimationFrame(animate);        
+        }
+
+        const resizeObserver = new ResizeObserver(() => {
+            if (!isPlaying && numbersData.length > 0) {
+                const areaWidth = gameArea.clientWidth;                
+                const areaHeight = gameArea.clientHeight;                
+                numbersData.forEach(p => {
+                    if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);                    
+                    if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);                    
+                    p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;                
+                });            
+            }        
+        });                
+        resizeObserver.observe(gameArea);
+    </script>
+</body>
+</html>
