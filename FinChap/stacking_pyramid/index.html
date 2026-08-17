@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eksplorasi Kombinasi Lingkaran</title>
+    <style>
+        :root {
+            /* Palet 5 Warna: Merah dan Putih di awal agar sesuai gambar */
+            --c-merah: #E53935;   
+            --c-putih: #FFFFFF;  
+            --c-biru: #1E88E5;    
+            --c-kuning: #FDD835;   
+            --c-ungu: #8E24AA;    
+            
+            --bg-color: #F8F9FA;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 95%;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h1 { 
+            text-align: center; 
+            color: #2C3E50; 
+            font-size: 28px; 
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background-color: #E3F2FD;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 6px solid #29B6F6;
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .info-box h3 { margin-top: 0; color: #0277BD; margin-bottom: 10px;}
+
+        .settings-panel {
+            background-color: #FFF9C4;
+            border: 2px dashed #FBC02D;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            color: #F57F17;
+        }
+
+        .setting-item input {
+            margin-top: 8px;
+            padding: 8px;
+            width: 80px;
+            text-align: center;
+            font-size: 16px;
+            border: 2px solid #FBC02D;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        button.btn-generate {
+            background-color: #FF4081;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button.btn-generate:hover { 
+            background-color: #F50057; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 64, 129, 0.5);
+        }
+        
+        button.btn-generate:active { transform: scale(0.95); }
+
+        .math-fact {
+            text-align: center;
+            font-size: 15px;
+            color: #D35400;
+            font-weight: bold;
+            background-color: #FDEBD0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px auto;
+            max-width: 800px;
+        }
+
+        .board-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .grid-board {
+            display: grid;
+            border: 6px solid #B71C1C; /* Bingkai luar papan */
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            background-color: #B71C1C;
+            gap: 2px; /* Jarak antar kotak (opsional, bisa dinolkan) */
+        }
+
+        .grid-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            aspect-ratio: 1 / 1; /* Selalu bentuk kotak sempurna */
+            min-width: 80px;
+        }
+
+        .cell-dark {
+            background-color: #E53935; /* Kotak Merah */
+        }
+
+        .cell-light {
+            background-color: #FFFFFF; /* Kotak Putih */
+        }
+
+        .circle-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 250px;
+            max-height: 250px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 50%; 
+            overflow: hidden;
+            animation: fadeInScale 0.5s ease backwards;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            /* Memastikan rasio aspek lingkaran terjaga */
+            aspect-ratio: 1 / 1;
+        }
+
+        .circle-wrapper:hover {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        .layer {
+            position: absolute;
+            border-radius: 50%;
+            /* Garis putus-putus tipis menyerupai jahitan di gambar (opsional, bisa diganti solid) */
+            border: 1px dashed rgba(0,0,0,0.4); 
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Eksplorasi Pola Lingkaran</h1>
+    
+    <div class="info-box">
+        <h3>Halo Peneliti! 🎯</h3>
+        <p>Aplikasi ini akan memvisualisasikan seluruh kemungkinan susunan lingkaran (target panahan) berdasarkan jumlah lapisan dan warna yang Anda pilih.</p>
+        <p>Warna pada lapisan yang menempel <strong>boleh sama</strong>. Sistem akan membentuk tata letak papan catur (checkerboard) merah dan putih secara otomatis.</p>
+    </div>
+
+    <div class="settings-panel">
+        <div class="setting-item">
+            <label for="input-layers">Jumlah Lapis (2-8)</label>
+            <input type="number" id="input-layers" min="2" max="8" value="6">
+        </div>
+        <div class="setting-item">
+            <label for="input-colors">Jumlah Warna (1-5)</label>
+            <!-- Default 2 warna (Merah & Putih) -->
+            <input type="number" id="input-colors" min="1" max="5" value="2">
+        </div>
+        <div class="setting-item">
+            <label for="input-limit">Tampilkan (Kotak)</label>
+            <!-- Default 36 kotak agar membentuk 6x6 grid -->
+            <input type="number" id="input-limit" min="1" value="36">
+        </div>
+        
+        <div style="width: 100%; text-align: center;">
+            <button class="btn-generate" onclick="applyAndGenerate()">Hasilkan Pola!</button>
+        </div>
+    </div>
+
+    <div id="math-fact" class="math-fact" style="display: none;"></div>
+
+    <!-- Wadah Papan Catur -->
+    <div class="board-wrapper">
+        <div class="grid-board" id="grid-board"></div>
+    </div>
+</div>
+
+<script>
+    // Palet Warna: Merah, Putih, Biru, Kuning, Ungu
+    const baseColors = ['#E53935', '#FFFFFF', '#1E88E5', '#FDD835', '#8E24AA']; 
+
+    // Fungsi Rekursif untuk mencari kombinasi (Permutasi dengan pengulangan)
+    function getCombinations(numLayers, numColors) {
+        let results = [];
+        const activeColors = baseColors.slice(0, numColors);
+
+        function backtrack(currentCombo) {
+            if (currentCombo.length === numLayers) {
+                results.push([...currentCombo]);
+                return;
+            }
+            for (let c of activeColors) {
+                currentCombo.push(c);
+                backtrack(currentCombo);
+                currentCombo.pop();
+            }
+        }
+        backtrack([]);
+        return results;
+    }
+
+    // Fungsi untuk mengacak array (Fisher-Yates)
+    function shuffleArray(array) {
+        let curId = array.length;
+        while (0 !== curId) {
+            let randId = Math.floor(Math.random() * curId);
+            curId -= 1;
+            let tmp = array[curId];
+            array[curId] = array[randId];
+            array[randId] = tmp;
+        }
+        return array;
+    }
+
+    function applyAndGenerate() {
+        let inputLayers = parseInt(document.getElementById('input-layers').value);
+        let inputColors = parseInt(document.getElementById('input-colors').value);
+        let inputLimit = parseInt(document.getElementById('input-limit').value);
+
+        // Validasi
+        if(inputLayers < 2) inputLayers = 2; if(inputLayers > 8) inputLayers = 8;
+        if(inputColors < 1) inputColors = 1; if(inputColors > 5) inputColors = 5;
+        if(inputLimit < 1) inputLimit = 1;
+
+        document.getElementById('input-layers').value = inputLayers;
+        document.getElementById('input-colors').value = inputColors;
+
+        // Dapatkan seluruh kombinasi yang mungkin secara matematis
+        let combinations = getCombinations(inputLayers, inputColors);
+        let maxMathPossibility = combinations.length;
+
+        // Update Fakta Kombinatorika
+        const factBox = document.getElementById('math-fact');
+        let mathString = `${inputColors}`;
+        for(let i = 1; i < inputLayers; i++) {
+            mathString += ` &times; ${inputColors}`;
+        }
+        factBox.style.display = "block";
+        factBox.innerHTML = `Total maksimal variasi yang mungkin adalah <strong>${maxMathPossibility}</strong>!<br>
+                             <em>(Rumus: ${mathString} = ${maxMathPossibility})</em>`;
+
+        // Ambil kombinasi sesuai batasan limit (diacak agar tampilannya beda-beda)
+        let limit = Math.min(inputLimit, maxMathPossibility);
+        document.getElementById('input-limit').value = limit; 
+
+        // Acak kombinasi yang didapat, lalu potong sesuai batas
+        shuffleArray(combinations);
+        const selected = combinations.slice(0, limit);
+
+        renderGrid(selected, inputLayers);
+    }
+
+    function renderGrid(selectedData, numLayers) {
+        const grid = document.getElementById('grid-board');
+        grid.innerHTML = ''; 
+
+        if(selectedData.length === 0) return;
+
+        // Kalkulasi jumlah kolom agar sebisa mungkin membentuk persegi (misal 36 -> 6x6)
+        const totalItems = selectedData.length;
+        const cols = Math.ceil(Math.sqrt(totalItems));
+        
+        // Atur kolom CSS Grid
+        grid.style.gridTemplateColumns = `repeat(${cols}, minmax(80px, 1fr))`;
+
+        // Render Baris dan Kotak
+        for (let i = 0; i < selectedData.length; i++) {
+            const combo = selectedData[i];
+
+            // Menentukan warna background kotak (selang-seling papan catur)
+            const r = Math.floor(i / cols);
+            const c = i % cols;
+            const isDark = (r + c) % 2 === 0;
+
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell ' + (isDark ? 'cell-dark' : 'cell-light');
+
+            // Kontainer untuk lingkaran bersusun
+            const wrapper = document.createElement('div');
+            wrapper.className = 'circle-wrapper';
+            wrapper.style.animationDelay = `${i * 0.03}s`; 
+
+            // Ukuran responsif menggunakan persentase untuk lingkaran di dalamnya
+            const stepPercent = 100 / numLayers; 
+
+            // Gambar lapisan secara dinamis dari luar ke dalam
+            for(let l = 0; l < numLayers; l++) {
+                const sizePercent = 100 - (l * stepPercent);
+                const offsetPercent = (100 - sizePercent) / 2;
+                
+                const layerDiv = document.createElement('div');
+                layerDiv.className = 'layer';
+                layerDiv.style.width = `${sizePercent}%`;
+                layerDiv.style.height = `${sizePercent}%`;
+                layerDiv.style.top = `${offsetPercent}%`;
+                layerDiv.style.left = `${offsetPercent}%`;
+                layerDiv.style.backgroundColor = combo[l];
+                
+                // Jika warnanya putih, perjelas garis pinggir agar tidak menyatu dengan kotak putih
+                if (combo[l] === '#FFFFFF') {
+                    layerDiv.style.border = '2px solid rgba(0,0,0,0.2)';
+                }
+
+                wrapper.appendChild(layerDiv);
+            }
+
+            cell.appendChild(wrapper);
+            grid.appendChild(cell);
+        }
+    }
+
+    // Jalankan pertama kali saat web dibuka
+    window.onload = applyAndGenerate;
+</script>
+</body>
+</html>
