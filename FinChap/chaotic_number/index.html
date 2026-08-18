@@ -16,15 +16,14 @@
         }
         
         #game-wrapper {
-            resize: both;
             overflow: hidden;
             width: 100%;
             height: 60vh;
-            min-height: 300px;
+            min-height: 250px;
             min-width: 300px;
             max-width: 100%;
-            max-height: 85vh;
             background-color: #1e293b;
+            transition: height 0.1s ease-out, max-width 0.1s ease-out;
         }
 
         #game-area {
@@ -104,7 +103,7 @@
         <!-- Top Row Controls -->
         <div class="flex flex-col md:flex-row flex-wrap gap-4 items-end justify-between w-full">
             <!-- Mode Selection -->
-            <div class="flex flex-col gap-2 w-full md:w-1/5">
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
                 <label for="mode-select" class="text-sm font-medium text-slate-300">Mode Angka:</label>
                 <select id="mode-select" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
                     <option value="auto">Otomatis (Trik)</option>
@@ -113,7 +112,7 @@
             </div>
 
             <!-- Auto Controls (Hidden/Shown based on mode) -->
-            <div id="auto-controls" class="flex flex-col gap-2 w-full md:w-1/4">
+            <div id="auto-controls" class="flex flex-col gap-2 w-full md:w-1/6">
                 <label for="num-count" class="text-sm font-medium text-slate-300 flex justify-between">
                     <span>Jumlah Angka:</span>
                     <span id="num-count-display" class="text-blue-400 font-bold">15</span>
@@ -132,7 +131,7 @@
             </div>
 
             <!-- Speed Control -->
-            <div class="flex flex-col gap-2 w-full md:w-1/5">
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
                 <label for="speed" class="text-sm font-medium text-slate-300 flex justify-between">
                     <span>Kecepatan:</span>
                     <span id="speed-display" class="text-blue-400 font-bold">Sedang</span>
@@ -156,6 +155,24 @@
                     <span id="font-size-display" class="text-blue-400 font-bold">48</span>
                 </label>
                 <input type="range" id="font-size" min="12" max="72" step="2" value="48" class="w-full">
+            </div>
+
+            <!-- Arena Height Control -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="arena-height" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Tinggi Kotak:</span>
+                    <span id="arena-height-display" class="text-blue-400 font-bold">60vh</span>
+                </label>
+                <input type="range" id="arena-height" min="30" max="85" step="5" value="60" class="w-full">
+            </div>
+
+            <!-- Arena Width Control -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="arena-width" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Lebar Kotak:</span>
+                    <span id="arena-width-display" class="text-blue-400 font-bold">100%</span>
+                </label>
+                <input type="range" id="arena-width" min="40" max="100" step="5" value="100" class="w-full">
             </div>
 
             <!-- Action Buttons -->
@@ -220,7 +237,7 @@
             <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
                 Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
                 <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
-                    💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                    💡 <strong>Tips:</strong> Gunakan slider <strong>Tinggi Kotak</strong> dan <strong>Lebar Kotak</strong> di atas untuk mengatur ukuran arena kapan saja!
                 </span>
             </div>
         </div>
@@ -246,9 +263,10 @@
         let numbersData = []; 
         let totalSum = 0;
         let currentTargetSum = 70; 
-        let activeSpeedMultiplier = 1; // Variabel baru untuk melacak perubahan kecepatan real-time
+        let activeSpeedMultiplier = 1;
 
         // DOM Elements
+        const gameWrapper = document.getElementById('game-wrapper');
         const gameArea = document.getElementById('game-area');
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
@@ -269,11 +287,17 @@
         const speedDisplay = document.getElementById('speed-display');
         const colorModeSelect = document.getElementById('color-mode');
         
-        // New Elements for sizes
+        // Elements for sizes
         const bubbleSizeInput = document.getElementById('bubble-size');
         const bubbleSizeDisplay = document.getElementById('bubble-size-display');
         const fontSizeInput = document.getElementById('font-size');
         const fontSizeDisplay = document.getElementById('font-size-display');
+
+        // Arena Size Slider Elements
+        const arenaHeightInput = document.getElementById('arena-height');
+        const arenaHeightDisplay = document.getElementById('arena-height-display');
+        const arenaWidthInput = document.getElementById('arena-width');
+        const arenaWidthDisplay = document.getElementById('arena-width-display');
         
         // Modal Elements
         const modal = document.getElementById('answer-modal');
@@ -296,22 +320,18 @@
             else text = 'Sangat Cepat';
             speedDisplay.textContent = text;
             
-            // Ubah kecepatan secara real-time saat game berjalan
             const newSpeedMultiplier = Math.pow(val, 2) * 0.05 + 0.05;
             if (isPlaying && numbersData.length > 0) {
-                // Hitung rasio kecepatan baru dibanding yang lama
                 const ratio = newSpeedMultiplier / activeSpeedMultiplier;
                 numbersData.forEach(p => {
                     p.vx *= ratio;
                     p.vy *= ratio;
                     
-                    // Jaga kecepatan minimal agar tidak berhenti total saat sangat pelan
                     const minSpeed = Math.max(0.1, 0.3 * newSpeedMultiplier);
                     if (Math.abs(p.vx) < minSpeed) p.vx = p.vx < 0 ? -minSpeed : minSpeed;
                     if (Math.abs(p.vy) < minSpeed) p.vy = p.vy < 0 ? -minSpeed : minSpeed;
                 });
             }
-            // Simpan pengali kecepatan yang aktif saat ini
             activeSpeedMultiplier = newSpeedMultiplier;
         });
 
@@ -319,8 +339,7 @@
             const newSize = parseInt(e.target.value);
             bubbleSizeDisplay.textContent = newSize;
             
-            // Ubah ukuran gelembung secara real-time saat game berjalan
-            if (isPlaying && numbersData.length > 0) {
+            if (numbersData.length > 0) {
                 const areaWidth = gameArea.clientWidth;
                 const areaHeight = gameArea.clientHeight;
                 
@@ -329,7 +348,6 @@
                     p.el.style.width = `${newSize}px`;
                     p.el.style.height = `${newSize}px`;
                     
-                    // Pastikan gelembung tidak keluar batas saat membesar secara tiba-tiba
                     if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);
                     if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);
                 });
@@ -340,8 +358,7 @@
             const newFontSize = parseInt(e.target.value);
             fontSizeDisplay.textContent = newFontSize;
             
-            // Ubah ukuran font secara real-time saat game berjalan
-            if (isPlaying && numbersData.length > 0) {
+            if (numbersData.length > 0) {
                 numbersData.forEach(p => {
                     if (p.value.toString().length > 3) {
                         p.el.style.fontSize = `${newFontSize * 0.6}px`;
@@ -354,16 +371,42 @@
             }
         });
 
+        arenaHeightInput.addEventListener('input', (e) => {
+            const newHeight = e.target.value;
+            arenaHeightDisplay.textContent = `${newHeight}vh`;
+            gameWrapper.style.height = `${newHeight}vh`;
+            adjustPositionsToBounds();
+        });
+
+        arenaWidthInput.addEventListener('input', (e) => {
+            const newWidth = e.target.value;
+            arenaWidthDisplay.textContent = `${newWidth}%`;
+            gameWrapper.style.maxWidth = `${newWidth}%`;
+            adjustPositionsToBounds();
+        });
+
+        function adjustPositionsToBounds() {
+            if (numbersData.length > 0) {
+                const areaWidth = gameArea.clientWidth;
+                const areaHeight = gameArea.clientHeight;
+                numbersData.forEach(p => {
+                    if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);
+                    if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);
+                    p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+                });
+            }
+        }
+
         // Toggle between Auto and Custom mode
         modeSelect.addEventListener('change', (e) => {
             if (e.target.value === 'custom') {
                 autoControls.classList.add('hidden');
-                colorModeContainer.classList.add('hidden'); // Sembunyikan pilihan warna krn di-set manual
+                colorModeContainer.classList.add('hidden');
                 customControls.classList.remove('hidden');
-                customControls.classList.add('flex'); // Pastikan flex menyala
+                customControls.classList.add('flex');
             } else {
                 autoControls.classList.remove('hidden');
-                colorModeContainer.classList.remove('hidden'); // Tampilkan kembali
+                colorModeContainer.classList.remove('hidden');
                 customControls.classList.add('hidden');
                 customControls.classList.remove('flex');
             }
@@ -437,25 +480,20 @@
             let finalNumbersArray = []; 
             let customSum = 0;
 
-            // Validate custom input before starting
             if (modeSelect.value === 'custom') {
-                // Definisi mapping input ke warna HEX Tailwind
                 const colorInputs = [
-                    { id: 'custom-red', hex: '#ef4444' },    // red-500
-                    { id: 'custom-blue', hex: '#3b82f6' },   // blue-500
-                    { id: 'custom-green', hex: '#10b981' },  // emerald-500
-                    { id: 'custom-yellow', hex: '#eab308' }, // yellow-500
-                    { id: 'custom-purple', hex: '#a855f7' }  // purple-500
+                    { id: 'custom-red', hex: '#ef4444' },    
+                    { id: 'custom-blue', hex: '#3b82f6' },   
+                    { id: 'custom-green', hex: '#10b981' },  
+                    { id: 'custom-yellow', hex: '#eab308' }, 
+                    { id: 'custom-purple', hex: '#a855f7' }  
                 ];
 
-                // Loop kelima input text area
                 colorInputs.forEach(inputObj => {
                     const el = document.getElementById(inputObj.id);
                     const rawInput = el.value;
-                    // Parse angka dari text area
                     const nums = rawInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
                     
-                    // Masukkan ke array dengan properti val dan color
                     nums.forEach(n => {
                         finalNumbersArray.push({ val: n, color: inputObj.hex });
                         customSum += n;
@@ -479,11 +517,9 @@
             resetBtn.classList.remove('hidden');
             
             numCountInput.disabled = true;
-            // speedInput.disabled = true; // Baris ini dihapus agar bisa disetel saat jalan
             modeSelect.disabled = true;
             colorModeSelect.disabled = true;
             
-            // Disable all custom textareas
             ['custom-red', 'custom-blue', 'custom-green', 'custom-yellow', 'custom-purple'].forEach(id => {
                 document.getElementById(id).disabled = true;
                 document.getElementById(id).classList.add('opacity-70');
@@ -491,12 +527,10 @@
 
             let detailsHtml = '';
 
-            // Tentukan sumber angka dan teks deskripsi jawaban
             if (modeSelect.value === 'auto') {
                 const count = parseInt(numCountInput.value);
                 const generationData = generateNumbersList(count);
                 
-                // Convert list simple angka menjadi format object {val, color: null}
                 finalNumbersArray = generationData.list.map(n => ({ val: n, color: null }));
 
                 detailsHtml = `Angka-angka ini dirancang berpasangan menjadi <strong>${generationData.target}</strong>.<br>`;
@@ -521,27 +555,22 @@
             const baseFontSize = parseInt(fontSizeInput.value);
 
             const baseSpeed = parseInt(speedInput.value); 
-            // Inisialisasi kecepatan awal
             activeSpeedMultiplier = Math.pow(baseSpeed, 2) * 0.05 + 0.05; 
             const selectedColorMode = colorModeSelect.value;
 
             finalNumbersArray.forEach((item, index) => {
                 const val = item.val;
-                const explicitColor = item.color; // Akan terisi jika mode custom
+                const explicitColor = item.color;
 
                 const el = document.createElement('div');
                 el.className = 'number-bubble';
                 
-                // Set ukuran bubble dinamis
                 el.style.width = `${bubbleSize}px`;
                 el.style.height = `${bubbleSize}px`;
                 
-                // Pewarnaan
                 if (explicitColor) {
-                    // Jika dari mode custom, gunakan warna yang sudah di set
                     el.style.backgroundColor = explicitColor;
                 } else {
-                    // Jika mode auto, gunakan logika warna bawaan
                     if (selectedColorMode === 'single') {
                         el.style.backgroundColor = '#3b82f6';
                     } else if (selectedColorMode === 'even_odd') {
@@ -552,7 +581,6 @@
                     }
                 }
 
-                // Ukuran font
                 if (val.toString().length > 3) {
                     el.style.fontSize = `${baseFontSize * 0.6}px`;
                 } else if (val.toString().length > 2) {
@@ -566,12 +594,10 @@
                 const x = Math.random() * (Math.max(1, areaWidth - bubbleSize));
                 const y = Math.random() * (Math.max(1, areaHeight - bubbleSize));
                 
-                // Gunakan kecepatan aktif
                 const speedMultiplier = activeSpeedMultiplier; 
                 let vx = (Math.random() - 0.5) * 4 * speedMultiplier;
                 let vy = (Math.random() - 0.5) * 4 * speedMultiplier;
                 
-                // Mencegah kecepatan menjadi 0 sempurna, tapi tetap mengizinkan gerak sangat pelan
                 const minSpeed = Math.max(0.1, 0.3 * speedMultiplier);
                 if (Math.abs(vx) < minSpeed) vx = vx < 0 ? -minSpeed : minSpeed;
                 if (Math.abs(vy) < minSpeed) vy = vy < 0 ? -minSpeed : minSpeed;
@@ -617,7 +643,7 @@
                 <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
                     Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
                     <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
-                        💡 <strong>Tips:</strong> Tarik ikon garis di <strong>pojok kanan bawah</strong> kotak ini untuk memperbesar/memperkecil arena!
+                        💡 <strong>Tips:</strong> Gunakan slider <strong>Tinggi Kotak</strong> dan <strong>Lebar Kotak</strong> di atas untuk mengatur ukuran arena kapan saja!
                     </span>
                 </div>
             `;
@@ -729,15 +755,7 @@
         }
 
         const resizeObserver = new ResizeObserver(() => {
-            if (!isPlaying && numbersData.length > 0) {
-                const areaWidth = gameArea.clientWidth;
-                const areaHeight = gameArea.clientHeight;
-                numbersData.forEach(p => {
-                    if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);
-                    if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);
-                    p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
-                });
-            }
+            adjustPositionsToBounds();
         });
         
         resizeObserver.observe(gameArea);
