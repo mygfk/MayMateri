@@ -10,28 +10,28 @@
             font-family: 'Inter', sans-serif;
             background-color: #0f172a; /* Tailwind slate-900 */
             color: #f8fafc; /* Tailwind slate-50 */
-            overflow-x: hidden; /* Mencegah scroll menyamping */
-            overflow-y: auto; /* Membuka scroll atas bawah jika box diperbesar */
+            overflow-x: hidden;
+            overflow-y: auto;
             touch-action: pan-y;
         }
         
         #game-wrapper {
-            resize: both; /* Fitur ajaib agar kotak bisa ditarik/diubah ukurannya */
-            overflow: hidden; /* Syarat wajib agar resize handle muncul di pojok */
+            resize: both;
+            overflow: hidden;
             width: 100%;
-            height: 60vh; 
-            min-height: 300px; /* Batas minimal kecilnya kotak */
+            height: 60vh;
+            min-height: 300px;
             min-width: 300px;
             max-width: 100%;
-            max-height: 85vh; /* Batas maksimal tinggi tarikan */
+            max-height: 85vh;
             background-color: #1e293b;
         }
 
         #game-area {
             position: relative;
             width: 100%;
-            height: 100%; /* Mengisi penuh wrapper yang ditarik */
-            background-color: #1e293b; /* Tailwind slate-800 */
+            height: 100%;
+            background-color: #1e293b;
             border-radius: 0.5rem;
             overflow: hidden;
             box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
@@ -44,44 +44,40 @@
             justify-content: center;
             width: 50px;
             height: 50px;
-            background-color: #3b82f6; /* Tailwind blue-500 */
+            background-color: #3b82f6;
             color: white;
             font-weight: bold;
             font-size: 1.25rem;
             border-radius: 50%;
             user-select: none;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            /* Transform will be handled by JS for smooth movement */
             transition: opacity 0.3s;
         }
 
-        /* Glassmorphism for controls */
         #controls {
             backdrop-filter: blur(10px);
             background-color: rgba(30, 41, 59, 0.8);
         }
 
-        /* Custom range slider styling */
         input[type=range] {
             accent-color: #3b82f6;
         }
         
-        /* Modal styling */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 50; /* Sit on top */
+            display: none;
+            position: fixed;
+            z-index: 50;
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
             backdrop-filter: blur(4px);
         }
 
         .modal-content {
             background-color: #1e293b;
-            margin: 15% auto; /* 15% from the top and centered */
+            margin: 15% auto;
             padding: 20px;
             border: 1px solid #334155;
             width: 80%;
@@ -90,75 +86,119 @@
             text-align: center;
             box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
         }
+
+        /* Custom scrollbar for textareas to look neat */
+        textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 4px;
+        }
     </style>
 </head>
-<body class="flex flex-col min-h-screen p-4 pb-12"> <!-- Ubah agar bisa digulir jika layar terlalu kecil dan tambah jarak bawah -->
+<body class="flex flex-col min-h-screen p-4 pb-12">
 
-    <div id="controls" class="w-full max-w-5xl mx-auto mb-4 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center justify-between z-10">
+    <div id="controls" class="w-full max-w-6xl mx-auto mb-4 p-4 rounded-xl shadow-lg border border-slate-700 flex flex-col flex-wrap gap-4 items-start z-10">
         
-        <!-- Mode Selection -->
-        <div class="flex flex-col gap-2 w-full md:w-1/5">
-            <label for="mode-select" class="text-sm font-medium text-slate-300">Mode Angka:</label>
-            <select id="mode-select" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
-                <option value="auto">Otomatis (Trik)</option>
-                <option value="custom">Input Sendiri</option>
-            </select>
+        <!-- Top Row Controls -->
+        <div class="flex flex-col md:flex-row flex-wrap gap-4 items-end justify-between w-full">
+            <!-- Mode Selection -->
+            <div class="flex flex-col gap-2 w-full md:w-1/5">
+                <label for="mode-select" class="text-sm font-medium text-slate-300">Mode Angka:</label>
+                <select id="mode-select" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
+                    <option value="auto">Otomatis (Trik)</option>
+                    <option value="custom">Input Sendiri (Warna)</option>
+                </select>
+            </div>
+
+            <!-- Auto Controls (Hidden/Shown based on mode) -->
+            <div id="auto-controls" class="flex flex-col gap-2 w-full md:w-1/4">
+                <label for="num-count" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Jumlah Angka:</span>
+                    <span id="num-count-display" class="text-blue-400 font-bold">15</span>
+                </label>
+                <input type="range" id="num-count" min="15" max="25" step="5" value="15" class="w-full">
+            </div>
+
+            <!-- Color Selection (Hidden in custom mode) -->
+            <div id="color-mode-container" class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="color-mode" class="text-sm font-medium text-slate-300">Warna Angka:</label>
+                <select id="color-mode" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
+                    <option value="single">1 Warna (Biru)</option>
+                    <option value="even_odd">2 Warna (Ganjil/Genap)</option>
+                    <option value="random">Warna-warni</option>
+                </select>
+            </div>
+
+            <!-- Speed Control -->
+            <div class="flex flex-col gap-2 w-full md:w-1/5">
+                <label for="speed" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Kecepatan:</span>
+                    <span id="speed-display" class="text-blue-400 font-bold">Sedang</span>
+                </label>
+                <input type="range" id="speed" min="1" max="10" step="1" value="5" class="w-full">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 w-full md:w-auto flex-wrap items-end">
+                <button id="start-btn" class="flex-1 md:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200">
+                    Mulai Game
+                </button>
+                <button id="stop-btn" class="flex-1 md:flex-none px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
+                    Berhenti
+                </button>
+                <button id="answer-btn" class="flex-1 md:flex-none px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
+                    Lihat Jawaban
+                </button>
+                <button id="reset-btn" class="flex-1 md:flex-none px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
+                    Reset
+                </button>
+            </div>
         </div>
 
-        <!-- Auto Controls (Hidden/Shown based on mode) -->
-        <div id="auto-controls" class="flex flex-col gap-2 w-full md:w-1/4">
-            <label for="num-count" class="text-sm font-medium text-slate-300 flex justify-between">
-                <span>Jumlah Angka:</span>
-                <span id="num-count-display" class="text-blue-400 font-bold">15</span>
-            </label>
-            <input type="range" id="num-count" min="15" max="25" step="5" value="15" class="w-full">
-        </div>
+        <!-- Custom Controls (Hidden by default, spans full width) -->
+        <div id="custom-controls" class="hidden w-full flex flex-col gap-2 border-t border-slate-700 pt-4 mt-2">
+            <label class="text-sm font-medium text-slate-300">Masukkan Angka per Warna (pisahkan dengan koma atau spasi):</label>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                
+                <!-- Input Merah -->
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-bold text-red-400 uppercase tracking-wider">🔴 Merah</span>
+                    <textarea id="custom-red" rows="2" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-red-900/50 focus:outline-none focus:border-red-500 transition-colors resize-none text-sm" placeholder="Contoh: 12, 5"></textarea>
+                </div>
+                
+                <!-- Input Biru -->
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">🔵 Biru</span>
+                    <textarea id="custom-blue" rows="2" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-blue-900/50 focus:outline-none focus:border-blue-500 transition-colors resize-none text-sm" placeholder="Contoh: 8, 19"></textarea>
+                </div>
 
-        <!-- Custom Controls (Hidden by default) -->
-        <div id="custom-controls" class="flex flex-col gap-2 w-full md:w-1/3 hidden">
-            <label for="custom-numbers" class="text-sm font-medium text-slate-300">Masukkan Angka (koma/spasi):</label>
-            <textarea id="custom-numbers" rows="1" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors resize-none" placeholder="Contoh: 12, 34, 56"></textarea>
-            <span id="custom-error" class="text-xs text-red-400 hidden">Masukkan minimal 1 angka valid!</span>
-        </div>
+                <!-- Input Hijau -->
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🟢 Hijau</span>
+                    <textarea id="custom-green" rows="2" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-emerald-900/50 focus:outline-none focus:border-emerald-500 transition-colors resize-none text-sm" placeholder="Contoh: 3, 21"></textarea>
+                </div>
 
-        <!-- Color Selection -->
-        <div class="flex flex-col gap-2 w-full md:w-1/6">
-            <label for="color-mode" class="text-sm font-medium text-slate-300">Warna Angka:</label>
-            <select id="color-mode" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-slate-600 focus:outline-none focus:border-blue-500 transition-colors">
-                <option value="single">1 Warna (Biru)</option>
-                <option value="even_odd">2 Warna (Ganjil/Genap)</option>
-                <option value="random">Warna-warni</option>
-            </select>
-        </div>
+                <!-- Input Kuning -->
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">🟡 Kuning</span>
+                    <textarea id="custom-yellow" rows="2" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-yellow-900/50 focus:outline-none focus:border-yellow-500 transition-colors resize-none text-sm" placeholder="Contoh: 7, 14"></textarea>
+                </div>
 
-        <div class="flex flex-col gap-2 w-full md:w-1/5">
-            <label for="speed" class="text-sm font-medium text-slate-300 flex justify-between">
-                <span>Kecepatan:</span>
-                <span id="speed-display" class="text-blue-400 font-bold">Sedang</span>
-            </label>
-            <input type="range" id="speed" min="1" max="10" step="1" value="5" class="w-full">
-        </div>
+                <!-- Input Ungu -->
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">🟣 Ungu</span>
+                    <textarea id="custom-purple" rows="2" class="w-full bg-slate-800 text-white rounded-lg p-2 border border-purple-900/50 focus:outline-none focus:border-purple-500 transition-colors resize-none text-sm" placeholder="Contoh: 2, 9"></textarea>
+                </div>
 
-        <div class="flex gap-2 w-full md:w-auto mt-2 md:mt-0 flex-wrap items-end">
-            <button id="start-btn" class="flex-1 md:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200">
-                Mulai Game
-            </button>
-            <button id="stop-btn" class="flex-1 md:flex-none px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
-                Berhenti
-            </button>
-            <button id="answer-btn" class="flex-1 md:flex-none px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
-                Lihat Jawaban
-            </button>
-            <button id="reset-btn" class="flex-1 md:flex-none px-6 py-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 hidden">
-                Reset
-            </button>
+            </div>
+            <span id="custom-error" class="text-xs text-red-400 hidden mt-1">Masukkan minimal 1 angka valid di salah satu kotak warna!</span>
         </div>
     </div>
 
-    <!-- Menghapus flex-grow, mempertegas frame border, dan memberi margin bawah -->
     <div id="game-wrapper" class="w-full max-w-6xl mx-auto relative rounded-xl border-4 border-slate-600 overflow-hidden shadow-2xl mb-8 group">
         <div id="game-area">
-            <!-- Numbers will be injected here by JS -->
             <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
                 Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
                 <span class="mt-2 text-sm text-slate-400 bg-slate-800 p-2 rounded border border-slate-700 shadow-inner">
@@ -185,9 +225,9 @@
         // State variables
         let isPlaying = false;
         let animationFrameId;
-        let numbersData = []; // Store position, velocity, and value of each number
+        let numbersData = []; 
         let totalSum = 0;
-        let currentTargetSum = 70; // Target sum for pairs
+        let currentTargetSum = 70; 
 
         // DOM Elements
         const gameArea = document.getElementById('game-area');
@@ -198,16 +238,17 @@
         
         const modeSelect = document.getElementById('mode-select');
         const autoControls = document.getElementById('auto-controls');
+        
+        // Custom Input Elements
         const customControls = document.getElementById('custom-controls');
-        const customNumbersInput = document.getElementById('custom-numbers');
         const customError = document.getElementById('custom-error');
+        const colorModeContainer = document.getElementById('color-mode-container');
 
         const numCountInput = document.getElementById('num-count');
         const numCountDisplay = document.getElementById('num-count-display');
         const speedInput = document.getElementById('speed');
         const speedDisplay = document.getElementById('speed-display');
         const colorModeSelect = document.getElementById('color-mode');
-        const placeholderText = document.getElementById('placeholder-text');
         
         // Modal Elements
         const modal = document.getElementById('answer-modal');
@@ -215,7 +256,6 @@
         const answerDetailsDisplay = document.getElementById('answer-details');
         const closeModalBtn = document.getElementById('close-modal-btn');
 
-        // Update labels on range change
         numCountInput.addEventListener('input', (e) => {
             numCountDisplay.textContent = e.target.value;
         });
@@ -223,8 +263,12 @@
         speedInput.addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
             let text = 'Sedang';
-            if (val <= 3) text = 'Lambat';
-            else if (val >= 8) text = 'Cepat';
+            if (val === 1) text = 'Super Lambat';
+            else if (val === 2) text = 'Sangat Lambat';
+            else if (val <= 4) text = 'Lambat';
+            else if (val <= 7) text = 'Sedang';
+            else if (val <= 9) text = 'Cepat';
+            else text = 'Sangat Cepat';
             speedDisplay.textContent = text;
         });
 
@@ -232,12 +276,16 @@
         modeSelect.addEventListener('change', (e) => {
             if (e.target.value === 'custom') {
                 autoControls.classList.add('hidden');
+                colorModeContainer.classList.add('hidden'); // Sembunyikan pilihan warna krn di-set manual
                 customControls.classList.remove('hidden');
+                customControls.classList.add('flex'); // Pastikan flex menyala
             } else {
                 autoControls.classList.remove('hidden');
+                colorModeContainer.classList.remove('hidden'); // Tampilkan kembali
                 customControls.classList.add('hidden');
+                customControls.classList.remove('flex');
             }
-            customError.classList.add('hidden'); // Sembunyikan error saat ganti mode
+            customError.classList.add('hidden'); 
         });
 
         startBtn.addEventListener('click', startGame);
@@ -246,7 +294,6 @@
         resetBtn.addEventListener('click', resetGame);
         closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-        // Close modal if clicked outside
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = "none";
@@ -256,7 +303,6 @@
         function generateNumbersList(count) {
             const list = [];
             totalSum = 0;
-            // Generate pairs that sum to currentTargetSum (e.g., 70)
             const numPairs = Math.floor(count / 2);
             let usedNumbers = new Set();
 
@@ -264,16 +310,13 @@
                 let num1, num2;
                 let attempts = 0;
                 do {
-                    // Pick a random number between 11 and (currentTargetSum - 11)
-                    // Try to avoid ending in 0 or 5 if possible, but don't loop forever
                     num1 = Math.floor(Math.random() * (currentTargetSum - 22)) + 11;
                     num2 = currentTargetSum - num1;
                     attempts++;
-                    // If we can't find unique non-0/5 after many attempts, relax constraints
                 } while (
                     (usedNumbers.has(num1) || usedNumbers.has(num2) || num1 === num2 || 
-                     (attempts < 20 && (num1 % 5 === 0 || num2 % 5 === 0))) && 
-                    attempts < 50
+                      (attempts < 20 && (num1 % 5 === 0 || num2 % 5 === 0))) && 
+                     attempts < 50
                 );
 
                 list.push(num1, num2);
@@ -281,76 +324,98 @@
                 usedNumbers.add(num2);
             }
 
-            // If count is odd (15, 25), add one leftover number
             if (count % 2 !== 0) {
                 let leftover;
                 let attempts = 0;
                 do {
-                    leftover = Math.floor(Math.random() * 40) + 11; // Random 2 digit
+                    leftover = Math.floor(Math.random() * 40) + 11; 
                     attempts++;
                 } while (usedNumbers.has(leftover) && attempts < 20);
                 list.push(leftover);
             }
 
-            // Shuffle the list
             for (let i = list.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [list[i], list[j]] = [list[j], list[i]];
             }
 
-            // Calculate exact total
             totalSum = list.reduce((a, b) => a + b, 0);
             
             return {
                 list: list,
                 pairs: numPairs,
                 target: currentTargetSum,
-                leftover: count % 2 !== 0 ? list[list.length - 1] : 0 // approx, technically it could have been shuffled
+                leftover: count % 2 !== 0 ? list[list.length - 1] : 0 
             };
         }
 
         function startGame() {
             if (isPlaying) return;
             
+            let finalNumbersArray = []; 
+            let customSum = 0;
+
             // Validate custom input before starting
-            let customNumbersArray = [];
             if (modeSelect.value === 'custom') {
-                const rawInput = customNumbersInput.value;
-                // Parse input: pisah dengan koma atau spasi, ubah ke angka, filter yang bukan angka
-                customNumbersArray = rawInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+                // Definisi mapping input ke warna HEX Tailwind
+                const colorInputs = [
+                    { id: 'custom-red', hex: '#ef4444' },    // red-500
+                    { id: 'custom-blue', hex: '#3b82f6' },   // blue-500
+                    { id: 'custom-green', hex: '#10b981' },  // emerald-500
+                    { id: 'custom-yellow', hex: '#eab308' }, // yellow-500
+                    { id: 'custom-purple', hex: '#a855f7' }  // purple-500
+                ];
+
+                // Loop kelima input text area
+                colorInputs.forEach(inputObj => {
+                    const el = document.getElementById(inputObj.id);
+                    const rawInput = el.value;
+                    // Parse angka dari text area
+                    const nums = rawInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+                    
+                    // Masukkan ke array dengan properti val dan color
+                    nums.forEach(n => {
+                        finalNumbersArray.push({ val: n, color: inputObj.hex });
+                        customSum += n;
+                    });
+                });
                 
-                if (customNumbersArray.length === 0) {
+                if (finalNumbersArray.length === 0) {
                     customError.classList.remove('hidden');
-                    return; // Hentikan proses jika kosong atau tidak valid
+                    return; 
                 }
                 customError.classList.add('hidden');
             }
 
             isPlaying = true;
-            gameArea.innerHTML = ''; // Clear area
+            gameArea.innerHTML = ''; 
             numbersData = [];
             
-            // Toggle buttons
             startBtn.classList.add('hidden');
             stopBtn.classList.remove('hidden');
             answerBtn.classList.add('hidden');
             resetBtn.classList.remove('hidden');
             
-            // Disable inputs while playing
             numCountInput.disabled = true;
             speedInput.disabled = true;
             modeSelect.disabled = true;
-            customNumbersInput.disabled = true;
             colorModeSelect.disabled = true;
+            
+            // Disable all custom textareas
+            ['custom-red', 'custom-blue', 'custom-green', 'custom-yellow', 'custom-purple'].forEach(id => {
+                document.getElementById(id).disabled = true;
+                document.getElementById(id).classList.add('opacity-70');
+            });
 
-            let numbers = [];
             let detailsHtml = '';
 
-            // Tentukan sumber angka berdasarkan mode yang dipilih
+            // Tentukan sumber angka dan teks deskripsi jawaban
             if (modeSelect.value === 'auto') {
                 const count = parseInt(numCountInput.value);
                 const generationData = generateNumbersList(count);
-                numbers = generationData.list;
+                
+                // Convert list simple angka menjadi format object {val, color: null}
+                finalNumbersArray = generationData.list.map(n => ({ val: n, color: null }));
 
                 detailsHtml = `Angka-angka ini dirancang berpasangan menjadi <strong>${generationData.target}</strong>.<br>`;
                 detailsHtml += `Ada ${generationData.pairs} pasang (${generationData.pairs} x ${generationData.target} = ${generationData.pairs * generationData.target}).<br>`;
@@ -360,41 +425,45 @@
                 }
                 detailsHtml += `Total: <strong>${totalSum}</strong>`;
             } else {
-                numbers = customNumbersArray;
-                totalSum = numbers.reduce((a, b) => a + b, 0);
-                detailsHtml = `Kamu menggunakan input angka manual sebanyak <strong>${numbers.length}</strong> angka.<br>`;
+                totalSum = customSum;
+                detailsHtml = `Kamu menggunakan input angka berdasarkan warna sebanyak <strong>${finalNumbersArray.length}</strong> angka.<br>`;
                 detailsHtml += `Penjumlahan murni dari angka-angka yang kamu masukkan.<br>`;
                 detailsHtml += `Total: <strong>${totalSum}</strong>`;
             }
 
-            // Set teks penjelasan pada modal
             answerDetailsDisplay.innerHTML = detailsHtml;
 
-            // Generate elements
             const areaWidth = gameArea.clientWidth;
             const areaHeight = gameArea.clientHeight;
             const bubbleSize = 50;
 
-            const baseSpeed = parseInt(speedInput.value); // 1 to 10
+            const baseSpeed = parseInt(speedInput.value); 
             const selectedColorMode = colorModeSelect.value;
 
-            numbers.forEach((val, index) => {
+            finalNumbersArray.forEach((item, index) => {
+                const val = item.val;
+                const explicitColor = item.color; // Akan terisi jika mode custom
+
                 const el = document.createElement('div');
                 el.className = 'number-bubble';
                 
-                // Setel Warna berdasarkan pilihan mode warna
-                if (selectedColorMode === 'single') {
-                    el.style.backgroundColor = '#3b82f6'; // Biru bawaan
-                } else if (selectedColorMode === 'even_odd') {
-                    // Genap = Biru, Ganjil = Merah
-                    el.style.backgroundColor = (val % 2 === 0) ? '#3b82f6' : '#ef4444'; 
-                } else if (selectedColorMode === 'random') {
-                    // Berbagai macam warna cerah Tailwind
-                    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
-                    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                // Pewarnaan
+                if (explicitColor) {
+                    // Jika dari mode custom, gunakan warna yang sudah di set
+                    el.style.backgroundColor = explicitColor;
+                } else {
+                    // Jika mode auto, gunakan logika warna bawaan
+                    if (selectedColorMode === 'single') {
+                        el.style.backgroundColor = '#3b82f6';
+                    } else if (selectedColorMode === 'even_odd') {
+                        el.style.backgroundColor = (val % 2 === 0) ? '#3b82f6' : '#ef4444';
+                    } else if (selectedColorMode === 'random') {
+                        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+                        el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    }
                 }
 
-                // Sesuaikan ukuran font jika user memasukkan angka yang panjang (ratusan/ribuan)
+                // Ukuran font
                 if (val.toString().length > 3) {
                     el.style.fontSize = '0.8rem';
                 } else if (val.toString().length > 2) {
@@ -403,17 +472,18 @@
 
                 el.textContent = val;
                 
-                // Random starting position (pastikan tetap di dalam layar)
                 const x = Math.random() * (Math.max(1, areaWidth - bubbleSize));
                 const y = Math.random() * (Math.max(1, areaHeight - bubbleSize));
                 
-                // Random velocity based on speed slider
-                const speedMultiplier = (baseSpeed * 0.5) + 0.5; 
+                // Skala non-linear agar slider 1-2 terasa sangat lambat (melayang)
+                const speedMultiplier = Math.pow(baseSpeed, 2) * 0.05 + 0.05; 
                 let vx = (Math.random() - 0.5) * 4 * speedMultiplier;
                 let vy = (Math.random() - 0.5) * 4 * speedMultiplier;
                 
-                if (Math.abs(vx) < 0.5) vx = vx < 0 ? -1 : 1;
-                if (Math.abs(vy) < 0.5) vy = vy < 0 ? -1 : 1;
+                // Mencegah kecepatan menjadi 0 sempurna, tapi tetap mengizinkan gerak sangat pelan
+                const minSpeed = Math.max(0.1, 0.3 * speedMultiplier);
+                if (Math.abs(vx) < minSpeed) vx = vx < 0 ? -minSpeed : minSpeed;
+                if (Math.abs(vy) < minSpeed) vy = vy < 0 ? -minSpeed : minSpeed;
 
                 el.style.transform = `translate(${x}px, ${y}px)`;
                 
@@ -421,16 +491,13 @@
 
                 numbersData.push({
                     el: el,
-                    x: x,
-                    y: y,
-                    vx: vx,
-                    vy: vy,
+                    x: x, y: y,
+                    vx: vx, vy: vy,
                     size: bubbleSize,
                     value: val
                 });
             });
 
-            // Start animation loop
             lastTime = performance.now();
             animationFrameId = requestAnimationFrame(animate);
         }
@@ -440,15 +507,13 @@
             isPlaying = false;
             cancelAnimationFrame(animationFrameId);
 
-            // Toggle buttons
             stopBtn.classList.add('hidden');
             startBtn.classList.remove('hidden');
-            startBtn.textContent = "Ulangi Game";
-            answerBtn.classList.remove('hidden'); 
+            startBtn.textContent = "Lanjutkan Game";
+            answerBtn.classList.remove('hidden');
             
-            // Add a visual effect to show they stopped
             numbersData.forEach(data => {
-                data.el.style.boxShadow = "0 0 15px 5px rgba(255, 255, 255, 0.4)"; // White glow
+                data.el.style.boxShadow = "0 0 15px 5px rgba(255, 255, 255, 0.4)"; 
                 data.el.style.transition = "transform 0.5s ease-out, box-shadow 0.3s";
             });
         }
@@ -457,7 +522,6 @@
             isPlaying = false;
             cancelAnimationFrame(animationFrameId);
             
-            // Kembalikan ke tampilan teks awal
             gameArea.innerHTML = `
                 <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-slate-500 text-lg text-center p-4 flex-col">
                     Atur jumlah angka dan kecepatan, lalu klik "Mulai Game".<br>Jumlahkan semua angka yang muncul!<br><br>
@@ -468,19 +532,22 @@
             `;
             numbersData = [];
             
-            // Reset state tombol
             startBtn.classList.remove('hidden');
             startBtn.textContent = "Mulai Game";
             stopBtn.classList.add('hidden');
             answerBtn.classList.add('hidden');
             resetBtn.classList.add('hidden');
             
-            // Enable kembali semua input
             numCountInput.disabled = false;
             speedInput.disabled = false;
             modeSelect.disabled = false;
-            customNumbersInput.disabled = false;
             colorModeSelect.disabled = false;
+            
+            ['custom-red', 'custom-blue', 'custom-green', 'custom-yellow', 'custom-purple'].forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = false;
+                el.classList.remove('opacity-70');
+            });
         }
 
         function showAnswer() {
@@ -492,49 +559,43 @@
         function animate(currentTime) {
             if (!isPlaying) return;
 
-            // Calculate delta time for smooth movement regardless of frame rate
-            const deltaTime = (currentTime - lastTime) / 16.66; // Normalize to approx 60fps
+            const deltaTime = (currentTime - lastTime) / 16.66; 
             lastTime = currentTime;
 
             const areaWidth = gameArea.clientWidth;
             const areaHeight = gameArea.clientHeight;
 
-            // Update positions
             for (let i = 0; i < numbersData.length; i++) {
                 let p = numbersData[i];
 
                 p.x += p.vx * deltaTime;
                 p.y += p.vy * deltaTime;
 
-                // Wall collisions (Bounce) dengan pelindungan ekstra jika frame diperkecil paksa
                 if (p.x <= 0) {
                     p.x = 0;
-                    p.vx = Math.abs(p.vx); // Paksa pantul ke kanan
+                    p.vx = Math.abs(p.vx); 
                 } else if (p.x >= areaWidth - p.size) {
-                    p.x = Math.max(0, areaWidth - p.size); // Jangan sampai angka minus/keluar
-                    p.vx = -Math.abs(p.vx); // Paksa pantul ke kiri
+                    p.x = Math.max(0, areaWidth - p.size); 
+                    p.vx = -Math.abs(p.vx); 
                 }
 
                 if (p.y <= 0) {
                     p.y = 0;
-                    p.vy = Math.abs(p.vy); // Paksa pantul ke bawah
+                    p.vy = Math.abs(p.vy); 
                 } else if (p.y >= areaHeight - p.size) {
                     p.y = Math.max(0, areaHeight - p.size);
-                    p.vy = -Math.abs(p.vy); // Paksa pantul ke atas
+                    p.vy = -Math.abs(p.vy); 
                 }
                 
-                // Apply new position
                 p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
             }
 
-            // Optional: Simple Circle Collision between bubbles (can get computationally heavy with many)
-            // Kept simple for 25 items, it's fine.
+            // Simple Circle Collision
             for (let i = 0; i < numbersData.length; i++) {
                 for (let j = i + 1; j < numbersData.length; j++) {
                     let p1 = numbersData[i];
                     let p2 = numbersData[j];
                     
-                    // Center points
                     let c1x = p1.x + p1.size / 2;
                     let c1y = p1.y + p1.size / 2;
                     let c2x = p2.x + p2.size / 2;
@@ -544,23 +605,19 @@
                     let dy = c2y - c1y;
                     let distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance < p1.size) { // Radius is size/2, so r1+r2 = size
-                        // Simple elastic bounce
+                    if (distance < p1.size) { 
                         let angle = Math.atan2(dy, dx);
                         let sin = Math.sin(angle);
                         let cos = Math.cos(angle);
 
-                        // Velocity components along the collision axis
                         let v1n = p1.vx * cos + p1.vy * sin;
                         let v2n = p2.vx * cos + p2.vy * sin;
 
-                        // Swap normal velocities (assuming equal mass)
                         let temp = v1n;
                         v1n = v2n;
                         v2n = temp;
 
-                        // Reconstruct x and y velocities
-                        let v1t = p1.vy * cos - p1.vx * sin; // Tangential remains same
+                        let v1t = p1.vy * cos - p1.vx * sin; 
                         let v2t = p2.vy * cos - p2.vx * sin;
 
                         p1.vx = v1n * cos - v1t * sin;
@@ -568,7 +625,6 @@
                         p2.vx = v2n * cos - v2t * sin;
                         p2.vy = v2n * sin + v2t * cos;
                         
-                        // Push them apart slightly to prevent sticking
                         let overlap = p1.size - distance;
                         p1.x -= (overlap/2) * cos;
                         p1.y -= (overlap/2) * sin;
@@ -581,10 +637,8 @@
             animationFrameId = requestAnimationFrame(animate);
         }
 
-        // Handle wrapper resize using ResizeObserver instead of window resize
         const resizeObserver = new ResizeObserver(() => {
             if (!isPlaying && numbersData.length > 0) {
-                // Saat status "Berhenti", pastikan angka tidak tertinggal di luar kotak kalau diperkecil
                 const areaWidth = gameArea.clientWidth;
                 const areaHeight = gameArea.clientHeight;
                 numbersData.forEach(p => {
