@@ -140,6 +140,24 @@
                 <input type="range" id="speed" min="1" max="10" step="1" value="5" class="w-full">
             </div>
 
+            <!-- Bubble Size Control -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="bubble-size" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Ukuran Bubble:</span>
+                    <span id="bubble-size-display" class="text-blue-400 font-bold">75</span>
+                </label>
+                <input type="range" id="bubble-size" min="30" max="150" step="5" value="75" class="w-full">
+            </div>
+
+            <!-- Font Size Control -->
+            <div class="flex flex-col gap-2 w-full md:w-1/6">
+                <label for="font-size" class="text-sm font-medium text-slate-300 flex justify-between">
+                    <span>Ukuran Teks:</span>
+                    <span id="font-size-display" class="text-blue-400 font-bold">48</span>
+                </label>
+                <input type="range" id="font-size" min="12" max="72" step="2" value="48" class="w-full">
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex gap-2 w-full md:w-auto flex-wrap items-end">
                 <button id="start-btn" class="flex-1 md:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-md transition-colors duration-200">
@@ -228,6 +246,7 @@
         let numbersData = []; 
         let totalSum = 0;
         let currentTargetSum = 70; 
+        let activeSpeedMultiplier = 1; // Variabel baru untuk melacak perubahan kecepatan real-time
 
         // DOM Elements
         const gameArea = document.getElementById('game-area');
@@ -250,6 +269,12 @@
         const speedDisplay = document.getElementById('speed-display');
         const colorModeSelect = document.getElementById('color-mode');
         
+        // New Elements for sizes
+        const bubbleSizeInput = document.getElementById('bubble-size');
+        const bubbleSizeDisplay = document.getElementById('bubble-size-display');
+        const fontSizeInput = document.getElementById('font-size');
+        const fontSizeDisplay = document.getElementById('font-size-display');
+        
         // Modal Elements
         const modal = document.getElementById('answer-modal');
         const finalAnswerDisplay = document.getElementById('final-answer');
@@ -270,6 +295,63 @@
             else if (val <= 9) text = 'Cepat';
             else text = 'Sangat Cepat';
             speedDisplay.textContent = text;
+            
+            // Ubah kecepatan secara real-time saat game berjalan
+            const newSpeedMultiplier = Math.pow(val, 2) * 0.05 + 0.05;
+            if (isPlaying && numbersData.length > 0) {
+                // Hitung rasio kecepatan baru dibanding yang lama
+                const ratio = newSpeedMultiplier / activeSpeedMultiplier;
+                numbersData.forEach(p => {
+                    p.vx *= ratio;
+                    p.vy *= ratio;
+                    
+                    // Jaga kecepatan minimal agar tidak berhenti total saat sangat pelan
+                    const minSpeed = Math.max(0.1, 0.3 * newSpeedMultiplier);
+                    if (Math.abs(p.vx) < minSpeed) p.vx = p.vx < 0 ? -minSpeed : minSpeed;
+                    if (Math.abs(p.vy) < minSpeed) p.vy = p.vy < 0 ? -minSpeed : minSpeed;
+                });
+            }
+            // Simpan pengali kecepatan yang aktif saat ini
+            activeSpeedMultiplier = newSpeedMultiplier;
+        });
+
+        bubbleSizeInput.addEventListener('input', (e) => {
+            const newSize = parseInt(e.target.value);
+            bubbleSizeDisplay.textContent = newSize;
+            
+            // Ubah ukuran gelembung secara real-time saat game berjalan
+            if (isPlaying && numbersData.length > 0) {
+                const areaWidth = gameArea.clientWidth;
+                const areaHeight = gameArea.clientHeight;
+                
+                numbersData.forEach(p => {
+                    p.size = newSize;
+                    p.el.style.width = `${newSize}px`;
+                    p.el.style.height = `${newSize}px`;
+                    
+                    // Pastikan gelembung tidak keluar batas saat membesar secara tiba-tiba
+                    if (p.x > areaWidth - p.size) p.x = Math.max(0, areaWidth - p.size);
+                    if (p.y > areaHeight - p.size) p.y = Math.max(0, areaHeight - p.size);
+                });
+            }
+        });
+
+        fontSizeInput.addEventListener('input', (e) => {
+            const newFontSize = parseInt(e.target.value);
+            fontSizeDisplay.textContent = newFontSize;
+            
+            // Ubah ukuran font secara real-time saat game berjalan
+            if (isPlaying && numbersData.length > 0) {
+                numbersData.forEach(p => {
+                    if (p.value.toString().length > 3) {
+                        p.el.style.fontSize = `${newFontSize * 0.6}px`;
+                    } else if (p.value.toString().length > 2) {
+                        p.el.style.fontSize = `${newFontSize * 0.8}px`;
+                    } else {
+                        p.el.style.fontSize = `${newFontSize}px`;
+                    }
+                });
+            }
         });
 
         // Toggle between Auto and Custom mode
@@ -397,7 +479,7 @@
             resetBtn.classList.remove('hidden');
             
             numCountInput.disabled = true;
-            speedInput.disabled = true;
+            // speedInput.disabled = true; // Baris ini dihapus agar bisa disetel saat jalan
             modeSelect.disabled = true;
             colorModeSelect.disabled = true;
             
@@ -435,9 +517,12 @@
 
             const areaWidth = gameArea.clientWidth;
             const areaHeight = gameArea.clientHeight;
-            const bubbleSize = 50;
+            const bubbleSize = parseInt(bubbleSizeInput.value);
+            const baseFontSize = parseInt(fontSizeInput.value);
 
             const baseSpeed = parseInt(speedInput.value); 
+            // Inisialisasi kecepatan awal
+            activeSpeedMultiplier = Math.pow(baseSpeed, 2) * 0.05 + 0.05; 
             const selectedColorMode = colorModeSelect.value;
 
             finalNumbersArray.forEach((item, index) => {
@@ -446,6 +531,10 @@
 
                 const el = document.createElement('div');
                 el.className = 'number-bubble';
+                
+                // Set ukuran bubble dinamis
+                el.style.width = `${bubbleSize}px`;
+                el.style.height = `${bubbleSize}px`;
                 
                 // Pewarnaan
                 if (explicitColor) {
@@ -465,9 +554,11 @@
 
                 // Ukuran font
                 if (val.toString().length > 3) {
-                    el.style.fontSize = '0.8rem';
+                    el.style.fontSize = `${baseFontSize * 0.6}px`;
                 } else if (val.toString().length > 2) {
-                    el.style.fontSize = '1rem';
+                    el.style.fontSize = `${baseFontSize * 0.8}px`;
+                } else {
+                    el.style.fontSize = `${baseFontSize}px`;
                 }
 
                 el.textContent = val;
@@ -475,8 +566,8 @@
                 const x = Math.random() * (Math.max(1, areaWidth - bubbleSize));
                 const y = Math.random() * (Math.max(1, areaHeight - bubbleSize));
                 
-                // Skala non-linear agar slider 1-2 terasa sangat lambat (melayang)
-                const speedMultiplier = Math.pow(baseSpeed, 2) * 0.05 + 0.05; 
+                // Gunakan kecepatan aktif
+                const speedMultiplier = activeSpeedMultiplier; 
                 let vx = (Math.random() - 0.5) * 4 * speedMultiplier;
                 let vy = (Math.random() - 0.5) * 4 * speedMultiplier;
                 
