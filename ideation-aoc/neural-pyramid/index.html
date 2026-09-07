@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AoC: Neural Pyramid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505;
+            color: #00ffcc;
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .title-font { font-family: 'Orbitron', sans-serif; }
+        
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            position: fixed;
+        }
+
+        .crt-flicker { animation: textShadow 1.6s infinite; }
+        @keyframes textShadow {
+            0% { text-shadow: 0.438px 0 1px rgba(0,30,255,0.5), -0.438px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+            5% { text-shadow: 2.792px 0 1px rgba(0,30,255,0.5), -2.792px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+            100% { text-shadow: 0.438px 0 1px rgba(0,30,255,0.5), -0.438px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+        }
+
+        #game_area {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 450px;
+            margin: 0 auto;
+        }
+        
+        .node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(10, 15, 20, 0.95);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3), inset 0 0 10px rgba(0, 255, 204, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, border-color 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            transform: translate(-50%, -50%); /* Menengahkan titik (x,y) dengan sempurna */
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        .node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .node input {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #ff0055;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        .node span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .node input:focus {
+            background: rgba(255, 0, 85, 0.1);
+            box-shadow: inset 0 0 15px rgba(255, 0, 85, 0.8);
+        }
+
+        .node.node-locked {
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+
+        .node.correct {
+            border-color: #00ffcc;
+            box-shadow: 0 0 20px #00ffcc, inset 0 0 15px #00ffcc;
+            background: rgba(0, 255, 204, 0.2);
+        }
+        .node.correct input { color: #00ffcc; }
+
+        .node.error {
+            border-color: #ff0055;
+            box-shadow: 0 0 15px #ff0055, inset 0 0 10px #ff0055;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-5px); }
+            50% { transform: translate(-50%, -50%) translateX(5px); }
+            75% { transform: translate(-50%, -50%) translateX(-5px); }
+            100% { transform: translate(-50%, -50%) translateX(0); }
+        }
+
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        #overlay {
+            backdrop-filter: blur(5px);
+        }
+
+        .level-btn {
+            transition: all 0.2s ease;
+        }
+        .level-btn.active {
+            background-color: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 12px rgba(0, 255, 204, 0.8);
+        }
+    </style>
+</head>
+<body class="scanlines">
+
+<header class="w-full border-b border-teal-800 p-4 flex flex-col md:flex-row justify-between items-center bg-black/80 relative z-20 gap-3">
+    <div>
+        <h1 class="title-font text-2xl text-red-500 font-black tracking-widest uppercase crt-flicker">A.o.C Terminal</h1>
+        <p id="level_display" class="text-xs text-teal-400">>_ LEVEL 1 : INITIALIZATION (4 ROWS)</p>
+    </div>
+
+    <!-- Level Selector Bar -->
+    <div class="flex items-center gap-1.5 bg-gray-950/80 p-1.5 rounded-lg border border-teal-900">
+        <span class="text-[11px] text-gray-400 font-mono mr-1 hidden sm:inline">SECTOR:</span>
+        <button onclick="selectLevel(0)" id="lvl_btn_0" class="level-btn active px-3 py-1 rounded text-xs font-bold border border-teal-700 hover:border-teal-400 text-teal-300">L1</button>
+        <button onclick="selectLevel(1)" id="lvl_btn_1" class="level-btn px-3 py-1 rounded text-xs font-bold border border-teal-700 hover:border-teal-400 text-teal-300">L2</button>
+        <button onclick="selectLevel(2)" id="lvl_btn_2" class="level-btn px-3 py-1 rounded text-xs font-bold border border-teal-700 hover:border-teal-400 text-teal-300">L3</button>
+        <button onclick="selectLevel(3)" id="lvl_btn_3" class="level-btn px-3 py-1 rounded text-xs font-bold border border-teal-700 hover:border-teal-400 text-teal-300">L4</button>
+        <button onclick="selectLevel(4)" id="lvl_btn_4" class="level-btn px-3 py-1 rounded text-xs font-bold border border-teal-700 hover:border-teal-400 text-teal-300">L5</button>
+    </div>
+
+    <div class="text-right flex items-center gap-3">
+        <div>
+            <div id="timer" class="text-2xl md:text-3xl font-bold text-red-500 title-font">02:00</div>
+            <p class="text-[10px] tracking-widest uppercase text-gray-500">Time Remaining</p>
+        </div>
+    </div>
+</header>
+
+<main class="flex-grow flex flex-col items-center justify-center relative z-20 p-4">
+    <div class="max-w-2xl text-center mb-4 bg-black/60 p-3.5 border border-teal-900 rounded-lg backdrop-blur">
+        <h2 class="text-lg md:text-xl text-white font-bold mb-1 title-font tracking-wide">NEURAL PYRAMID BOND</h2>
+        <p class="text-xs md:text-sm text-gray-400">
+            Aturan: Nilai sebuah node adalah <span class="text-teal-400 font-bold">JUMLAH</span> dari dua node tepat di bawahnya. Lengkapi jaringan saraf ini. Desimal 1 angka di belakang koma. Hati-hati dengan nilai negatif di level lanjut!
+        </p>
+    </div>
+
+    <div id="game_area" class="mb-6">
+        <canvas id="pyramid_canvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+        <div id="pyramid_nodes" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></div>
+    </div>
+
+    <div class="flex gap-4">
+        <button id="btn_verify" class="bg-teal-700 hover:bg-teal-500 text-black font-bold title-font py-3 px-8 rounded transition-all shadow-[0_0_15px_rgba(0,255,204,0.4)] hover:shadow-[0_0_25px_rgba(0,255,204,0.8)]">
+            > VERIFY_NETWORK
+        </button>
+        <button id="btn_reset" class="border border-red-500 text-red-500 hover:bg-red-500 hover:text-black font-bold title-font py-3 px-6 rounded transition-all">
+            RESET
+        </button>
+    </div>
+
+    <div id="system_log" class="mt-4 text-sm font-mono text-center h-8"></div>
+</main>
+
+<div id="overlay" class="fixed inset-0 bg-black/80 hidden flex-col items-center justify-center z-50">
+    <h2 id="overlay_title" class="title-font text-5xl mb-4 text-center"></h2>
+    <p id="overlay_msg" class="text-white text-lg max-w-md text-center mb-6"></p>
+    <button id="overlay_btn" class="px-8 py-3 border-2 border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-black font-bold transition-all rounded title-font">
+        INITIATE_NEW_SEQUENCE
+    </button>
+</div>
+
+<script>
+    const levelData = [
+        { id: 1, rows: 4, minVal: 1, maxVal: 9, time: 120, title: "LEVEL 1 : INITIALIZATION (4 ROWS)" },
+        { id: 2, rows: 5, minVal: 1, maxVal: 9, time: 180, title: "LEVEL 2 : STANDARD DECIMALS (5 ROWS)" },
+        { id: 3, rows: 5, minVal: -5, maxVal: 9, time: 240, title: "LEVEL 3 : NEGATIVE SHIFTS (5 ROWS)" },
+        { id: 4, rows: 6, minVal: 1, maxVal: 9, time: 240, title: "LEVEL 4 : DEEP NETWORK (6 ROWS)" },
+        { id: 5, rows: 6, minVal: -9, maxVal: 9, time: 300, title: "LEVEL 5 : MASTER DECRYPTOR (6 ROWS, NEGATIVES)" }
+    ];
+
+    let currentLevelIndex = 0;
+    let ROWS = 4;
+    let solutionPyramid = [];
+    let puzzleMask = [];
+    let timerInterval;
+    let timeLeft = 180;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playBeep(freq, type, duration) {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        try {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = type;
+            oscillator.frequency.value = freq;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            oscillator.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            // Audio error fallback
+        }
+    }
+
+    function addDec(a, b) {
+        return Math.round((a + b) * 10) / 10;
+    }
+
+    function generatePyramid() {
+        solutionPyramid = [];
+        const config = levelData[currentLevelIndex];
+        ROWS = config.rows;
+        
+        let baseRow = [];
+        for (let i = 0; i < ROWS; i++) {
+            let range = config.maxVal - config.minVal;
+            let val = Math.floor(Math.random() * (range * 10) + (config.minVal * 10)) / 10; 
+            baseRow.push(val);
+        }
+        solutionPyramid.push(baseRow);
+
+        for (let r = 1; r < ROWS; r++) {
+            let currentRow = [];
+            let prevRow = solutionPyramid[r - 1];
+            for (let c = 0; c < prevRow.length - 1; c++) {
+                currentRow.push(addDec(prevRow[c], prevRow[c + 1]));
+            }
+            solutionPyramid.push(currentRow);
+        }
+        solutionPyramid.reverse();
+    }
+
+    function createPuzzleMask() {
+        let templates = [];
+        if (ROWS === 4) {
+            templates = [
+                [[1], [0, 1], [1, 0, 0], [0, 1, 1, 0]],
+                [[0], [1, 0], [0, 1, 1], [1, 0, 0, 1]],
+                [[1], [1, 0], [0, 0, 1], [0, 1, 0, 1]]
+            ];
+        } else if (ROWS === 5) {
+            templates = [
+                [[1], [0, 1], [1, 0, 0], [0, 1, 1, 0], [1, 0, 0, 1, 1]],
+                [[0], [1, 0], [0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0, 1]],
+                [[1], [0, 0], [1, 0, 1], [0, 1, 0, 1], [1, 0, 1, 0, 1]]
+            ];
+        } else if (ROWS === 6) {
+            templates = [
+                [[1], [0,1], [1,0,0], [0,1,1,0], [1,0,0,1,1], [0,1,1,0,0,1]],
+                [[0], [1,0], [0,1,1], [1,0,0,1], [0,1,1,0,1], [1,0,0,1,0,0]],
+                [[1], [0,0], [1,0,1], [0,1,0,1], [1,0,1,0,1], [0,1,0,1,0,1]]
+            ];
+        }
+        puzzleMask = templates[Math.floor(Math.random() * templates.length)];
+    }
+
+    function initNodes() {
+        const container = document.getElementById('pyramid_nodes');
+        container.innerHTML = ''; 
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < solutionPyramid[r].length; c++) {
+                let nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                nodeDiv.id = `node_div_${r}_${c}`;
+                nodeDiv.style.pointerEvents = 'auto';
+                
+                let val = solutionPyramid[r][c];
+                let isFixed = puzzleMask[r][c] === 1;
+
+                if (isFixed) {
+                    nodeDiv.classList.add('node-locked');
+                    let span = document.createElement('span');
+                    span.innerText = val.toFixed(1);
+                    nodeDiv.appendChild(span);
+                    
+                    let hiddenInp = document.createElement('input');
+                    hiddenInp.type = 'hidden';
+                    hiddenInp.id = `node_${r}_${c}`;
+                    hiddenInp.value = val;
+                    nodeDiv.appendChild(hiddenInp);
+                } else {
+                    let inp = document.createElement('input');
+                    inp.type = 'number';
+                    inp.step = '0.1';
+                    inp.id = `node_${r}_${c}`;
+                    inp.placeholder = '?';
+                    inp.autocomplete = "off";
+                    inp.inputMode = "decimal";
+                    
+                    inp.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') {
+                            verifyNetwork();
+                        }
+                    });
+
+                    nodeDiv.appendChild(inp);
+                }
+                container.appendChild(nodeDiv);
+            }
+        }
+    }
+
+    function updateLayout() {
+        const gameArea = document.getElementById('game_area');
+        const canvas = document.getElementById('pyramid_canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const width = gameArea.clientWidth;
+        const height = gameArea.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx.clearRect(0, 0, width, height);
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        
+        const dx = Math.min(80, width / (ROWS + 0.5)); 
+        const dy = Math.min(75, (height - 30) / (ROWS - 0.5));
+        
+        const startY = (height - (dy * (ROWS - 1))) / 2;
+        const centerX = width / 2;
+        
+        const positions = [];
+        
+        for(let r = 0; r < ROWS; r++) {
+            positions[r] = [];
+            const rowWidth = r * dx;
+            const startX = centerX - (rowWidth / 2);
+            
+            for(let c = 0; c <= r; c++) {
+                const x = startX + (c * dx);
+                const y = startY + (r * dy);
+                positions[r].push({x, y});
+                
+                const nodeDiv = document.getElementById(`node_div_${r}_${c}`);
+                if (nodeDiv) {
+                    nodeDiv.style.left = `${x}px`;
+                    nodeDiv.style.top = `${y}px`;
+                }
+            }
+        }
+        
+        for(let r = 0; r < ROWS - 1; r++) {
+            for(let c = 0; c <= r; c++) {
+                const parent = positions[r][c];
+                const leftChild = positions[r+1][c];
+                const rightChild = positions[r+1][c+1];
+                
+                ctx.beginPath();
+                ctx.moveTo(parent.x, parent.y);
+                ctx.lineTo(leftChild.x, leftChild.y);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(parent.x, parent.y);
+                ctx.lineTo(rightChild.x, rightChild.y);
+                ctx.stroke();
+            }
+        }
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        const config = levelData[currentLevelIndex];
+        timeLeft = config.time; 
+        
+        const timerEl = document.getElementById('timer');
+        timerEl.classList.remove('animate-ping');
+        timerEl.style.color = "#ef4444";
+
+        let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        let s = (timeLeft % 60).toString().padStart(2, '0');
+        timerEl.textContent = `${m}:${s}`;
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            let s = (timeLeft % 60).toString().padStart(2, '0');
+            timerEl.textContent = `${m}:${s}`;
+            
+            if (timeLeft <= 30) {
+                timerEl.style.color = "#ff0000";
+                timerEl.classList.add('animate-ping');
+                playBeep(800, 'square', 0.1);
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerEl.textContent = "00:00";
+                showOverlay("SYSTEM BREACH FAILED", "Waktu habis. Neural network terkunci secara otomatis.", false, "RETRY");
+            }
+        }, 1000);
+    }
+
+    function verifyNetwork() {
+        let isComplete = true;
+        let isCorrect = true;
+        let errors = 0;
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < solutionPyramid[r].length; c++) {
+                let inp = document.getElementById(`node_${r}_${c}`);
+                let val = inp.value;
+                let expected = solutionPyramid[r][c];
+                let parentNode = inp.parentElement;
+                
+                if (val === "" || val === null) {
+                    isComplete = false;
+                    continue;
+                }
+
+                let parsedVal = parseFloat(val);
+                if (Math.abs(parsedVal - expected) < 0.01) { 
+                    if (!parentNode.classList.contains('node-locked')) {
+                        parentNode.classList.add('correct');
+                        parentNode.classList.remove('error');
+                    }
+                } else {
+                    if (!parentNode.classList.contains('node-locked')) {
+                        parentNode.classList.add('error');
+                        parentNode.classList.remove('correct');
+                        isCorrect = false;
+                        errors++;
+                    }
+                }
+            }
+        }
+
+        const log = document.getElementById('system_log');
+        if (!isComplete) {
+            log.innerHTML = "<span class='text-yellow-500'>> WARNING: Incomplete data. Isi semua node yang kosong.</span>";
+            playBeep(200, 'sawtooth', 0.2);
+            return;
+        }
+
+        if (isCorrect) {
+            log.innerHTML = "<span class='text-green-400'>> DECRYPTION SUCCESSFUL. Network verified.</span>";
+            clearInterval(timerInterval);
+            playBeep(800, 'sine', 0.1);
+            setTimeout(() => playBeep(1200, 'sine', 0.3), 150);
+            
+            if (currentLevelIndex < levelData.length - 1) {
+                showOverlay("LEVEL CLEARED", `Level ${currentLevelIndex + 1} berhasil diretas! Lanjut ke level berikutnya?`, true, "NEXT");
+            } else {
+                showOverlay("MASTER DECRYPTOR", "Luar biasa! Kamu telah menaklukkan seluruh level Neural Pyramid.", true, "FINISH");
+            }
+        } else {
+            log.innerHTML = `<span class='text-red-500'>> ERROR: Ditemukan ${errors} anomali perhitungan. Periksa kembali.</span>`;
+            playBeep(150, 'sawtooth', 0.4);
+        }
+    }
+
+    function selectLevel(lvlIndex) {
+        currentLevelIndex = lvlIndex;
+        updateLevelButtonsUI();
+        startLevel();
+    }
+
+    function updateLevelButtonsUI() {
+        for (let i = 0; i < levelData.length; i++) {
+            const btn = document.getElementById(`lvl_btn_${i}`);
+            if (btn) {
+                if (i === currentLevelIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+        }
+    }
+
+    function showOverlay(title, msg, isSuccess, actionType) {
+        const overlay = document.getElementById('overlay');
+        const titleEl = document.getElementById('overlay_title');
+        const msgEl = document.getElementById('overlay_msg');
+        const btn = document.getElementById('overlay_btn');
+        
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        
+        titleEl.innerText = title;
+        titleEl.className = `title-font text-4xl md:text-5xl mb-4 text-center ${isSuccess ? 'text-teal-400 drop-shadow-[0_0_10px_#00ffcc]' : 'text-red-500 drop-shadow-[0_0_10px_#ff0055]'}`;
+        msgEl.innerText = msg;
+        
+        if (actionType === "NEXT") {
+            btn.innerText = "> PROCEED TO NEXT LEVEL";
+            btn.onclick = nextLevel;
+        } else if (actionType === "RETRY") {
+            btn.innerText = "REBOOT SEQUENCE";
+            btn.onclick = startLevel;
+        } else if (actionType === "FINISH") {
+            btn.innerText = "RESTART CAMPAIGN";
+            btn.onclick = () => selectLevel(0);
+        }
+    }
+
+    function nextLevel() {
+        if (currentLevelIndex < levelData.length - 1) {
+            selectLevel(currentLevelIndex + 1);
+        }
+    }
+
+    function startLevel() {
+        document.getElementById('overlay').classList.add('hidden');
+        document.getElementById('overlay').classList.remove('flex');
+        
+        updateLevelButtonsUI();
+        const config = levelData[currentLevelIndex];
+        document.getElementById('level_display').innerText = `>_ ${config.title}`;
+        document.getElementById('system_log').innerHTML = `> Ready to decrypt Level ${currentLevelIndex + 1}...`;
+        
+        generatePyramid();
+        createPuzzleMask();
+        initNodes(); 
+        updateLayout(); 
+        startTimer();
+    }
+
+    document.getElementById('btn_verify').addEventListener('click', verifyNetwork);
+    document.getElementById('btn_reset').addEventListener('click', startLevel);
+
+    window.addEventListener('resize', updateLayout);
+
+    window.onload = function() {
+        startLevel();
+    };
+</script>
+</body>
+</html>
