@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dadu 3D Kustom</title>
+    <title>Dadu 3D Kustom Interaktif</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,6 +13,17 @@
             background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
+            user-select: none; /* Mencegah teks terblokir saat di-drag */
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
 
         /* Kontainer Utama Dadu 3D */
@@ -21,6 +32,11 @@
             height: 200px;
             perspective: 600px;
             margin: 40px auto;
+            cursor: grab;
+        }
+
+        .scene:active {
+            cursor: grabbing;
         }
 
         .cube {
@@ -28,8 +44,7 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transform: translateZ(-100px);
-            transition: transform 1s ease-out;
+            transform: translateZ(-100px) rotateX(-20deg) rotateY(30deg); /* Posisi awal sedikit miring */
         }
 
         /* Pengaturan Sisi Dadu */
@@ -46,6 +61,7 @@
             background: rgba(52, 152, 219, 0.9);
             overflow: hidden;
             word-wrap: break-word;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
 
         /* Posisi 3D masing-masing sisi */
@@ -64,6 +80,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             max-width: 400px;
             width: 100%;
+            margin-top: 25px;
         }
 
         .input-group {
@@ -76,6 +93,8 @@
         .input-group input {
             padding: 5px;
             width: 65%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         button.roll-btn {
@@ -98,9 +117,10 @@
 <body>
 
     <h1>🎲 Dadu 3D Kustom</h1>
+    <p class="hint">💡 Klik dan geser (drag) di area sekitar dadu untuk memutarnya bebas!</p>
 
     <!-- Area 3D Dadu -->
-    <div class="scene">
+    <div class="scene" id="scene">
         <div class="cube" id="dice">
             <div class="cube__face cube__face--front" id="face-1">1</div>
             <div class="cube__face cube__face--back" id="face-2">2</div>
@@ -139,26 +159,82 @@
             <input type="text" value="6" oninput="updateFace(6, this.value)">
         </div>
 
-        <button class="roll-btn" onclick="rollDice()">Acak / Putar Dadu</button>
+        <button class="roll-btn" onclick="rollDice()">Acak / Putar Otomatis</button>
     </div>
 
     <script>
+        const dice = document.getElementById('dice');
+        const scene = document.getElementById('scene');
+
+        // Nilai rotasi awal
+        let currentX = -20;
+        let currentY = 30;
+        
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
         // Fungsi untuk langsung mengubah teks di sisi dadu
         function updateFace(faceNumber, value) {
             document.getElementById(`face-${faceNumber}`).innerText = value;
         }
 
-        // Fungsi untuk memutar dadu secara acak secara 3D
-        function rollDice() {
-            const dice = document.getElementById('dice');
+        // --- Logika Geser / Drag Menggunakan Mouse & Touch ---
+        function startDrag(e) {
+            isDragging = true;
+            // Mendukung mouse maupun touch screen (HP)
+            const pageX = e.pageX || e.touches[0].pageX;
+            const pageY = e.pageY || e.touches[0].pageY;
             
-            // Menghasilkan rotasi acak (kelipatan 90 derajat agar berhenti pas di salah satu sisi)
-            const randomX = Math.floor(Math.random() * 4) * 90 + 360;
-            const randomY = Math.floor(Math.random() * 4) * 90 + 360;
-            const randomZ = Math.floor(Math.random() * 4) * 90;
+            previousMousePosition = { x: pageX, y: pageY };
+            dice.style.transition = 'none'; // Matikan animasi transisi agar pergeseran terasa responsif
+        }
 
-            // Terapkan rotasi ke elemen dadu
-            dice.style.transform = `translateZ(-100px) rotateX(${randomX}deg) rotateY(${randomY}deg) rotateZ(${randomZ}deg)`;
+        function doDrag(e) {
+            if (!isDragging) return;
+
+            const pageX = e.pageX || (e.touches ? e.touches[0].pageX : null);
+            const pageY = e.pageY || (e.touches ? e.touches[0].pageY : null);
+            if (!pageX || !pageY) return;
+
+            const deltaMove = {
+                x: pageX - previousMousePosition.x,
+                y: pageY - previousMousePosition.y
+            };
+
+            // Hitung rotasi baru berdasarkan seberapa jauh mouse digerakkan
+            // Memindahkan mouse ke kanan-kiri mengubah RotateY, ke atas-bawah mengubah RotateX
+            currentY += deltaMove.x * 0.5;
+            currentX -= deltaMove.y * 0.5;
+
+            dice.style.transform = `translateZ(-100px) rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+
+            previousMousePosition = { x: pageX, y: pageY };
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        // Event listener untuk mouse komputer
+        scene.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', doDrag);
+        window.addEventListener('mouseup', endDrag);
+
+        // Event listener untuk layar sentuh HP
+        scene.addEventListener('touchstart', startDrag);
+        window.addEventListener('touchmove', doDrag);
+        window.addEventListener('touchend', endDrag);
+
+
+        // Fungsi acak bawaan (jika malas menggeser secara manual)
+        function rollDice() {
+            dice.style.transition = 'transform 1s ease-out'; // Hidupkan kembali transisi halus
+            
+            // Berhenti pas di kelipatan 90 derajat agar sisinya menghadap layar dengan rapi
+            currentX = Math.floor(Math.random() * 4) * 90 + 360;
+            currentY = Math.floor(Math.random() * 4) * 90 + 360;
+
+            dice.style.transform = `translateZ(-100px) rotateX(${currentX}deg) rotateY(${currentY}deg)`;
         }
     </script>
 
