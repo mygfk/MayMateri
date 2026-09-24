@@ -6,20 +6,19 @@
     <title>Teka-teki Rantai Molekul Logika 3D</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls for 3D interaction -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0f172a; font-family: 'Inter', sans-serif; }
-        /* Custom scrollbar for the side panel */
+        body { margin: 0; overflow: hidden; background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(0,0,0,0.05);
         }
         
         input[type="number"]::-webkit-inner-spin-button, 
@@ -31,62 +30,68 @@
         canvas { display: block; outline: none; }
     </style>
 </head>
-<body class="text-slate-200 flex flex-col md:flex-row h-screen w-screen relative">
+<body class="text-slate-800 flex flex-col md:flex-row h-screen w-screen relative">
 
-    <div id="ui-panel" class="glass-panel w-full md:w-80 h-1/2 md:h-full overflow-y-auto flex-shrink-0 z-10 shadow-2xl flex flex-col p-5">
-        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">Molekul Logika 3D</h1>
+    <div id="ui-panel" class="glass-panel w-full md:w-[350px] h-1/2 md:h-full overflow-y-auto flex-shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.05)] flex flex-col p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">Molekul Logika</h1>
+            
+            <select id="level-select" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 shadow-sm font-medium cursor-pointer transition-colors hover:bg-slate-50">
+                <option value="1">Level 1: Dasar</option>
+                <option value="2">Level 2: Polimer</option>
+                <option value="3">Level 3: Cincin</option>
+            </select>
+        </div>
         
-        <div class="bg-slate-800/50 rounded-lg p-3 text-sm mb-4 border border-slate-700">
-            <p class="font-semibold text-blue-300 mb-1">Aturan Main:</p>
-            <p>Setiap atom merupakan <strong>JUMLAH</strong> dari atom-atom yang menyokongnya (terhubung dari arah bawah).</p>
-            <p class="mt-2 text-xs text-slate-400">Gunakan mouse/sentuhan di layar untuk memutar dan memperbesar jaringan 3D.</p>
+        <div class="bg-blue-50/80 rounded-xl p-4 text-sm mb-5 border border-blue-100 shadow-sm">
+            <p class="font-semibold text-blue-800 mb-2 flex items-center">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Aturan Main
+            </p>
+            <p class="text-slate-700 leading-relaxed">Setiap atom merupakan <strong>JUMLAH</strong> dari atom-atom yang menyokongnya (terhubung dari arah bawah).</p>
+            <p class="mt-2 text-xs text-slate-500 font-medium bg-white/50 inline-block px-2 py-1 rounded">Geser 3D view untuk melihat persilangan.</p>
         </div>
 
-        <h2 class="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">Temukan 10 Variabel</h2>
+        <h2 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest flex items-center">
+            <span class="flex-1 border-b border-slate-200 mr-2"></span>
+            Temukan 10 Variabel
+            <span class="flex-1 border-b border-slate-200 ml-2"></span>
+        </h2>
         
-        <div id="inputs-container" class="grid grid-cols-2 gap-3 mb-6">
+        <div id="inputs-container" class="grid grid-cols-2 gap-x-4 gap-y-3 mb-6">
             <!-- Inputs generated via JS -->
         </div>
 
-        <button id="btn-check" class="mt-auto w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg font-bold text-white shadow-lg transition transform hover:scale-[1.02] active:scale-[0.98]">
+        <button id="btn-check" class="mt-auto w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl font-bold text-white shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
             Periksa Jawaban
         </button>
 
-        <!-- Message Box -->
-        <div id="msg-box" class="hidden mt-4 p-3 rounded-lg text-sm font-medium border text-center transition-all">
+        <div id="msg-box" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border text-center transition-all shadow-sm">
         </div>
     </div>
 
-    <div id="canvas-container" class="flex-1 h-1/2 md:h-full relative cursor-move">
-        <div class="absolute top-4 right-4 text-xs bg-slate-800/80 px-3 py-1 rounded-full text-slate-400 pointer-events-none z-10 border border-slate-700">
-            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span> = Dicari
-            <span class="inline-block w-2 h-2 rounded-full bg-slate-400 ml-3 mr-1"></span> = Diketahui
+    <div id="canvas-container" class="flex-1 h-1/2 md:h-full relative cursor-move bg-slate-50">
+        <div class="absolute top-5 right-5 text-xs bg-white/90 backdrop-blur px-4 py-2 rounded-full text-slate-600 pointer-events-none z-10 border border-slate-200 shadow-sm flex items-center font-medium">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] mr-2"></span> Dicari
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-600 shadow-[0_0_8px_rgba(71,85,105,0.4)] ml-4 mr-2"></span> Diketahui
         </div>
     </div>
 
     <script>
-        // Mathematical Model of the 3D Network (Bottom-Up Directed Acyclic Graph)
-        // Solvable path requires algebraic substitution and traversing specific routes.
-        const networkNodes = [
-            // Level 4 (Top)
+        // Level 1: Directed Acyclic Graph (Symmetric)
+        const level1Nodes = [
             { id: 'v10', label: 'V10', type: 'unknown', val: 40.0,  x: 0, y: 7, z: 0, children: ['v9', 'c1'] },
             { id: 'c1', label: '1.75', type: 'known', val: 1.75, x: 2.5, y: 5, z: -2.5, children: [] },
-            
-            // Level 3
             { id: 'v9', label: 'V9', type: 'unknown', val: 38.25, x: 0, y: 4, z: 0, children: ['c2', 'v8', 'c3'] },
             { id: 'c2', label: '11.5', type: 'known', val: 11.5, x: -3.5, y: 1, z: -1, children: ['v6', 'v7', 'c4'] },
             { id: 'v8', label: 'V8', type: 'unknown', val: 9.25, x: 0, y: 1, z: 2.5, children: ['v7', 'c5'] },
             { id: 'c3', label: '17.5', type: 'known', val: 17.5, x: 3.5, y: 1, z: -1, children: ['c5', 'v4', 'v2'] },
-            
-            // Level 2
             { id: 'v6', label: 'V6', type: 'unknown', val: 3.75, x: -5, y: -2.5, z: -3, children: ['c6', 'v5'] },
             { id: 'v7', label: 'V7', type: 'unknown', val: 5.75, x: -2.5, y: -2.5, z: 1.5, children: ['v5', 'c7', 'c8'] },
             { id: 'c4', label: '2', type: 'known', val: 2.0, x: -6, y: -2.5, z: 0, children: [] },
             { id: 'c5', label: '3.5', type: 'known', val: 3.5, x: 1.5, y: -2.5, z: 1.5, children: ['c8', 'v1'] },
             { id: 'v4', label: 'V4', type: 'unknown', val: 8.5, x: 4.5, y: -2.5, z: -3.5, children: ['v1', 'v2'] },
             { id: 'c9', label: '8', type: 'known', val: 8.0, x: 7, y: -2.5, z: 0, children: ['v2', 'v3'] },
-            
-            // Level 1 (Base)
             { id: 'v2', label: 'V2', type: 'unknown', val: 5.5, x: 5.5, y: -6, z: -1.5, children: [] },
             { id: 'c6', label: '2.5', type: 'known', val: 2.5, x: -6, y: -6, z: -4.5, children: [] },
             { id: 'v5', label: 'V5', type: 'unknown', val: 1.25, x: -4, y: -6, z: -2.5, children: [] },
@@ -96,31 +101,93 @@
             { id: 'v3', label: 'V3', type: 'unknown', val: 2.5, x: 8, y: -6, z: 1.5, children: [] }
         ];
 
-        const variables = ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10'];
-        const textSprites = {}; // To update labels dynamically
+        // Level 2: Asymmetric Polymer (Horizontal Spread)
+        const level2Nodes = [
+            { id: 'v10', label: 'V10', type: 'unknown', val: 35.5, x: 0, y: 6, z: 0, children: ['v9', 'c1', 'v8'] },
+            { id: 'c1', label: '5.5', type: 'known', val: 5.5, x: -4, y: 2.5, z: 2, children: ['c2', 'v7'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 18.0, x: 0, y: 2.5, z: -2, children: ['v7', 'v6', 'v5'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 12.0, x: 4, y: 2.5, z: 1, children: ['v5', 'c3'] },
+            { id: 'c2', label: '3.0', type: 'known', val: 3.0, x: -7, y: -1.5, z: 3, children: ['v1', 'v2'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 2.5, x: -3, y: -1.5, z: 0, children: ['v2', 'v3'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 7.5, x: 1, y: -1.5, z: -4, children: ['v3', 'c4'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 8.0, x: 3, y: -1.5, z: -1, children: ['c4', 'v4'] },
+            { id: 'c3', label: '4.0', type: 'known', val: 4.0, x: 7, y: -1.5, z: 3, children: ['v4', 'c5'] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 1.5, x: -8, y: -6, z: 4, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 1.5, x: -5, y: -6, z: 1, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 1.0, x: -1, y: -6, z: -2, children: [] },
+            { id: 'c4', label: '6.5', type: 'known', val: 6.5, x: 2, y: -6, z: -3, children: [] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 1.5, x: 6, y: -6, z: 1, children: [] },
+            { id: 'c5', label: '2.5', type: 'known', val: 2.5, x: 9, y: -6, z: 4, children: [] }
+        ];
 
-        // Generate UI Inputs
+        // Level 3: Complex Ring (Hollow Center)
+        const level3Nodes = [
+            { id: 'v10', label: 'V10', type: 'unknown', val: 50.0, x: 0, y: 6, z: 0, children: ['v9', 'v8', 'c1'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 20.0, x: -4, y: 2, z: -3, children: ['v7', 'v6'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 25.0, x: 4, y: 2, z: 3, children: ['v5', 'v4'] },
+            { id: 'c1', label: '5.0', type: 'known', val: 5.0, x: 0, y: 2, z: 5, children: ['v6', 'v5'] }, 
+            { id: 'v7', label: 'V7', type: 'unknown', val: 12.0, x: -6, y: -2.5, z: -4, children: ['c2', 'v3'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 8.0, x: -2, y: -2.5, z: -1, children: ['v3', 'v2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 10.0, x: 2, y: -2.5, z: 1, children: ['v2', 'v1'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 15.0, x: 6, y: -2.5, z: 4, children: ['v1', 'c3'] },
+            { id: 'c2', label: '7.5', type: 'known', val: 7.5, x: -8, y: -7, z: -5, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 4.5, x: -4, y: -7, z: -2, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 3.5, x: 0, y: -7, z: 0, children: [] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 6.5, x: 4, y: -7, z: 2, children: [] },
+            { id: 'c3', label: '8.5', type: 'known', val: 8.5, x: 8, y: -7, z: 6, children: [] }
+        ];
+
+        let currentNetworkNodes = level1Nodes;
+        const variables = ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10'];
+        let textSprites = {}; 
         const inputsContainer = document.getElementById('inputs-container');
-        variables.forEach(v => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'flex flex-col';
-            wrapper.innerHTML = `
-                <label for="${v}" class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1">${v.toUpperCase()}</label>
-                <input type="number" id="${v}" step="any" placeholder="?" class="w-full bg-slate-900 border border-slate-600 rounded-md py-2 px-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-            `;
-            inputsContainer.appendChild(wrapper);
-        });
+        const msgBox = document.getElementById('msg-box');
+
+        // Generate UI Inputs Function
+        function renderInputs() {
+            inputsContainer.innerHTML = '';
+            variables.forEach(v => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col relative';
+                wrapper.innerHTML = `
+                    <label for="${v}" class="text-[10px] font-bold text-slate-500 uppercase ml-1 mb-1 tracking-wider">${v.toUpperCase()}</label>
+                    <input type="number" id="${v}" step="any" placeholder="?" class="w-full bg-white border-2 border-slate-200 rounded-lg py-2 px-3 text-slate-800 font-medium focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all">
+                `;
+                inputsContainer.appendChild(wrapper);
+
+                // Add Live Update Event Listener
+                const inputEl = document.getElementById(v);
+                inputEl.addEventListener('input', (e) => {
+                    // Reset styling on typing
+                    inputEl.classList.remove('border-red-400', 'bg-red-50');
+                    inputEl.classList.add('border-slate-200', 'bg-white');
+                    
+                    let val = e.target.value;
+                    if (val.trim() === '') val = v.toUpperCase();
+                    
+                    // Update 3D label
+                    if (textSprites[v]) {
+                        const newSprite = createTextSprite(val, 'unknown');
+                        newSprite.position.copy(textSprites[v].position);
+                        scene.remove(textSprites[v]);
+                        scene.add(newSprite);
+                        textSprites[v] = newSprite;
+                    }
+                });
+            });
+        }
     </script>
 
     <script>
         const container = document.getElementById('canvas-container');
         let scene, camera, renderer, controls;
         let isAutoRotating = true;
+        let networkGroup; // To hold all network objects for easy removal
 
         function init3D() {
             scene = new THREE.Scene();
-            // Fog for depth
-            scene.fog = new THREE.FogExp2(0x0f172a, 0.02);
+            // Light fog matches slate-50 background
+            scene.fog = new THREE.FogExp2(0xf8fafc, 0.015); 
 
             camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.set(0, 5, 25);
@@ -128,6 +195,8 @@
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            // Ensure clear color matches background if alpha fails, though alpha:true is set
+            renderer.setClearColor(0xf8fafc, 0); 
             container.appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -135,20 +204,22 @@
             controls.dampingFactor = 0.05;
             controls.minDistance = 5;
             controls.maxDistance = 50;
-            // Stop auto-rotation when user interacts
             controls.addEventListener('start', () => { isAutoRotating = false; });
 
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            // Lighting for Light Theme
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(10, 20, 10);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            dirLight.position.set(10, 20, 15);
             scene.add(dirLight);
             
-            const backLight = new THREE.DirectionalLight(0xaabbff, 0.3);
-            backLight.position.set(-10, -10, -10);
+            const backLight = new THREE.DirectionalLight(0xaabbff, 0.4);
+            backLight.position.set(-15, -10, -15);
             scene.add(backLight);
+
+            networkGroup = new THREE.Group();
+            scene.add(networkGroup);
 
             buildNetwork();
 
@@ -164,22 +235,23 @@
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw text
             ctx.font = "Bold 48px 'Inter', sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             
             if (type === 'unknown') {
-                // Glow effect for unknown
-                ctx.shadowColor = "#ef4444";
-                ctx.shadowBlur = 15;
-                ctx.fillStyle = "#ffcccc";
+                // White text with strong dark red shadow for visibility
+                ctx.shadowColor = "#7f1d1d";
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = "#ffffff";
             } else {
+                // White text with black shadow
                 ctx.shadowColor = "#000000";
-                ctx.shadowBlur = 5;
+                ctx.shadowBlur = 6;
                 ctx.fillStyle = "#ffffff";
             }
             
+            // Draw text slightly offset for shadow, then main text
             ctx.fillText(text, canvas.width/2, canvas.height/2);
 
             const texture = new THREE.CanvasTexture(canvas);
@@ -190,74 +262,66 @@
         }
 
         function getPosition(id) {
-            const node = networkNodes.find(n => n.id === id);
+            const node = currentNetworkNodes.find(n => n.id === id);
             return new THREE.Vector3(node.x, node.y, node.z);
         }
-    </script>
 
-    <script>
         function buildNetwork() {
             const atomGeometry = new THREE.SphereGeometry(0.7, 32, 32);
             
             const knownMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x475569, // slate-600
-                shininess: 60,
-                specular: 0x222222
+                color: 0x334155, // Dark slate
+                shininess: 80,
+                specular: 0x555555
             });
             
             const unknownMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0xef4444, // red-500
-                emissive: 0x440000,
+                color: 0xef4444, // Red
+                emissive: 0x330000,
                 shininess: 100,
                 specular: 0xffaaaa
             });
 
             const bondMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x9ca3af, // slate-400
-                roughness: 0.4,
-                metalness: 0.8
+                color: 0x94a3b8, // Lighter slate for bonds in light theme
+                roughness: 0.3,
+                metalness: 0.6
             });
 
-            // Keep track of drawn bonds to avoid duplicates (though DAG shouldn't have them)
-            networkNodes.forEach(node => {
-                // 1. Create Atom
+            currentNetworkNodes.forEach(node => {
                 const isUnknown = node.type === 'unknown';
                 const sphere = new THREE.Mesh(atomGeometry, isUnknown ? unknownMaterial : knownMaterial);
                 sphere.position.set(node.x, node.y, node.z);
-                scene.add(sphere);
+                
+                // Add soft shadow/glow outline object if needed, but standard material is fine
+                networkGroup.add(sphere);
 
-                // 2. Create Label Sprite
                 const sprite = createTextSprite(node.label, node.type);
-                sprite.position.set(node.x, node.y + 1.2, node.z);
-                scene.add(sprite);
+                sprite.position.set(node.x, node.y + 1.4, node.z);
+                networkGroup.add(sprite);
 
                 if (isUnknown) {
-                    textSprites[node.id] = sprite; // Store reference for updating
+                    textSprites[node.id] = sprite; 
                 }
 
-                // 3. Create Bonds to children
                 if (node.children && node.children.length > 0) {
                     const startPos = new THREE.Vector3(node.x, node.y, node.z);
                     
                     node.children.forEach(childId => {
                         const endPos = getPosition(childId);
-                        
-                        // Distance and Midpoint
                         const distance = startPos.distanceTo(endPos);
                         const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
                         
-                        // Cylinder for bond
-                        const bondGeo = new THREE.CylinderGeometry(0.15, 0.15, distance, 12);
+                        const bondGeo = new THREE.CylinderGeometry(0.12, 0.12, distance, 12);
                         const bond = new THREE.Mesh(bondGeo, bondMaterial);
                         
                         bond.position.copy(midPoint);
-                        // Orient cylinder
                         bond.quaternion.setFromUnitVectors(
                             new THREE.Vector3(0, 1, 0), 
                             new THREE.Vector3().subVectors(endPos, startPos).normalize()
                         );
                         
-                        scene.add(bond);
+                        networkGroup.add(bond);
                     });
                 }
             });
@@ -265,6 +329,42 @@
     </script>
 
     <script>
+        function clearScene() {
+            // Remove all children from networkGroup and dispose memory
+            while(networkGroup.children.length > 0){ 
+                const object = networkGroup.children[0];
+                networkGroup.remove(object); 
+                if(object.geometry) object.geometry.dispose();
+                if(object.material) {
+                    if(Array.isArray(object.material)) object.material.forEach(m => m.dispose());
+                    else object.material.dispose();
+                }
+            }
+            textSprites = {}; // Reset sprite tracking
+        }
+
+        document.getElementById('level-select').addEventListener('change', (e) => {
+            const level = e.target.value;
+            
+            // Set Network Data
+            if(level === '1') currentNetworkNodes = level1Nodes;
+            else if(level === '2') currentNetworkNodes = level2Nodes;
+            else if(level === '3') currentNetworkNodes = level3Nodes;
+
+            // Reset UI
+            msgBox.classList.add('hidden');
+            renderInputs(); // Re-render inputs to clear them
+
+            // Rebuild Scene
+            clearScene();
+            buildNetwork();
+            
+            // Reset Camera
+            camera.position.set(0, 5, 25);
+            controls.target.set(0, 0, 0);
+            isAutoRotating = true;
+        });
+
         function onWindowResize() {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
@@ -273,45 +373,22 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            
             if (isAutoRotating) {
-                scene.rotation.y += 0.002;
+                networkGroup.rotation.y += 0.002;
             }
-            
             controls.update();
             renderer.render(scene, camera);
         }
 
-        // Live update sprites when typing
-        variables.forEach(vId => {
-            const inputEl = document.getElementById(vId);
-            inputEl.addEventListener('input', (e) => {
-                let val = e.target.value;
-                if (val.trim() === '') val = vId.toUpperCase(); // Revert to V1, V2 etc.
-                
-                // Update 3D label
-                if (textSprites[vId]) {
-                    const newSprite = createTextSprite(val, 'unknown');
-                    newSprite.position.copy(textSprites[vId].position);
-                    scene.remove(textSprites[vId]);
-                    scene.add(newSprite);
-                    textSprites[vId] = newSprite;
-                }
-            });
-        });
-
-        // Validation Logic
-        const msgBox = document.getElementById('msg-box');
-        
         function showMessage(msg, isSuccess, details = "") {
-            msgBox.classList.remove('hidden', 'bg-red-500/20', 'border-red-500', 'text-red-400', 'bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
+            msgBox.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-700');
             
             if (isSuccess) {
-                msgBox.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
-                msgBox.innerHTML = `<strong>${msg}</strong><br><span class="text-xs text-slate-300">Struktur molekul stabil!</span>`;
+                msgBox.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-700');
+                msgBox.innerHTML = `<strong>${msg}</strong><br><span class="text-xs text-emerald-600 mt-1 block">Struktur molekul stabil!</span>`;
             } else {
-                msgBox.classList.add('bg-red-500/20', 'border-red-500', 'text-red-400');
-                msgBox.innerHTML = `<strong>${msg}</strong><br><span class="text-xs text-slate-300">${details}</span>`;
+                msgBox.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+                msgBox.innerHTML = `<strong>${msg}</strong><br><span class="text-xs text-red-600 mt-1 block">${details}</span>`;
             }
         }
 
@@ -320,21 +397,27 @@
             let wrongs = [];
 
             variables.forEach(vId => {
-                const nodeData = networkNodes.find(n => n.id === vId);
-                const userVal = parseFloat(document.getElementById(vId).value);
+                const nodeData = currentNetworkNodes.find(n => n.id === vId);
+                const inputEl = document.getElementById(vId);
+                const userVal = parseFloat(inputEl.value);
                 
                 if (isNaN(userVal)) {
                     wrongs.push(vId.toUpperCase() + " (Kosong)");
-                } else if (Math.abs(userVal - nodeData.val) < 0.001) { // Floating point safety
+                    inputEl.classList.remove('border-slate-200');
+                    inputEl.classList.add('border-red-400', 'bg-red-50');
+                } else if (Math.abs(userVal - nodeData.val) < 0.001) { 
                     correctCount++;
+                    inputEl.classList.remove('border-red-400', 'bg-red-50');
+                    inputEl.classList.add('border-slate-200', 'bg-white');
                 } else {
                     wrongs.push(vId.toUpperCase());
+                    inputEl.classList.remove('border-slate-200');
+                    inputEl.classList.add('border-red-400', 'bg-red-50');
                 }
             });
 
             if (correctCount === 10) {
                 showMessage("Luar Biasa! Semua nilai akurat.", true);
-                // Celebration animation
                 isAutoRotating = true; 
             } else {
                 let detailText = `Anda menebak ${correctCount} dari 10 dengan benar. `;
@@ -345,6 +428,7 @@
 
         // Boot
         window.onload = function() {
+            renderInputs();
             init3D();
         };
     </script>
