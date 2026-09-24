@@ -40,6 +40,13 @@
                 <option value="1">Level 1: Dasar</option>
                 <option value="2">Level 2: Polimer</option>
                 <option value="3">Level 3: Cincin</option>
+                <option value="4">Level 4: Jembatan Ganda</option>
+                <option value="5">Level 5: Kipas Genetik</option>
+                <option value="6">Level 6: Berlian Dalam</option>
+                <option value="7">Level 7: Pilar Kembar</option>
+                <option value="8">Level 8: Hutan Bercabang</option>
+                <option value="9">Level 9: Jaring Laba-laba</option>
+                <option value="10">Level 10: Mahkota Heksagonal</option>
             </select>
         </div>
         
@@ -135,6 +142,143 @@
             { id: 'v2', label: 'V2', type: 'unknown', val: 3.5, x: 0, y: -7, z: 0, children: [] },
             { id: 'v1', label: 'V1', type: 'unknown', val: 6.5, x: 4, y: -7, z: 2, children: [] },
             { id: 'c3', label: '8.5', type: 'known', val: 8.5, x: 8, y: -7, z: 6, children: [] }
+        ];
+
+        // Level 4: Jembatan Ganda (Double Bridge)
+        const level4Nodes = [
+            { id: 'c1', label: '4', type: 'known', val: 4, x: -6, y: -6, z: 0, children: [] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 2.5, x: -3, y: -6, z: 0, children: [] },
+            { id: 'c2', label: '3', type: 'known', val: 3, x: 0, y: -6, z: 0, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 5.5, x: 3, y: -6, z: 0, children: [] },
+            { id: 'c3', label: '2', type: 'known', val: 2, x: 6, y: -6, z: 0, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 6.5, x: -4.5, y: -2, z: 0, children: ['c1', 'v1'] },
+            { id: 'c4', label: '5.5', type: 'known', val: 5.5, x: -1.5, y: -2, z: 0, children: ['v1', 'c2'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 8.5, x: 1.5, y: -2, z: 0, children: ['c2', 'v2'] },
+            { id: 'c5', label: '7.5', type: 'known', val: 7.5, x: 4.5, y: -2, z: 0, children: ['v2', 'c3'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 12, x: -3, y: 2, z: 0, children: ['v3', 'c4'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 14, x: 0, y: 2, z: 0, children: ['c4', 'v4'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 16, x: 3, y: 2, z: 0, children: ['v4', 'c5'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 26, x: -1.5, y: 5, z: 0, children: ['v5', 'v6'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 30, x: 1.5, y: 5, z: 0, children: ['v6', 'v7'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 56, x: 0, y: 8, z: 0, children: ['v8', 'v9'] }
+        ];
+
+        // Level 5: Kipas Genetik (Tri-Branch)
+        const level5Nodes = [
+            { id: 'v1', label: 'V1', type: 'unknown', val: 2, x: -8, y: -6, z: 0, children: [] },
+            { id: 'c1', label: '3', type: 'known', val: 3, x: -4, y: -6, z: 0, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 4, x: 0, y: -6, z: 0, children: [] },
+            { id: 'c2', label: '1', type: 'known', val: 1, x: 4, y: -6, z: 0, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 5, x: 8, y: -6, z: 0, children: [] },
+            { id: 'c3', label: '5', type: 'known', val: 5, x: -6, y: -3, z: 2, children: ['v1', 'c1'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 7, x: -2, y: -3, z: -2, children: ['c1', 'v2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 5, x: 2, y: -3, z: 2, children: ['v2', 'c2'] },
+            { id: 'c4', label: '6', type: 'known', val: 6, x: 6, y: -3, z: -2, children: ['c2', 'v3'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 12, x: -4, y: 0, z: 0, children: ['c3', 'v4'] },
+            { id: 'c5', label: '12', type: 'known', val: 12, x: 0, y: 0, z: 0, children: ['v4', 'v5'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 11, x: 4, y: 0, z: 0, children: ['v5', 'c4'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 24, x: -2, y: 3, z: 2, children: ['v6', 'c5'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 23, x: 2, y: 3, z: -2, children: ['c5', 'v7'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 47, x: 0, y: 6, z: 0, children: ['v8', 'v9'] }
+        ];
+
+        // Level 6: Berlian Dalam (Deep Diamond) - Menggunakan kombinasi 3 cabang
+        const level6Nodes = [
+            { id: 'c1', label: '2', type: 'known', val: 2, x: -9, y: -6, z: 0, children: [] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 3, x: -6, y: -6, z: 2, children: [] },
+            { id: 'c2', label: '4', type: 'known', val: 4, x: -3, y: -6, z: -2, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 1, x: 0, y: -6, z: 2, children: [] },
+            { id: 'c3', label: '5', type: 'known', val: 5, x: 3, y: -6, z: -2, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 2, x: 6, y: -6, z: 2, children: [] },
+            { id: 'c6', label: '3', type: 'known', val: 3, x: 9, y: -6, z: 0, children: [] },
+            { id: 'c4', label: '9', type: 'known', val: 9, x: -6, y: -2, z: 0, children: ['c1', 'v1', 'c2'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 8, x: -2, y: -2, z: 0, children: ['v1', 'c2', 'v2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 10, x: 2, y: -2, z: 0, children: ['c2', 'v2', 'c3'] },
+            { id: 'c5', label: '8', type: 'known', val: 8, x: 6, y: -2, z: 0, children: ['v2', 'c3', 'v3'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 5, x: 9, y: -2, z: 0, children: ['v3', 'c6'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 27, x: -4, y: 2, z: 0, children: ['c4', 'v4', 'v5'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 26, x: 4, y: 2, z: 0, children: ['v4', 'v5', 'c5'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 13, x: 8, y: 2, z: 0, children: ['c5', 'v8'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 66, x: 0, y: 6, z: 0, children: ['v6', 'v7', 'v9'] }
+        ];
+
+        // Level 7: Pilar Kembar (The "H" Shape) - Dua puncak terpisah
+        const level7Nodes = [
+            { id: 'v1', label: 'V1', type: 'unknown', val: 4, x: -6, y: -6, z: -2, children: [] },
+            { id: 'c1', label: '2', type: 'known', val: 2, x: -3, y: -6, z: 2, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 3, x: 0, y: -6, z: -2, children: [] },
+            { id: 'c2', label: '5', type: 'known', val: 5, x: 3, y: -6, z: 2, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 4, x: 6, y: -6, z: -2, children: [] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 6, x: -4.5, y: -2, z: 0, children: ['v1', 'c1'] },
+            { id: 'c3', label: '5', type: 'known', val: 5, x: -1.5, y: -2, z: 0, children: ['c1', 'v2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 8, x: 1.5, y: -2, z: 0, children: ['v2', 'c2'] },
+            { id: 'c4', label: '9', type: 'known', val: 9, x: 4.5, y: -2, z: 0, children: ['c2', 'v3'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 11, x: -3, y: 2, z: 0, children: ['v4', 'c3'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 13, x: 0, y: 2, z: 0, children: ['c3', 'v5'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 17, x: 3, y: 2, z: 0, children: ['v5', 'c4'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 24, x: -1.5, y: 6, z: 0, children: ['v6', 'v7'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 30, x: 1.5, y: 6, z: 0, children: ['v7', 'v8'] }
+        ];
+
+        // Level 8: Hutan Bercabang (Forest Loop)
+        const level8Nodes = [
+            { id: 'c1', label: '1', type: 'known', val: 1, x: -8, y: -6, z: 1, children: [] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 2, x: -5, y: -6, z: -1, children: [] },
+            { id: 'c2', label: '3', type: 'known', val: 3, x: -2, y: -6, z: 1, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 4, x: 1, y: -6, z: -1, children: [] },
+            { id: 'c3', label: '5', type: 'known', val: 5, x: 4, y: -6, z: 1, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 6, x: 7, y: -6, z: -1, children: [] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 3, x: -6.5, y: -2, z: 0, children: ['c1', 'v1'] },
+            { id: 'c4', label: '5', type: 'known', val: 5, x: -3.5, y: -2, z: 0, children: ['v1', 'c2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 7, x: -0.5, y: -2, z: 0, children: ['c2', 'v2'] },
+            { id: 'c5', label: '9', type: 'known', val: 9, x: 2.5, y: -2, z: 0, children: ['v2', 'c3'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 11, x: 5.5, y: -2, z: 0, children: ['c3', 'v3'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 8, x: -5, y: 2, z: 0, children: ['v4', 'c4'] },
+            { id: 'c6', label: '12', type: 'known', val: 12, x: -2, y: 2, z: 0, children: ['c4', 'v5'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 16, x: 1, y: 2, z: 0, children: ['v5', 'c5'] },
+            { id: 'c7', label: '20', type: 'known', val: 20, x: 4, y: 2, z: 0, children: ['c5', 'v6'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 20, x: -3.5, y: 6, z: 0, children: ['v7', 'c6'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 36, x: 2.5, y: 6, z: 0, children: ['v8', 'c7'] }
+        ];
+
+        // Level 9: Jaring Laba-laba (The Web) - Persilangan Jarak Jauh
+        const level9Nodes = [
+            { id: 'v1', label: 'V1', type: 'unknown', val: 1.5, x: -7.5, y: -6, z: 0, children: [] },
+            { id: 'c1', label: '2.5', type: 'known', val: 2.5, x: -4.5, y: -6, z: 0, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 3.5, x: -1.5, y: -6, z: 0, children: [] },
+            { id: 'c2', label: '4.5', type: 'known', val: 4.5, x: 1.5, y: -6, z: 0, children: [] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 5.5, x: 4.5, y: -6, z: 0, children: [] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 6.5, x: 7.5, y: -6, z: 0, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 4, x: -6, y: -2, z: 2, children: ['v1', 'c1'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 6, x: -3, y: -2, z: -2, children: ['c1', 'v2'] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 8, x: 0, y: -2, z: 2, children: ['v2', 'c2'] },
+            { id: 'c7', label: '10', type: 'known', val: 10, x: 3, y: -2, z: -2, children: ['c2', 'v6'] },
+            { id: 'c5', label: '12', type: 'known', val: 12, x: 6, y: -2, z: 2, children: ['v6', 'v8'] },
+            { id: 'c6', label: '10', type: 'known', val: 10, x: -4.5, y: 2, z: 0, children: ['v3', 'v4'] },
+            { id: 'c3', label: '14', type: 'known', val: 14, x: -1.5, y: 2, z: 0, children: ['v4', 'v5'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 26, x: 4.5, y: 2, z: 0, children: ['c3', 'c5'] }, 
+            { id: 'v7', label: 'V7', type: 'unknown', val: 24, x: -3, y: 6, z: 0, children: ['c6', 'c3'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 20, x: 1.5, y: 6, z: 0, children: ['c6', 'c7'] } 
+        ];
+
+        // Level 10: Mahkota Heksagonal (Hexagonal Ring) - Harus pecahkan 3V1 + 57 = 63
+        const level10Nodes = [
+            { id: 'c1', label: '4', type: 'known', val: 4, x: 6, y: -6, z: 0, children: [] },
+            { id: 'v2', label: 'V2', type: 'unknown', val: 3, x: 3, y: -6, z: 5.2, children: [] },
+            { id: 'c2', label: '5', type: 'known', val: 5, x: -3, y: -6, z: 5.2, children: [] },
+            { id: 'v3', label: 'V3', type: 'unknown', val: 1, x: -6, y: -6, z: 0, children: [] },
+            { id: 'c3', label: '6', type: 'known', val: 6, x: -3, y: -6, z: -5.2, children: [] },
+            { id: 'v1', label: 'V1', type: 'unknown', val: 2, x: 3, y: -6, z: -5.2, children: [] },
+            { id: 'v5', label: 'V5', type: 'unknown', val: 7, x: 3.46, y: -2, z: 2, children: ['c1', 'v2'] },
+            { id: 'c4', label: '8', type: 'known', val: 8, x: 0, y: -2, z: 4, children: ['v2', 'c2'] },
+            { id: 'v6', label: 'V6', type: 'unknown', val: 6, x: -3.46, y: -2, z: 2, children: ['c2', 'v3'] },
+            { id: 'c5', label: '7', type: 'known', val: 7, x: -3.46, y: -2, z: -2, children: ['v3', 'c3'] },
+            { id: 'v7', label: 'V7', type: 'unknown', val: 8, x: 0, y: -2, z: -4, children: ['c3', 'v1'] },
+            { id: 'v4', label: 'V4', type: 'unknown', val: 6, x: 3.46, y: -2, z: -2, children: ['v1', 'c1'] },
+            { id: 'v8', label: 'V8', type: 'unknown', val: 21, x: 2, y: 2, z: 0, children: ['v4', 'v5', 'c4'] },
+            { id: 'v9', label: 'V9', type: 'unknown', val: 21, x: -1, y: 2, z: 1.73, children: ['c4', 'v6', 'c5'] },
+            { id: 'v10', label: 'V10', type: 'unknown', val: 21, x: -1, y: 2, z: -1.73, children: ['c5', 'v7', 'v4'] },
+            { id: 'c6', label: '63', type: 'known', val: 63, x: 0, y: 6, z: 0, children: ['v8', 'v9', 'v10'] }
         ];
 
         let currentNetworkNodes = level1Nodes;
@@ -350,6 +494,13 @@
             if(level === '1') currentNetworkNodes = level1Nodes;
             else if(level === '2') currentNetworkNodes = level2Nodes;
             else if(level === '3') currentNetworkNodes = level3Nodes;
+            else if(level === '4') currentNetworkNodes = level4Nodes;
+            else if(level === '5') currentNetworkNodes = level5Nodes;
+            else if(level === '6') currentNetworkNodes = level6Nodes;
+            else if(level === '7') currentNetworkNodes = level7Nodes;
+            else if(level === '8') currentNetworkNodes = level8Nodes;
+            else if(level === '9') currentNetworkNodes = level9Nodes;
+            else if(level === '10') currentNetworkNodes = level10Nodes;
 
             // Reset UI
             msgBox.classList.add('hidden');
