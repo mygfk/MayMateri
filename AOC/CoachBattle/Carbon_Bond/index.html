@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Teka-teki Rantai Molekul Logika 3D</title>
+    <title>Logic Bonds</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -34,7 +34,7 @@
 
     <div id="ui-panel" class="glass-panel w-full md:w-[350px] h-1/2 md:h-full overflow-y-auto flex-shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.05)] flex flex-col p-6">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">Molekul Logika</h1>
+            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">Logic Bonds</h1>
             
             <select id="level-select" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 shadow-sm font-medium cursor-pointer transition-colors hover:bg-slate-50">
                 <option value="1">Level 1: Dasar</option>
@@ -55,8 +55,18 @@
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 Aturan Main
             </p>
-            <p class="text-slate-700 leading-relaxed">Setiap atom merupakan <strong>JUMLAH</strong> dari atom-atom yang menyokongnya (terhubung dari arah bawah).</p>
-            <p class="mt-2 text-xs text-slate-500 font-medium bg-white/50 inline-block px-2 py-1 rounded">Geser 3D view untuk melihat persilangan.</p>
+            <p class="text-slate-700 leading-relaxed">Setiap atom merupakan <strong>JUMLAH</strong> dari atom-atom yang menyokongnya (dari arah bawah ke atas, ikuti arah panah).</p>
+            
+            <div class="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <p class="font-bold text-amber-800 text-xs mb-1.5 flex items-center">
+                    💡 Tips Aljabar (Bila Mentok)
+                </p>
+                <p class="text-[11px] text-amber-700 leading-relaxed">
+                    Cari atom <strong>abu-abu (diketahui)</strong> di tengah rantai! <br>
+                    Misal atom abu-abu <strong>11.5</strong> disokong oleh V6, V7, & 2. Maka <strong>V6 + V7 = 9.5</strong>. <br>
+                    Urai V6 dan V7 ke atom penyokong di bawahnya untuk memecahkan persamaannya!
+                </p>
+            </div>
         </div>
 
         <h2 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest flex items-center">
@@ -311,10 +321,21 @@
                     
                     // Update 3D label
                     if (textSprites[v]) {
+                        const oldSprite = textSprites[v];
                         const newSprite = createTextSprite(val, 'unknown');
-                        newSprite.position.copy(textSprites[v].position);
-                        scene.remove(textSprites[v]);
-                        scene.add(newSprite);
+                        newSprite.position.copy(oldSprite.position);
+                        
+                        // Hapus sprite lama dari induknya yang berputar (networkGroup)
+                        if (oldSprite.parent) {
+                            oldSprite.parent.remove(oldSprite);
+                        }
+                        
+                        // Bersihkan cache memori agar browser tidak berat
+                        if (oldSprite.material.map) oldSprite.material.map.dispose();
+                        oldSprite.material.dispose();
+                        
+                        // Tambahkan sprite baru ke networkGroup agar ikut berputar!
+                        networkGroup.add(newSprite);
                         textSprites[v] = newSprite;
                     }
                 });
@@ -456,6 +477,7 @@
                         const distance = startPos.distanceTo(endPos);
                         const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
                         
+                        // 1. Batang Ikatan (Silinder)
                         const bondGeo = new THREE.CylinderGeometry(0.12, 0.12, distance, 12);
                         const bond = new THREE.Mesh(bondGeo, bondMaterial);
                         
@@ -466,6 +488,22 @@
                         );
                         
                         networkGroup.add(bond);
+
+                        // 2. Kepala Panah (Kerucut penunjuk arah dari anak ke induk)
+                        const coneGeo = new THREE.ConeGeometry(0.35, 0.8, 12);
+                        const cone = new THREE.Mesh(coneGeo, bondMaterial);
+                        
+                        // Menempatkan panah sedikit lebih dekat ke arah tujuan (60% perjalanan)
+                        const arrowPos = new THREE.Vector3().lerpVectors(endPos, startPos, 0.6);
+                        cone.position.copy(arrowPos);
+                        
+                        // Mengarahkan kerucut menghadap ke node target (induk)
+                        cone.quaternion.setFromUnitVectors(
+                            new THREE.Vector3(0, 1, 0), 
+                            new THREE.Vector3().subVectors(startPos, endPos).normalize()
+                        );
+
+                        networkGroup.add(cone);
                     });
                 }
             });
