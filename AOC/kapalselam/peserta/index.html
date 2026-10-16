@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonar Strike 3D - PESERTA</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #05152e;
+            --panel-bg: rgba(11, 36, 71, 0.92);
+            --text-main: #eaf7ff;
+            --text-muted: #b4cada;
+            --cyan: #35d5e8;
+            --red: #ff7a7a;
+            --green: #4ade80;
+            --blue-axis: #38bdf8;
+            --gold: #ffd166;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        #sidebar {
+            width: 380px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            padding: 24px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            border-right: 1px solid rgba(53, 213, 232, 0.3);
+            z-index: 10;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        #game-canvas {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .axis-hud {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(5, 21, 46, 0.92);
+            border: 1px solid rgba(53, 213, 232, 0.5);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 5;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .axis-hud-title {
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .axis-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .axis-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        h1, h2, h3 { margin: 0; }
+        h1 { font-size: 24px; color: var(--cyan); margin-bottom: 4px; }
+        p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .turn-box {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .turn-1 { color: var(--cyan); font-weight: bold; font-size: 16px; text-shadow: 0 0 8px var(--cyan); }
+        .turn-2 { color: var(--red); font-weight: bold; font-size: 16px; text-shadow: 0 0 8px var(--red); }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .pos-readout {
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(53, 213, 232, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .pos-readout-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .pos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .pos-badge {
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        .btn-ping { background: var(--cyan); color: #04203a; }
+
+        .log-container {
+            background: rgba(4, 18, 38, 0.65);
+            border-radius: 6px;
+            border: 1px solid rgba(53, 213, 232, 0.25);
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background-color: #0b2b52;
+            color: var(--cyan);
+            padding: 11px 10px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            border-bottom: 2px solid rgba(53, 213, 232, 0.45);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+        }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        tr:hover { background: rgba(255,255,255,0.05); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(53, 213, 232, 0.4); border-radius: 3px; }
+
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(6px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--cyan);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .modal-title { color: var(--cyan); font-size: 22px; margin-bottom: 12px; font-weight: bold; }
+        .modal-text {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        .room-input {
+            width: 80%;
+            padding: 12px;
+            background: rgba(0,0,0,0.55);
+            color: var(--gold);
+            border: 2px solid rgba(53, 213, 232, 0.5);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            outline: none;
+            margin-top: 10px;
+        }
+        .room-input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 209, 102, 0.3); }
+
+        .conn-feedback {
+            font-size: 12px;
+            margin-top: 10px;
+            min-height: 18px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body onload="app.init()">
+
+    <div id="sidebar">
+        <div>
+            <h1>Sonar Strike 3D</h1>
+            <p>Misi Magnetometer: Temukan Kapal Karam!</p>
+        </div>
+
+        <div class="turn-box">
+            <div id="turnIndicator" class="turn-1">Giliran: Tim 1 (Biru)</div>
+            <div class="score-board">
+                <span>Tim 1: <b id="score1" style="color:var(--cyan)">0</b></span>
+                <span>Tim 2: <b id="score2" style="color:var(--red)">0</b></span>
+            </div>
+        </div>
+
+        <div style="background: rgba(255, 209, 102, 0.1); border: 1px solid #ffd166; padding: 12px; border-radius: 6px; font-size: 12px; color: #ffd166;">
+            <strong>Data Intelijen:</strong><br>
+            Lambung kapal target memantulkan medan magnetik tepat sebesar <b>75 µT</b>. Abaikan sinyal di luar nilai ini!<br>
+            <span style="color: var(--text-muted); font-size: 11px;">*1 unit grid = 10 m | Cepat rambat bunyi = 1500 m/s.</span>
+        </div>
+
+        <div class="pos-readout">
+            <div class="pos-readout-label">Posisi Kapal Selam Saat Ini</div>
+            <div class="pos-grid">
+                <div class="pos-badge" style="color: #ff4d4d;">X: <span id="posX">50</span></div>
+                <div class="pos-badge" style="color: #22ff66;">Y: <span id="posY">50</span></div>
+                <div class="pos-badge" style="color: #00d4ff;">Z: <span id="posZ">50</span></div>
+            </div>
+        </div>
+
+        <div class="log-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Waktu Gema</th>
+                        <th>Intensitas (µT)</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <tr><td colspan="2" style="text-align:center; color:#64748b;">Menunggu pindaian sensor...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="game-canvas">
+        <div class="axis-hud">
+            <div class="axis-hud-title">Petunjuk Sumbu 3D (0 - 100)</div>
+            <div class="axis-item">
+                <span class="axis-dot" style="background: #ff3b3b;"></span>
+                <span><b style="color: #ff3b3b;">Sumbu X:</b> Kiri &rarr; Kanan</span>
+            </div>
+            <div class="axis-item">
+                <span class="axis-dot" style="background: #22ff66;"></span>
+                <span><b style="color: #22ff66;">Sumbu Y:</b> Bawah &rarr; Atas</span>
+            </div>
+            <div class="axis-item">
+                <span class="axis-dot" style="background: #00d4ff;"></span>
+                <span><b style="color: #00d4ff;">Sumbu Z:</b> Belakang &rarr; Depan</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Start Peserta (Menunggu Persetujuan GM) -->
+    <div id="startModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Sonar Strike 3D</div>
+            <div class="modal-text" id="startModalText">
+                Selamat datang di Misi Magnetometer Bawah Laut.<br>
+                Masukkan <b>4 Digit Kode Room</b> yang tertera di layar Game Master, lalu klik <b>START</b>:
+                <div>
+                    <input type="text" id="roomCodeInput" class="room-input" placeholder="KODE ROOM" maxlength="6">
+                </div>
+                <div id="serverConnInfo" class="conn-feedback" style="color: var(--gold);">
+                    🟡 Menghubungkan ke Server Cloud...
+                </div>
+            </div>
+            <button class="btn-ping" id="btnStartRequest" onclick="syncClient.requestStart()">🚀 START</button>
+        </div>
+    </div>
+
+    <!-- Modal Notifikasi / Alert -->
+    <div id="alertModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-title" id="alertTitle">Informasi</div>
+            <div class="modal-text" id="alertText" style="text-align: left;">Teks pesan.</div>
+            <button class="btn-ping" id="alertBtn" onclick="app.closeAlert()">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            init: () => {
+                engine3D.init();
+                syncClient.init();
+                document.getElementById('startModal').style.display = 'flex';
+                document.getElementById('alertModal').style.display = 'none';
+            },
+            
+            showAlert: (title, text, btnText = "Tutup", color = "#35d5e8") => {
+                document.getElementById('alertTitle').innerText = title;
+                document.getElementById('alertTitle').style.color = color;
+                document.getElementById('alertText').innerText = text;
+                document.getElementById('alertBtn').innerText = btnText;
+                document.getElementById('alertBtn').style.background = color;
+                document.getElementById('alertModal').style.display = 'flex';
+            },
+
+            closeAlert: () => {
+                document.getElementById('alertModal').style.display = 'none';
+            }
+        };
+
+        // Manajer Sinkronisasi Peserta Lintas Laptop (Multi-Broker Cloud WebSocket + Auto-Retry)
+        const syncClient = {
+            bc: null,
+            clients: [],
+            activeRoomCode: '',
+            seenMsgIds: new Set(),
+            retryInterval: null,
+            isApproved: false,
+
+            init: () => {
+                // 1. BroadcastChannel untuk tab/jendela di laptop yang sama
+                if ('BroadcastChannel' in window) {
+                    syncClient.bc = new BroadcastChannel('sonar_strike_3d_sync');
+                    syncClient.bc.onmessage = (e) => syncClient.onRawMessage(e.data);
+                }
+
+                // 2. Multi-Broker Cloud MQTT over WebSockets untuk lintas laptop
+                const brokers = [
+                    'wss://broker.emqx.io:8084/mqtt',
+                    'wss://broker.hivemq.com:8884/mqtt'
+                ];
+
+                brokers.forEach((url) => {
+                    try {
+                        const client = mqtt.connect(url, {
+                            keepalive: 30,
+                            reconnectPeriod: 2000,
+                            connectTimeout: 10000
+                        });
+
+                        client.on('connect', () => {
+                            syncClient.updateServerUI();
+                            if (syncClient.activeRoomCode) {
+                                client.subscribe(`sonar_strike_3d_v3/${syncClient.activeRoomCode}/to_peserta`, { qos: 1 });
+                            }
+                        });
+
+                        client.on('message', (topic, message) => {
+                            try {
+                                const data = JSON.parse(message.toString());
+                                syncClient.onRawMessage(data);
+                            } catch (e) {}
+                        });
+
+                        client.on('close', () => syncClient.updateServerUI());
+                        syncClient.clients.push(client);
+                    } catch (err) {
+                        console.warn("Broker error:", url, err);
+                    }
+                });
+            },
+
+            updateServerUI: () => {
+                if (syncClient.isApproved) return;
+                const connectedCount = syncClient.clients.filter(c => c && c.connected).length;
+                const infoEl = document.getElementById('serverConnInfo');
+                if (connectedCount > 0) {
+                    if (!syncClient.retryInterval) {
+                        infoEl.style.color = "var(--green)";
+                        infoEl.innerText = "🟢 Server Cloud Online (Siap Lintas Laptop)";
+                    }
+                } else {
+                    infoEl.style.color = "var(--gold)";
+                    infoEl.innerText = "🟡 Menghubungkan ke Server Cloud...";
+                }
+            },
+
+            sendJoinPacket: () => {
+                const packet = {
+                    type: 'REQUEST_JOIN',
+                    roomCode: syncClient.activeRoomCode,
+                    msgId: Date.now() + '-' + Math.random().toString(36).substring(2, 8)
+                };
+
+                // Kirim ke laptop yang sama
+                if (syncClient.bc) {
+                    syncClient.bc.postMessage(packet);
+                }
+
+                // Kirim ke laptop GM via Cloud Broker
+                if (syncClient.activeRoomCode) {
+                    const topicOut = `sonar_strike_3d_v3/${syncClient.activeRoomCode}/to_gm`;
+                    const strPacket = JSON.stringify(packet);
+                    syncClient.clients.forEach(client => {
+                        if (client && client.connected) {
+                            client.publish(topicOut, strPacket, { qos: 1 });
+                        }
+                    });
+                }
+            },
+
+            requestStart: () => {
+                const btn = document.getElementById('btnStartRequest');
+                const code = document.getElementById('roomCodeInput').value.trim();
+                const infoEl = document.getElementById('serverConnInfo');
+
+                syncClient.activeRoomCode = code;
+                syncClient.isApproved = false;
+
+                // Subscribe ke topic Room yang dimasukkan peserta
+                if (code.length > 0) {
+                    const topicIn = `sonar_strike_3d_v3/${code}/to_peserta`;
+                    syncClient.clients.forEach(client => {
+                        if (client && client.connected) {
+                            client.subscribe(topicIn, { qos: 1 });
+                        }
+                    });
+                }
+
+                btn.disabled = true;
+                btn.innerText = "⏳ Menghubungi Game Master...";
+                infoEl.style.color = "var(--cyan)";
+                infoEl.innerText = code
+                    ? `📡 Mengirim sinyal ke Room ${code}...`
+                    : `📡 Mencari Game Master di perangkat yang sama...`;
+
+                // Kirim sinyal langsung dan ulangi otomatis setiap 2 detik sampai di-approve GM
+                syncClient.sendJoinPacket();
+                if (syncClient.retryInterval) clearInterval(syncClient.retryInterval);
+                syncClient.retryInterval = setInterval(() => {
+                    if (!syncClient.isApproved) {
+                        syncClient.sendJoinPacket();
+                    }
+                }, 2000);
+            },
+
+            onRawMessage: (msg) => {
+                if (!msg || !msg.type) return;
+                if (syncClient.activeRoomCode && msg.roomCode && msg.roomCode !== syncClient.activeRoomCode) return;
+
+                if (msg.msgId) {
+                    if (syncClient.seenMsgIds.has(msg.msgId)) return;
+                    syncClient.seenMsgIds.add(msg.msgId);
+                }
+
+                if (msg.type === 'JOIN_RECEIVED') {
+                    const infoEl = document.getElementById('serverConnInfo');
+                    const btn = document.getElementById('btnStartRequest');
+                    infoEl.style.color = "var(--green)";
+                    infoEl.innerText = "✅ Terhubung ke Laptop GM! Menunggu GM klik tombol Approve...";
+                    btn.innerText = "⏳ Menunggu Approve Game Master...";
+                }
+
+                else if (msg.type === 'APPROVED_START') {
+                    syncClient.isApproved = true;
+                    if (syncClient.retryInterval) {
+                        clearInterval(syncClient.retryInterval);
+                        syncClient.retryInterval = null;
+                    }
+
+                    game.targets = msg.targets || [];
+                    game.turn = msg.turn || 1;
+                    game.score1 = msg.score1 || 0;
+                    game.score2 = msg.score2 || 0;
+                    
+                    if (msg.subPos) {
+                        game.updateSubPositionDisplay(msg.subPos.x, msg.subPos.y, msg.subPos.z);
+                        engine3D.subGroup.position.set(
+                            engine3D.mapCoords(msg.subPos.x),
+                            engine3D.mapCoords(msg.subPos.y),
+                            engine3D.mapCoords(msg.subPos.z)
+                        );
+                    }
+
+                    game.updateUI();
+                    document.getElementById('startModal').style.display = 'none';
+                    app.showAlert(
+                        "Akses Disetujui!",
+                        `Game Master telah menyetujui akses masuk.\nJumlah target kapal karam tersembunyi: ${game.targets.length} kapal.\n\nPerhatikan tabel waktu gema dan cari sinyal dengan intensitas tepat 75 µT!`
+                    );
+                }
+
+                else if (msg.type === 'MOVE_AND_PING') {
+                    game.isAnimating = true;
+                    game.updateSubPositionDisplay(msg.x, msg.y, msg.z);
+
+                    engine3D.moveTo(msg.x, msg.y, msg.z, () => {
+                        engine3D.triggerPingWave(msg.turn);
+                        setTimeout(() => {
+                            game.renderSensorTable(msg.results);
+                            game.isAnimating = false;
+                            app.showAlert(
+                                "Ping Selesai",
+                                "Sensor menerima 10 sinyal balikan (gema).\nPerhatikan tabel log, cari sinyal dengan intensitas tepat 75 µT untuk menghitung jarak kapal karam!",
+                                "Analisis",
+                                msg.turn === 1 ? "#35d5e8" : "#ff7a7a"
+                            );
+                            game.turn = msg.turn === 1 ? 2 : 1;
+                            game.updateUI();
+                        }, 1000);
+                    });
+                }
+
+                else if (msg.type === 'GUESS_RESULT') {
+                    game.updateSubPositionDisplay(msg.x, msg.y, msg.z);
+                    engine3D.subGroup.position.set(engine3D.mapCoords(msg.x), engine3D.mapCoords(msg.y), engine3D.mapCoords(msg.z));
+                    
+                    game.targets = msg.targets || game.targets;
+                    game.turn = msg.turn;
+                    game.score1 = msg.score1;
+                    game.score2 = msg.score2;
+                    game.updateUI();
+
+                    if (msg.hit) {
+                        if (msg.allFound) {
+                            app.showAlert("Tepat Sasaran!", `Luar Biasa!\nKoordinat (${msg.x}, ${msg.y}, ${msg.z}) berada tepat dalam radius ≤ 1 unit (10 meter) dari kapal karam.\n\nSEMUA KAPAL TELAH DITEMUKAN!\nPermainan Selesai.`, "Selesai", "#ffd166");
+                        } else {
+                            app.showAlert("Tepat Sasaran!", `Kerja Bagus!\nKoordinat (${msg.x}, ${msg.y}, ${msg.z}) akurat (radius ≤ 10 meter). Satu kapal karam berhasil diamankan.\n\nMasih ada kapal lain yang tersisa!`, "Lanjut", "#ffd166");
+                        }
+                    } else {
+                        app.showAlert("Meleset!", `Sayang sekali...\nTidak ada kapal karam dalam radius 1 unit (10 meter) dari koordinat (${msg.x}, ${msg.y}, ${msg.z}).\n\nGiliran berpindah!`, "Tutup", "#ff7a7a");
+                    }
+                }
+
+                else if (msg.type === 'RESET_GAME') {
+                    syncClient.isApproved = false;
+                    if (syncClient.retryInterval) {
+                        clearInterval(syncClient.retryInterval);
+                        syncClient.retryInterval = null;
+                    }
+
+                    game.isAnimating = false;
+                    engine3D.movingCb = null;
+                    engine3D.pinging = false;
+                    if (engine3D.pingSphere) {
+                        engine3D.pingSphere.material.opacity = 0;
+                        engine3D.pingSphere.visible = false;
+                    }
+                    if (engine3D.subGroup) {
+                        engine3D.subGroup.position.set(0, 0, 0);
+                        engine3D.subGroup.rotation.set(0, 0, 0);
+                    }
+
+                    game.turn = 1;
+                    game.score1 = 0;
+                    game.score2 = 0;
+                    game.targets = [];
+                    game.updateUI();
+                    game.updateSubPositionDisplay(50, 50, 50);
+
+                    document.getElementById('logBody').innerHTML = '<tr><td colspan="2" style="text-align:center; color:#64748b;">Menunggu pindaian sensor...</td></tr>';
+                    
+                    const btn = document.getElementById('btnStartRequest');
+                    btn.disabled = false;
+                    btn.innerText = "🚀 START";
+                    syncClient.updateServerUI();
+
+                    app.closeAlert();
+                    document.getElementById('startModal').style.display = 'flex';
+                }
+            }
+        };
+
+        const game = {
+            turn: 1,
+            targets: [],
+            score1: 0,
+            score2: 0,
+            isAnimating: false,
+
+            updateUI: () => {
+                const indicator = document.getElementById('turnIndicator');
+                if(game.turn === 1) {
+                    indicator.className = 'turn-1';
+                    indicator.innerText = "Giliran: Tim 1 (Biru)";
+                } else {
+                    indicator.className = 'turn-2';
+                    indicator.innerText = "Giliran: Tim 2 (Merah)";
+                }
+                document.getElementById('score1').innerText = game.score1;
+                document.getElementById('score2').innerText = game.score2;
+            },
+
+            updateSubPositionDisplay: (x, y, z) => {
+                document.getElementById('posX').innerText = x;
+                document.getElementById('posY').innerText = y;
+                document.getElementById('posZ').innerText = z;
+            },
+
+            renderSensorTable: (results) => {
+                const tbody = document.getElementById('logBody');
+                tbody.innerHTML = '';
+                results.forEach(r => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${ Number(r.time).toFixed(1) } s</td><td>${r.intensity} µT</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        };
+
+        const engine3D = {
+            scene: null, camera: null, renderer: null,
+            subGroup: null, pingSphere: null, pinging: false, pingScale: 1,
+            targetPos: new THREE.Vector3(), movingCb: null,
+            
+            mapCoords: (val) => { return val - 50; },
+
+            init: () => {
+                const container = document.getElementById('game-canvas');
+                
+                engine3D.scene = new THREE.Scene();
+
+                engine3D.camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+                engine3D.camera.position.set(145, 110, 145);
+                engine3D.camera.lookAt(0, -10, 0);
+
+                engine3D.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                engine3D.renderer.setSize(container.clientWidth, container.clientHeight);
+                engine3D.renderer.setPixelRatio(window.devicePixelRatio);
+                container.appendChild(engine3D.renderer.domElement);
+
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+                engine3D.scene.add(ambientLight);
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+                dirLight.position.set(80, 140, 80);
+                engine3D.scene.add(dirLight);
+
+                engine3D.createGridsAndLabels();
+                engine3D.createSubmarine();
+
+                const pingMat = new THREE.MeshBasicMaterial({
+                    color: 0x35d5e8,
+                    transparent: true,
+                    opacity: 0,
+                    wireframe: true,
+                    depthWrite: false
+                });
+                engine3D.pingSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 24), pingMat);
+                engine3D.pingSphere.visible = false;
+                engine3D.scene.add(engine3D.pingSphere);
+
+                engine3D.setupCameraControls(container);
+                engine3D.animateLoop();
+
+                window.addEventListener('resize', () => {
+                    engine3D.camera.aspect = container.clientWidth / container.clientHeight;
+                    engine3D.camera.updateProjectionMatrix();
+                    engine3D.renderer.setSize(container.clientWidth, container.clientHeight);
+                });
+            },
+
+            drawRoundedRect: (ctx, x, y, width, height, radius) => {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+            },
+
+            createTextSprite: (text, colorHex, fontSize = 54, scaleWidth = 26) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#061a38';
+                engine3D.drawRoundedRect(ctx, 24, 14, 464, 100, 24);
+                ctx.fill();
+
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = colorHex;
+                ctx.stroke();
+
+                ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = colorHex;
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 2);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.generateMipmaps = false;
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.needsUpdate = true;
+
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    transparent: true,
+                    depthTest: false,
+                    depthWrite: false,
+                    fog: false
+                });
+                const sprite = new THREE.Sprite(material);
+                sprite.renderOrder = 999;
+                sprite.scale.set(scaleWidth, scaleWidth * 0.25, 1);
+                return sprite;
+            },
+
+            createThickAxis: (start, end, colorHex) => {
+                const direction = new THREE.Vector3().subVectors(end, start);
+                const length = direction.length();
+                const axisGroup = new THREE.Group();
+
+                const mat = new THREE.MeshBasicMaterial({ color: colorHex, fog: false });
+
+                const rodGeo = new THREE.CylinderGeometry(0.9, 0.9, length, 16);
+                rodGeo.translate(0, length / 2, 0);
+                const rodMesh = new THREE.Mesh(rodGeo, mat);
+                axisGroup.add(rodMesh);
+
+                const coneGeo = new THREE.ConeGeometry(2.6, 7, 16);
+                coneGeo.translate(0, length + 3.5, 0);
+                const coneMesh = new THREE.Mesh(coneGeo, mat);
+                axisGroup.add(coneMesh);
+
+                axisGroup.position.copy(start);
+                axisGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+                engine3D.scene.add(axisGroup);
+            },
+
+            createGridsAndLabels: () => {
+                const size = 100; const div = 10;
+                const gridCenterColor = 0x5ce1e6;
+                const gridLineColor = 0x1e4d7b;
+
+                const gridBottom = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
+                gridBottom.position.set(0, -50, 0);
+                gridBottom.material.fog = false;
+                engine3D.scene.add(gridBottom);
+
+                const gridBack = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
+                gridBack.rotation.x = Math.PI / 2;
+                gridBack.position.set(0, 0, -50);
+                gridBack.material.fog = false;
+                engine3D.scene.add(gridBack);
+
+                const gridLeft = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
+                gridLeft.rotation.z = Math.PI / 2;
+                gridLeft.position.set(-50, 0, 0);
+                gridLeft.material.fog = false;
+                engine3D.scene.add(gridLeft);
+
+                const origin = new THREE.Vector3(-50, -50, -50);
+
+                engine3D.createThickAxis(origin, new THREE.Vector3(56, -50, -50), 0xff3b3b);
+                engine3D.createThickAxis(origin, new THREE.Vector3(-50, 56, -50), 0x22ff66);
+                engine3D.createThickAxis(origin, new THREE.Vector3(-50, -50, 56), 0x00d4ff);
+
+                const originSphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(2.2, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false })
+                );
+                originSphere.position.copy(origin);
+                engine3D.scene.add(originSphere);
+
+                const labelX = engine3D.createTextSprite("SUMBU X", "#ff4d4d", 56, 30);
+                labelX.position.set(82, -50, -50);
+                engine3D.scene.add(labelX);
+
+                const labelY = engine3D.createTextSprite("SUMBU Y", "#22ff66", 56, 30);
+                labelY.position.set(-50, 78, -50);
+                engine3D.scene.add(labelY);
+
+                const labelZ = engine3D.createTextSprite("SUMBU Z", "#00d4ff", 56, 30);
+                labelZ.position.set(-50, -50, 82);
+                engine3D.scene.add(labelZ);
+
+                const labelOrigin = engine3D.createTextSprite("(0,0,0)", "#ffffff", 48, 22);
+                labelOrigin.position.set(-60, -58, -60);
+                engine3D.scene.add(labelOrigin);
+
+                for (let val = 20; val <= 100; val += 20) {
+                    const pos = engine3D.mapCoords(val);
+
+                    const tickX = engine3D.createTextSprite(val.toString(), "#ff8080", 52, 16);
+                    tickX.position.set(pos, -58, -50);
+                    engine3D.scene.add(tickX);
+
+                    const tickY = engine3D.createTextSprite(val.toString(), "#4ade80", 52, 16);
+                    tickY.position.set(-59, pos, -50);
+                    engine3D.scene.add(tickY);
+
+                    const tickZ = engine3D.createTextSprite(val.toString(), "#38bdf8", 52, 16);
+                    tickZ.position.set(-59, -58, pos);
+                    engine3D.scene.add(tickZ);
+                }
+            },
+
+            createSubmarine: () => {
+                engine3D.subGroup = new THREE.Group();
+                
+                const subMat = new THREE.MeshStandardMaterial({ 
+                    color: 0xffd166,
+                    emissive: 0xd97706,
+                    emissiveIntensity: 0.6,
+                    roughness: 0.2, 
+                    metalness: 0.4,
+                    fog: false
+                });
+
+                const accentMat = new THREE.MeshBasicMaterial({
+                    color: 0x35d5e8,
+                    fog: false
+                });
+
+                const hullGeo = new THREE.CylinderGeometry(3.4, 3.4, 13, 24);
+                hullGeo.rotateZ(Math.PI / 2);
+                const hull = new THREE.Mesh(hullGeo, subMat);
+                engine3D.subGroup.add(hull);
+
+                const noseGeo = new THREE.SphereGeometry(3.4, 20, 20);
+                const noseFront = new THREE.Mesh(noseGeo, subMat);
+                noseFront.position.x = 6.5;
+                engine3D.subGroup.add(noseFront);
+
+                const noseBack = new THREE.Mesh(noseGeo, subMat);
+                noseBack.position.x = -6.5;
+                engine3D.subGroup.add(noseBack);
+
+                const ringGeo = new THREE.CylinderGeometry(3.55, 3.55, 1.2, 24);
+                ringGeo.rotateZ(Math.PI / 2);
+                const ringFront = new THREE.Mesh(ringGeo, accentMat);
+                ringFront.position.x = 3.5;
+                engine3D.subGroup.add(ringFront);
+
+                const ringBack = new THREE.Mesh(ringGeo, accentMat);
+                ringBack.position.x = -3.5;
+                engine3D.subGroup.add(ringBack);
+                
+                const sailGeo = new THREE.BoxGeometry(4.2, 4.5, 2.8);
+                const sail = new THREE.Mesh(sailGeo, subMat);
+                sail.position.y = 4.2;
+                engine3D.subGroup.add(sail);
+
+                const topBeacon = new THREE.Mesh(new THREE.SphereGeometry(1.1, 16, 16), accentMat);
+                topBeacon.position.set(0, 7.0, 0);
+                engine3D.subGroup.add(topBeacon);
+
+                const finGeo = new THREE.BoxGeometry(2.5, 6.5, 0.6);
+                const finV = new THREE.Mesh(finGeo, accentMat);
+                finV.position.x = -8.5;
+                engine3D.subGroup.add(finV);
+                
+                engine3D.subGroup.position.set(0, 0, 0);
+                engine3D.scene.add(engine3D.subGroup);
+            },
+
+            setupCameraControls: (container) => {
+                let isDragging = false;
+                let prevMouse = { x: 0, y: 0 };
+                
+                container.addEventListener('mousedown', (e) => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+                window.addEventListener('mouseup', () => { isDragging = false; });
+                
+                container.addEventListener('mousemove', (e) => {
+                    if(!isDragging) return;
+                    const deltaX = e.clientX - prevMouse.x;
+                    const deltaY = e.clientY - prevMouse.y;
+                    prevMouse = { x: e.clientX, y: e.clientY };
+                    
+                    engine3D.camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -deltaX * 0.008);
+                    engine3D.camera.position.y += deltaY * 0.5;
+                    engine3D.camera.lookAt(0, -10, 0);
+                });
+            },
+
+            moveTo: (gx, gy, gz, callback) => {
+                engine3D.targetPos.set(engine3D.mapCoords(gx), engine3D.mapCoords(gy), engine3D.mapCoords(gz));
+                engine3D.movingCb = callback;
+            },
+
+            triggerPingWave: (turn) => {
+                engine3D.pingSphere.position.copy(engine3D.subGroup.position);
+                engine3D.pingSphere.material.color.setHex(turn === 1 ? 0x35d5e8 : 0xff7a7a);
+                engine3D.pingSphere.material.opacity = 1.0;
+                engine3D.pingScale = 1;
+                engine3D.pingSphere.visible = true;
+                engine3D.pinging = true;
+            },
+
+            animateLoop: () => {
+                requestAnimationFrame(engine3D.animateLoop);
+                
+                if(game.isAnimating && engine3D.movingCb) {
+                    engine3D.subGroup.position.lerp(engine3D.targetPos, 0.08);
+                    engine3D.subGroup.lookAt(engine3D.targetPos);
+                    
+                    if(engine3D.subGroup.position.distanceTo(engine3D.targetPos) < 0.2) {
+                        engine3D.subGroup.position.copy(engine3D.targetPos);
+                        let cb = engine3D.movingCb;
+                        engine3D.movingCb = null; 
+                        cb();
+                    }
+                }
+                
+                if(engine3D.pinging) {
+                    engine3D.pingScale += 1.5;
+                    engine3D.pingSphere.scale.set(engine3D.pingScale, engine3D.pingScale, engine3D.pingScale);
+                    engine3D.pingSphere.material.opacity -= 0.015;
+                    if(engine3D.pingSphere.material.opacity <= 0) {
+                        engine3D.pinging = false;
+                        engine3D.pingSphere.visible = false;
+                    }
+                }
+                
+                engine3D.renderer.render(engine3D.scene, engine3D.camera);
+            }
+        };
+    </script>
+</body>
+</html>
