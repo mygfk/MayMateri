@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palung Atlantis - Navigasi Anomali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tambahan KaTeX untuk render LaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        body {
+            background-color: #0b132b;
+            color: #43bccd;
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .map-container {
+            position: relative;
+            background-color: #0F2027; /* Darker background to match reference */
+            border: 2px solid #3a506b;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(67, 188, 205, 0.15);
+            overflow: hidden;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 900px;
+            /* Remove fixed aspect ratio to let it adapt to the square coordinate system */
+            height: 85vh; 
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(67, 188, 205, 0.05) 0%, transparent 60%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            /* Memberikan indikasi bahwa canvas bisa diinteraksikan */
+            touch-action: none; 
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            background: #1c2541;
+            color: #43bccd;
+            border: 1px solid #3a506b;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #3a506b;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(67, 188, 205, 0.4);
+        }
+        
+        button.active {
+            background: #43bccd;
+            color: #0b132b;
+            border-color: #43bccd;
+            box-shadow: 0 0 20px rgba(67, 188, 205, 0.6);
+        }
+
+        .hint {
+            color: #73b9c9;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .title-overlay {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            /* Hapus pointer-events: none agar judul bisa diklik */
+            z-index: 10;
+        }
+        
+        .title-overlay h1, .title-overlay p {
+            outline: none;
+            transition: text-shadow 0.3s;
+        }
+
+        .title-overlay h1:hover, .title-overlay p:hover,
+        .title-overlay h1:focus, .title-overlay p:focus {
+            text-shadow: 0 0 15px rgba(67, 188, 205, 0.8);
+            cursor: text;
+        }
+
+        .title-overlay h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 3px;
+            color: #a7e9f2;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+        
+        .title-overlay p {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            color: #73b9c9;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 32, 39, 0.85);
+            border: 1px solid #4397a6;
+            border-radius: 6px;
+            font-size: 12px;
+            display: none; /* Default hidden until full mode */
+            flex-direction: column;
+            pointer-events: auto;
+            color: #73b9c9;
+            z-index: 20;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(28, 37, 65, 0.9);
+            border-bottom: 1px solid #3a506b;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .legend-header:hover {
+            background: #3a506b;
+            color: #fff;
+        }
+
+        .legend-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .legend-content.collapsed {
+            display: none;
+        }
+        
+        .color-picker {
+            -webkit-appearance: none;
+            border: none;
+            width: 25px;
+            height: 18px;
+            padding: 0;
+            cursor: pointer;
+            background: none;
+        }
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-picker::-webkit-color-swatch {
+            border: 1px solid #73b9c9;
+            border-radius: 3px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #73b9c9;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            background: rgba(15, 32, 39, 0.6);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #3a506b;
+        }
+
+        /* --- TEMA TERANG (LIGHT MODE) OVERRIDES --- */
+        body.light-mode { background-color: #f0f4f8; color: #1e293b; }
+        body.light-mode .map-container { background-color: #ffffff; border-color: #cbd5e1; box-shadow: 0 0 30px rgba(0, 0, 0, 0.05); background-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.03) 0%, transparent 60%); }
+        body.light-mode button { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
+        body.light-mode button:hover { background: #cbd5e1; color: #000; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        body.light-mode button.active { background: #3b82f6; color: #fff; border-color: #2563eb; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        body.light-mode .title-overlay h1 { color: #0f172a; text-shadow: 0 2px 10px rgba(255,255,255,0.9); }
+        body.light-mode .title-overlay p { color: #475569; text-shadow: 0 2px 5px rgba(255,255,255,0.9); }
+        body.light-mode .legend { background: rgba(255, 255, 255, 0.95); border-color: #cbd5e1; color: #334155; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        body.light-mode .legend-header { background: rgba(241, 245, 249, 0.9); border-bottom-color: #cbd5e1; color: #0f172a; }
+        body.light-mode .legend-header:hover { background: #e2e8f0; }
+        body.light-mode .setting-group { background: rgba(255, 255, 255, 0.8); color: #334155; border-color: #cbd5e1; }
+        body.light-mode .hint { color: #64748b; }
+        body.light-mode .color-picker::-webkit-color-swatch { border-color: #94a3b8; }
+
+        /* --- STYLING UNTUK PANEL DAFTAR TITIK --- */
+        .point-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(15, 32, 39, 0.85);
+            border: 1px solid #4397a6;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+            color: #73b9c9;
+            z-index: 20;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            width: 200px;
+        }
+
+        .point-content {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .point-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(67, 188, 205, 0.2);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .point-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-delete-point {
+            background: rgba(255, 62, 62, 0.1) !important;
+            color: #FF3E3E !important;
+            border: 1px solid #FF3E3E !important;
+            border-radius: 4px !important;
+            width: 24px !important;
+            height: 24px !important;
+            padding: 0 !important;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 12px !important;
+            font-family: sans-serif !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .btn-delete-point:hover {
+            background: #FF3E3E !important;
+            color: white !important;
+        }
+
+        /* Light mode override untuk Panel Titik */
+        body.light-mode .point-panel { background: rgba(255, 255, 255, 0.95); border-color: #cbd5e1; color: #334155; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        body.light-mode .point-item { border-bottom-color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+    <div class="map-container">
+        <div class="title-overlay">
+            <h1 contenteditable="true" spellcheck="false" title="Klik untuk mengubah judul">PALUNG ATLANTIS - ANOMALY NAV MAP</h1>
+            <p contenteditable="true" spellcheck="false" title="Klik untuk mengubah sub-judul">MISI II: PEMETAAN EPISENTRUM</p>
+        </div>
+        
+        <div class="legend" id="graphLegend">
+            <div class="legend-header" id="legendHeader">
+                <span>DAFTAR KURVA</span>
+                <span id="legendToggleIcon">▼</span>
+            </div>
+            <div class="legend-content" id="legendContent">
+                <!-- Diisi secara dinamis oleh JavaScript -->
+            </div>
+        </div>
+
+        <!-- Panel Daftar Titik di Kiri Bawah -->
+        <div class="point-panel" id="pointPanel">
+            <div class="legend-header" id="pointHeader">
+                <span id="pointCountText">DAFTAR TITIK (0)</span>
+                <span id="pointToggleIcon">▼</span>
+            </div>
+            <div class="legend-content point-content" id="pointContent">
+                <!-- Diisi secara dinamis oleh JavaScript -->
+            </div>
+        </div>
+
+        <canvas id="navMap"></canvas>
+    </div>
+
+    <div class="controls">
+        <button id="btnTheme">Mode Terang</button>
+        <button id="btnEmpty" class="active">Mode Peta Buta (Titik Acak)</button>
+        <button id="btnFull">Mode Dekripsi (10 Grafik)</button>
+        <button id="btnDownload">Unduh PNG</button>
+        <div class="setting-group">
+            <label for="axisColorPicker">Warna Sumbu XY:</label>
+            <input type="color" id="axisColorPicker" class="color-picker" style="width: 30px; height: 30px;" value="#f1c40f">
+        </div>
+    </div>
+    <div class="hint">
+        *Drag/Geser titik memindahkannya. <b>Klik-ganda (Double-click/tap)</b> di ruang kosong untuk tambah titik, atau pada titik untuk menghapusnya.
+    </div>
+
+    <script>
+        const canvas = document.getElementById('navMap');
+        const ctx = canvas.getContext('2d');
+        const btnEmpty = document.getElementById('btnEmpty');
+        const btnFull = document.getElementById('btnFull');
+        const btnTheme = document.getElementById('btnTheme');
+        const btnDownload = document.getElementById('btnDownload');
+        const legend = document.getElementById('graphLegend');
+
+        // State
+        let showGraphs = false;
+        let isLightMode = false;
+        let draggedPointKey = null; // Menyimpan ID titik yang sedang di-drag
+        let hoveredPointKey = null; // Menyimpan ID titik yang sedang di-hover
+
+        // Grid boundaries
+        const gridLimit = 10;
+        
+        // Variables for aspect ratio locking
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        // Data for 25 points. 
+        const points = {
+            'A': {x: 4, y: 3, isEpicenter: true},     
+            'B': {x: -4, y: 3, isEpicenter: true},   
+            'C': {x: 0, y: -5, isEpicenter: true},    
+            'D': {x: -7, y: 1, isEpicenter: true},    
+            'E': {x: -1, y: 7, isEpicenter: true},    
+            
+            'F': {x: 5, y: 6}, 'G': {x: -8, y: 8}, 'H': {x: 8, y: -8},
+            'I': {x: 2, y: -2}, 'J': {x: -3, y: -7}, 'K': {x: 9, y: 4},
+            'L': {x: -9, y: -5}, 'M': {x: 1, y: 8}, 'N': {x: 6, y: 0},
+            'O': {x: -5, y: -6}, 'P': {x: 7, y: 5}, 'Q': {x: -2, y: 4},
+            'R': {x: 3, y: -8}, 'S': {x: -6, y: 4}, 'T': {x: 0, y: 9},
+            'U': {x: 9, y: -2}, 'V': {x: 4, y: -6}, 'W': {x: -8, y: -2},
+            'X': {x: 2, y: 5}, 'Y': {x: -4, y: -4}
+        };
+
+        // Konfigurasi dinamis untuk grafis dan warna dengan format LaTeX murni
+        const config = {
+            axisColor: '#f1c40f', 
+            graphs: [
+                { type: 'circle', r: 5, color: '#38EF7D', label: 'x^2 + y^2 = 25 \\text{ (Dalam)}' },
+                { type: 'circle', r: Math.sqrt(50), color: '#11998E', label: 'x^2 + y^2 = 50 \\text{ (Luar)}' },
+                { type: 'func', f: x => 0.5 * x * x - 5, color: '#FF007F', label: 'y = \\frac{1}{2}x^2 - 5' },
+                { type: 'func', f: x => x + 8, color: '#D600FF', label: 'y = x + 8' },
+                { type: 'func', f: x => 2 * Math.abs(x) - 5, color: '#FFAF7B', label: 'y = 2|x| - 5' },
+                { type: 'func', f: x => -x + 6, color: '#D29062', label: 'y = -x + 6' },
+                { type: 'func', f: x => 0.75 * x, color: '#00F2FE', label: 'y = \\frac{3}{4}x', dash: [10, 5] },
+                { type: 'func', f: x => -(1/7) * x, color: '#4FACFE', label: 'y = -\\frac{1}{7}x', dash: [10, 5] },
+                { type: 'func', f: x => -Math.abs(x + 4) + 3, color: '#F39C12', label: 'y = -|x + 4| + 3' },
+                { type: 'func', f: x => -5, color: '#E67E22', label: 'y = -5', dash: [4, 4] }
+            ]
+        };
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            ctx.scale(dpr, dpr);
+            
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+            
+            const marginX = 80; 
+            const marginY = 80; 
+            
+            const drawableWidth = rect.width - (marginX * 2);
+            const drawableHeight = rect.height - (marginY * 2);
+            
+            const logicalSize = gridLimit * 2;
+            
+            const scaleX = drawableWidth / logicalSize;
+            const scaleY = drawableHeight / logicalSize;
+            
+            scale = Math.min(scaleX, scaleY);
+            
+            offsetX = rect.width / 2;
+            offsetY = rect.height / 2 + 10;
+            
+            drawMap();
+        }
+
+        // Mapping logika Cartesius ke Pixel Canvas
+        function getX(val) {
+            return offsetX + (val * scale);
+        }
+
+        function getY(val) {
+            return offsetY - (val * scale);
+        }
+        
+        // Mapping dari Pixel Canvas kembali ke logika Cartesius (Untuk fitur Drag)
+        function getLogicX(px) {
+            return (px - offsetX) / scale;
+        }
+        
+        function getLogicY(py) {
+            return (offsetY - py) / scale;
+        }
+
+        function drawGrid() {
+            // Adaptasi warna berdasarkan tema
+            const gridColor = isLightMode ? '#cbd5e1' : '#1b3b44';
+            const gridMinor = isLightMode ? '#f1f5f9' : '#12252e';
+            const textColor = isLightMode ? '#64748b' : '#73b9c9';
+            const axisTextColor = isLightMode ? '#1e293b' : config.axisColor;
+
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            
+            ctx.font = '11px Share Tech Mono';
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (let i = -gridLimit; i <= gridLimit; i++) {
+                // Vertical
+                ctx.beginPath();
+                ctx.moveTo(getX(i), getY(gridLimit));
+                ctx.lineTo(getX(i), getY(-gridLimit));
+                ctx.strokeStyle = (i % 2 === 0) ? gridColor : gridMinor; 
+                ctx.stroke();
+                
+                // Horizontal
+                ctx.beginPath();
+                ctx.moveTo(getX(-gridLimit), getY(i));
+                ctx.lineTo(getX(gridLimit), getY(i));
+                ctx.stroke();
+
+                // Labels
+                if (i % 2 === 0) {
+                    ctx.fillText(i, getX(i), getY(-gridLimit) + 20);
+                    if (i !== 0) { 
+                        ctx.fillText(i, getX(-gridLimit) - 20, getY(i));
+                    }
+                }
+            }
+
+            // Draw Main Axes (Menggunakan warna dari config)
+            ctx.strokeStyle = config.axisColor;
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.moveTo(getX(0), getY(gridLimit));
+            ctx.lineTo(getX(0), getY(-gridLimit));
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(getX(-gridLimit), getY(0));
+            ctx.lineTo(getX(gridLimit), getY(0));
+            ctx.stroke();
+            
+            ctx.fillStyle = axisTextColor;
+            ctx.font = 'bold 12px Share Tech Mono';
+            ctx.fillText("Sumbu X (Bujur)", getX(0), getY(-gridLimit) + 40);
+            
+            ctx.save();
+            ctx.translate(getX(-gridLimit) - 40, getY(0));
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Sumbu Y (Lintang)", 0, 0);
+            ctx.restore();
+        }
+
+        function drawPoints() {
+            // Adaptasi warna titik normal
+            const defaultPointColor = isLightMode ? '#94a3b8' : '#627d98';
+            const defaultHoverColor = isLightMode ? '#0ea5e9' : '#a7e9f2';
+
+            for (const [label, p] of Object.entries(points)) {
+                const px = getX(p.x);
+                const py = getY(p.y);
+                
+                // Efek visual jika titik sedang di-hover atau di-drag
+                const isHovered = (label === hoveredPointKey || label === draggedPointKey);
+                const radius = isHovered ? 8 : (p.isEpicenter && showGraphs ? 6 : 4);
+                
+                if (showGraphs && p.isEpicenter) {
+                    ctx.fillStyle = isHovered ? '#FF6B6B' : '#FF3E3E';
+                    ctx.beginPath();
+                    ctx.arc(px, py, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = isHovered ? 2.5 : 1.5;
+                    ctx.beginPath();
+                    ctx.arc(px, py, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = isHovered ? '#fff' : '#FF3E3E';
+                    ctx.font = 'bold 14px Share Tech Mono';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`${label} (${p.x}, ${p.y})`, px + 12, py - 12);
+                } else {
+                    ctx.fillStyle = isHovered ? defaultHoverColor : defaultPointColor;
+                    ctx.beginPath();
+                    ctx.arc(px, py, radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Selalu tampilkan koordinat jika sedang di-hover, walau bukan epicenter
+                    ctx.fillStyle = isHovered ? defaultHoverColor : defaultPointColor;
+                    ctx.font = isHovered ? 'bold 13px Share Tech Mono' : '11px Share Tech Mono';
+                    ctx.textAlign = 'left';
+                    const text = isHovered ? `${label} (${p.x}, ${p.y})` : label;
+                    ctx.fillText(text, px + 10, py - 10);
+                }
+            }
+        }
+
+        function drawGraphs() {
+            if (!showGraphs) return;
+
+            const steps = 400; 
+            
+            function drawFunc(f, color, width=2, dashPattern=[]) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = width;
+                ctx.setLineDash(dashPattern);
+                
+                ctx.beginPath();
+                let started = false;
+                
+                for (let i = 0; i <= steps; i++) {
+                    const logicX = -gridLimit + (i / steps) * (gridLimit * 2);
+                    const logicY = f(logicX);
+                    
+                    if (logicY >= -gridLimit && logicY <= gridLimit) {
+                        if (!started) {
+                            ctx.moveTo(getX(logicX), getY(logicY));
+                            started = true;
+                        } else {
+                            ctx.lineTo(getX(logicX), getY(logicY));
+                        }
+                    } else {
+                        started = false; 
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            function drawCircle(r, color) {
+                const pxOrigin = getX(0);
+                const pyOrigin = getY(0);
+                const pixelRadius = r * scale; 
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.arc(pxOrigin, pyOrigin, pixelRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Render semua kurva dari konfigurasi dinamis
+            config.graphs.forEach(g => {
+                if (g.type === 'circle') {
+                    drawCircle(g.r, g.color);
+                } else if (g.type === 'func') {
+                    drawFunc(g.f, g.color, 2, g.dash || []);
+                }
+            });
+        }
+
+        function drawMap() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            
+            drawGrid();
+            drawGraphs();
+            drawPoints();
+        }
+
+        // Helper untuk mendapatkan koordinat mouse lokal di kanvas
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
+            }
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // Cek jika mouse berada di atas salah satu titik (Collision Detection)
+        function checkPointHover(mouseX, mouseY) {
+            const hitRadius = 12; // Radius toleransi piksel
+            for (const [key, p] of Object.entries(points)) {
+                const px = getX(p.x);
+                const py = getY(p.y);
+                const dist = Math.hypot(px - mouseX, py - mouseY);
+                if (dist <= hitRadius) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+        // Generator nama titik baru berurutan abjad
+        function getNextLabel() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for(let i=0; i<letters.length; i++) {
+                if(!points[letters[i]]) return letters[i];
+            }
+            let c = 1;
+            while(points['P' + c]) { c++; }
+            return 'P' + c;
+        }
+
+        // Handler untuk Tambah / Hapus Titik (Double Click / Tap)
+        function handleDoubleClick(mouseX, mouseY) {
+            const hit = checkPointHover(mouseX, mouseY);
+            
+            if (hit) {
+                // Hapus titik jika diklik ganda
+                delete points[hit];
+            } else {
+                // Tambah titik baru pada posisi klik
+                let logicX = Math.round(getLogicX(mouseX) * 10) / 10;
+                let logicY = Math.round(getLogicY(mouseY) * 10) / 10;
+
+                // Pastikan titik baru ada di dalam batas grid (-10 s/d 10)
+                if (logicX >= -gridLimit && logicX <= gridLimit && logicY >= -gridLimit && logicY <= gridLimit) {
+                    const newLabel = getNextLabel();
+                    points[newLabel] = { x: logicX, y: logicY, isEpicenter: false };
+                }
+            }
+            
+            // Reset status interaksi
+            draggedPointKey = null;
+            hoveredPointKey = null;
+            canvas.style.cursor = 'default';
+            drawMap();
+            updatePointListUI(); // Perbarui panel titik
+        }
+
+        let lastTap = 0; // State untuk deteksi tap ganda di smartphone
+
+        function onPointerDown(e) {
+            const pos = getMousePos(e);
+            
+            // Deteksi double-tap khusus mobile
+            if (e.type === 'touchstart') {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    handleDoubleClick(pos.x, pos.y);
+                    e.preventDefault();
+                    lastTap = 0;
+                    return; 
+                }
+                lastTap = currentTime;
+            }
+
+            const hit = checkPointHover(pos.x, pos.y);
+            
+            if (hit) {
+                draggedPointKey = hit;
+                canvas.style.cursor = 'grabbing';
+                // Hindari scroll layar saat men-drag di HP
+                if (e.type === 'touchstart') e.preventDefault(); 
+                drawMap();
+            }
+        }
+
+        function onPointerMove(e) {
+            const pos = getMousePos(e);
+            
+            if (draggedPointKey) {
+                // Sedang Drag: Perbarui Koordinat Titik
+                let logicX = getLogicX(pos.x);
+                let logicY = getLogicY(pos.y);
+                
+                // Batasi agar titik tidak keluar area -10 sampai 10
+                logicX = Math.max(-gridLimit, Math.min(gridLimit, logicX));
+                logicY = Math.max(-gridLimit, Math.min(gridLimit, logicY));
+
+                // Pembulatan ke 1 angka desimal supaya koordinat lebih rapi (misal: 4.5)
+                points[draggedPointKey].x = Math.round(logicX * 10) / 10;
+                points[draggedPointKey].y = Math.round(logicY * 10) / 10;
+                
+                drawMap();
+            } else {
+                // Hanya Hover (Deteksi)
+                const hit = checkPointHover(pos.x, pos.y);
+                if (hit !== hoveredPointKey) {
+                    hoveredPointKey = hit;
+                    canvas.style.cursor = hit ? 'grab' : 'default';
+                    drawMap();
+                }
+            }
+        }
+
+        function onPointerUp(e) {
+            if (draggedPointKey) {
+                draggedPointKey = null;
+                canvas.style.cursor = hoveredPointKey ? 'grab' : 'default';
+                drawMap();
+                updatePointListUI(); // Perbarui koordinat di panel titik setelah selesai digeser
+            }
+        }
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', onPointerDown);
+        canvas.addEventListener('mousemove', onPointerMove);
+        canvas.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('mouseleave', onPointerUp);
+        canvas.addEventListener('dblclick', (e) => {
+            const pos = getMousePos(e);
+            handleDoubleClick(pos.x, pos.y);
+        });
+
+        // Touch Events
+        canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+        canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+        canvas.addEventListener('touchend', onPointerUp);
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- Fitur Interaksi Baru (UI) ---
+        
+        // 1. Inisialisasi Legend Secara Dinamis
+        const legendContent = document.getElementById('legendContent');
+        config.graphs.forEach((g) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            
+            // Picker warna untuk setiap grafik
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.className = 'color-picker';
+            colorPicker.value = g.color;
+            colorPicker.title = 'Ubah warna kurva';
+            colorPicker.addEventListener('input', (e) => {
+                g.color = e.target.value;
+                drawMap();
+            });
+
+            const span = document.createElement('span');
+            // Merender teks menggunakan LaTeX (KaTeX)
+            if (typeof katex !== 'undefined') {
+                katex.render(g.label, span, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } else {
+                span.textContent = g.label;
+            }
+
+            item.appendChild(colorPicker);
+            item.appendChild(span);
+            legendContent.appendChild(item);
+        });
+
+        // 2. Toggle/Sembunyikan Legend
+        const legendHeader = document.getElementById('legendHeader');
+        const legendToggleIcon = document.getElementById('legendToggleIcon');
+        legendHeader.addEventListener('click', () => {
+            legendContent.classList.toggle('collapsed');
+            legendToggleIcon.textContent = legendContent.classList.contains('collapsed') ? '▲' : '▼';
+        });
+
+        // 3. Ubah Warna Sumbu XY
+        const axisColorPicker = document.getElementById('axisColorPicker');
+        axisColorPicker.addEventListener('input', (e) => {
+            config.axisColor = e.target.value;
+            drawMap();
+        });
+
+        // 4. Toggle Tema Terang/Gelap
+        btnTheme.addEventListener('click', () => {
+            isLightMode = !isLightMode;
+            document.body.classList.toggle('light-mode', isLightMode);
+            btnTheme.textContent = isLightMode ? 'Mode Gelap' : 'Mode Terang';
+            
+            // Otomatis ubah warna kuning (kurang kontras) menjadi biru di mode terang
+            if (isLightMode && config.axisColor === '#f1c40f') {
+                config.axisColor = '#2563eb'; // Biru gelap
+                axisColorPicker.value = '#2563eb';
+            } else if (!isLightMode && config.axisColor === '#2563eb') {
+                config.axisColor = '#f1c40f'; // Kuning terang
+                axisColorPicker.value = '#f1c40f';
+            }
+            
+            drawMap();
+        });
+
+        btnEmpty.addEventListener('click', () => {
+            showGraphs = false;
+            btnEmpty.classList.add('active');
+            btnFull.classList.remove('active');
+            legend.style.display = 'none';
+            drawMap();
+        });
+
+        btnFull.addEventListener('click', () => {
+            showGraphs = true;
+            btnFull.classList.add('active');
+            btnEmpty.classList.remove('active');
+            legend.style.display = 'flex';
+            drawMap();
+        });
+
+        btnDownload.addEventListener('click', () => {
+            // Buat canvas sementara untuk menggabungkan background, judul, dan peta
+            const tempCanvas = document.createElement('canvas');
+            const dpr = window.devicePixelRatio || 1;
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tCtx = tempCanvas.getContext('2d');
+
+            // 1. Gambar Background (menyesuaikan Light / Dark mode)
+            tCtx.fillStyle = isLightMode ? '#ffffff' : '#0F2027';
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // 2. Gambar Efek Gradien Cahaya di tengah (meniru efek CSS)
+            const cx = tempCanvas.width / 2;
+            const cy = tempCanvas.height / 2;
+            const r = tempCanvas.width * 0.6;
+            const gradient = tCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            gradient.addColorStop(0, isLightMode ? 'rgba(0, 0, 0, 0.03)' : 'rgba(67, 188, 205, 0.05)');
+            gradient.addColorStop(1, 'transparent');
+            tCtx.fillStyle = gradient;
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // 3. Salin isi grafik dan titik dari canvas peta utama
+            tCtx.drawImage(canvas, 0, 0);
+
+            // 4. Tambahkan teks judul ke dalam PNG
+            const titleH1 = document.querySelector('.title-overlay h1').innerText;
+            const titleP = document.querySelector('.title-overlay p').innerText;
+            
+            tCtx.textAlign = 'center';
+            tCtx.shadowColor = isLightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
+            tCtx.shadowBlur = 10 * dpr;
+            tCtx.shadowOffsetY = 2 * dpr;
+            
+            // Render Judul Utama
+            tCtx.font = `bold ${28 * dpr}px "Share Tech Mono", monospace`;
+            tCtx.fillStyle = isLightMode ? '#0f172a' : '#a7e9f2';
+            tCtx.fillText(titleH1, tempCanvas.width / 2, 50 * dpr);
+            
+            // Render Sub Judul
+            tCtx.font = `${16 * dpr}px "Share Tech Mono", monospace`;
+            tCtx.fillStyle = isLightMode ? '#475569' : '#73b9c9';
+            tCtx.fillText(titleP, tempCanvas.width / 2, 80 * dpr);
+
+            // 5. Unduh sebagai file
+            const link = document.createElement('a');
+            link.download = 'Palung-Atlantis-Map.png';
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // --- Fitur Daftar Titik Kordinat ---
+        function updatePointListUI() {
+            const content = document.getElementById('pointContent');
+            const countText = document.getElementById('pointCountText');
+            content.innerHTML = '';
+            
+            const keys = Object.keys(points).sort(); // Urutkan abjad A-Z
+            countText.textContent = `DAFTAR TITIK (${keys.length})`;
+
+            keys.forEach(key => {
+                const p = points[key];
+                const item = document.createElement('div');
+                item.className = 'point-item';
+                
+                const text = document.createElement('span');
+                text.textContent = `${key} (${p.x}, ${p.y})`;
+                
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-delete-point';
+                delBtn.innerHTML = '✕';
+                delBtn.title = 'Hapus titik ' + key;
+                delBtn.onclick = (e) => {
+                    e.stopPropagation(); // Mencegah event klik tembus ke canvas
+                    delete points[key];
+                    drawMap();
+                    updatePointListUI();
+                };
+
+                item.appendChild(text);
+                item.appendChild(delBtn);
+                content.appendChild(item);
+            });
+        }
+
+        const pointHeader = document.getElementById('pointHeader');
+        const pointContent = document.getElementById('pointContent');
+        const pointToggleIcon = document.getElementById('pointToggleIcon');
+        
+        pointHeader.addEventListener('click', () => {
+            pointContent.classList.toggle('collapsed');
+            pointToggleIcon.textContent = pointContent.classList.contains('collapsed') ? '▲' : '▼';
+        });
+
+
+        // Start
+        window.onload = () => {
+            resizeCanvas();
+            updatePointListUI(); // Inisialisasi daftar titik pada saat web dimuat
+        };
+
+    </script>
+</body>
+</html>
