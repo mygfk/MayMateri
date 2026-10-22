@@ -1,0 +1,541 @@
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crash Course Matematika</title>
+<!-- Load Font & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+    #formula-container { display: math; }
+    
+    /* Styling tambahan untuk canvas grafik */
+    canvas.graph-canvas {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+<style>.lms-source-label {
+<!-- ... existing code ... -->
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling untuk Container Desmos (Grafik Interaktif) */
+.desmos-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+}
+</style>
+
+<!-- Load Library MathJax untuk LaTeX -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+
+<!-- Load Library Desmos API untuk Grafik Interaktif -->
+<script src="https://www.desmos.com/api/v1.8/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+
+</head>
+<body>
+
+  <!-- Slide 1: Title (Dark) -->
+  <div class="slide-container" id="slide1" style="background:#0f172a; padding:64px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+    <p contenteditable="true" style="color:#38bdf8; font-size:24px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px;">
+      Crash Course Matematika
+    </p>
+    <h1 contenteditable="true" style="color:#f8fafc; font-size:72px; line-height:1.1; margin-bottom:32px; max-width:900px;">
+      Seni Mensketsa Grafik
+    </h1>
+    <p contenteditable="true" style="color:#94a3b8; font-size:24px; max-width:600px;">
+      Memahami bentuk dasar dan aturan transformasi dari 10 persamaan.
+    </p>
+  </div>
+
+  <!-- Slide 2: Aturan Emas (Light) -->
+  <div class="slide-container" id="slide2" style="background:#ffffff; padding:64px; display:flex; flex-direction:column;">
+    <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:48px; border-left:8px solid #38bdf8; padding-left:24px;">
+      Aturan Emas Transformasi
+    </h2>
+    <div style="display:flex; gap:32px; flex-grow:1; align-items:start;">
+      <!-- Aturan 1 -->
+      <div style="flex:1 1 0; background:#f8fafc; padding:40px; border-radius:16px; display:flex; flex-direction:column; gap:16px;">
+        <i class="fa-solid fa-arrows-up-down" style="font-size:32px; color:#38bdf8;"></i>
+        <h3 contenteditable="true" style="font-size:28px; color:#0f172a; margin:0;">Tambah di Luar</h3>
+        <div style="font-size:24px; color:#0284c7; font-weight:bold; margin:8px 0;">$$ y = f(x) \mathbf{+ c} $$</div>
+        <p contenteditable="true" style="font-size:18px; color:#475569; line-height:1.6; margin:0;">
+          Menambah/mengurangi di luar fungsi utama akan menggeser kurva secara <strong>Vertikal</strong>.<br><br>
+          <strong style="color:#10b981;">+ (Plus)</strong> : Geser ke Atas.<br>
+          <strong style="color:#ef4444;">- (Minus)</strong> : Geser ke Bawah.
+        </p>
+      </div>
+      <!-- Aturan 2 -->
+      <div style="flex:1 1 0; background:#f8fafc; padding:40px; border-radius:16px; display:flex; flex-direction:column; gap:16px;">
+        <i class="fa-solid fa-arrows-left-right" style="font-size:32px; color:#38bdf8;"></i>
+        <h3 contenteditable="true" style="font-size:28px; color:#0f172a; margin:0;">Tambah di Dalam</h3>
+        <div style="font-size:24px; color:#0284c7; font-weight:bold; margin:8px 0;">$$ y = f(x \mathbf{+ c}) $$</div>
+        <p contenteditable="true" style="font-size:18px; color:#475569; line-height:1.6; margin:0;">
+          Menambah di dalam kurung (langsung pada $x$) menggeser kurva secara <strong>Horizontal</strong> (berlawanan logika).<br><br>
+          <strong style="color:#10b981;">+ (Plus)</strong> : Geser ke <strong>KIRI</strong>.<br>
+          <strong style="color:#ef4444;">- (Minus)</strong> : Geser ke <strong>KANAN</strong>.
+        </p>
+      </div>
+      <!-- Aturan 3 -->
+      <div style="flex:1 1 0; background:#f8fafc; padding:40px; border-radius:16px; display:flex; flex-direction:column; gap:16px;">
+        <i class="fa-solid fa-compress" style="font-size:32px; color:#38bdf8;"></i>
+        <h3 contenteditable="true" style="font-size:28px; color:#0f172a; margin:0;">Kali dengan Angka</h3>
+        <div style="font-size:24px; color:#0284c7; font-weight:bold; margin:8px 0;">$$ y = \mathbf{a} \cdot f(x) $$</div>
+        <p contenteditable="true" style="font-size:18px; color:#475569; line-height:1.6; margin:0;">
+          Faktor pengali di depan fungsi akan mengubah <strong>Kelebaran</strong> kurva.<br><br>
+          <strong>Angka Besar ($a > 1$)</strong> : Kurva makin sempit/curam.<br>
+          <strong>Pecahan ($0 < a < 1$)</strong> : Kurva makin lebar/landai.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Garis Linear Dasar (Light) -->
+  <div class="slide-container" id="slide3" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:64px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:16px;">
+        1. Garis Linear (Lurus)
+      </h2>
+      <div id="formula-container" style="margin:48px 0; font-size:48px; color:#0f172a;">
+        $$ y = mx + c $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <p contenteditable="true" style="font-size:28px; color:#475569;"><strong style="color:#0f172a;">m:</strong> Kemiringan garis (gradien).</p>
+        <p contenteditable="true" style="font-size:28px; color:#475569;"><strong style="color:#0f172a;">c:</strong> Titik potong di sumbu Y.</p>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide3" class="desmos-container" style="width: 400px; height: 400px;"></div>
+      <p style="text-align:center; margin-top:16px; color:#64748b; font-weight:600;">Coba geser dan zoom grafiknya!</p>
+    </div>
+  </div>
+
+  <!-- Slide 4: Garis Linear Kasus (Light) -->
+  <div class="slide-container" id="slide4" style="background:#ffffff; padding:48px; display:flex; flex-direction:column;">
+    <h2 contenteditable="true" style="font-size:36px; color:#0f172a; margin-bottom:24px; border-left:8px solid #38bdf8; padding-left:24px;">
+      Praktik: Garis Linear
+    </h2>
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:24px; flex-grow:1; align-items:start;">
+      <!-- Kasus 1 -->
+      <div style="background:#f8fafc; padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+        <div id="d-slide4-1" class="desmos-container" style="width: 200px; height: 200px;"></div>
+        <div style="font-size:24px; font-weight:bold; color:#0f172a;">$$ y = x + 8 $$</div>
+        <p contenteditable="true" style="font-size:16px; color:#475569; margin:0;">Naik (m=1). Memotong sumbu Y di angka 8.</p>
+      </div>
+      <!-- Kasus 2 -->
+      <div style="background:#f8fafc; padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+        <div id="d-slide4-2" class="desmos-container" style="width: 200px; height: 200px;"></div>
+        <div style="font-size:24px; font-weight:bold; color:#0f172a;">$$ y = -x + 6 $$</div>
+        <p contenteditable="true" style="font-size:16px; color:#475569; margin:0;">Turun (m=-1). Memotong sumbu Y di angka 6.</p>
+      </div>
+      <!-- Kasus 3 -->
+      <div style="background:#f8fafc; padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+        <div id="d-slide4-3" class="desmos-container" style="width: 200px; height: 200px;"></div>
+        <div style="font-size:24px; font-weight:bold; color:#0f172a;">$$ y = -5 $$</div>
+        <p contenteditable="true" style="font-size:16px; color:#475569; margin:0;">Garis horizontal datar (konstan) di Y=-5.</p>
+      </div>
+      <!-- Kasus 4 -->
+      <div style="background:#f8fafc; padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+        <div id="d-slide4-4" class="desmos-container" style="width: 200px; height: 200px;"></div>
+        <div style="font-size:24px; font-weight:bold; color:#0f172a;">$$ y = \frac{3}{4}x $$</div>
+        <p contenteditable="true" style="font-size:16px; color:#475569; margin:0;">Naik landai. Lewat titik tengah (0,0).</p>
+      </div>
+      <!-- Kasus 5 -->
+      <div style="background:#f8fafc; padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px;">
+        <div id="d-slide4-5" class="desmos-container" style="width: 200px; height: 200px;"></div>
+        <div style="font-size:24px; font-weight:bold; color:#0f172a;">$$ y = -\frac{1}{7}x $$</div>
+        <p contenteditable="true" style="font-size:16px; color:#475569; margin:0;">Turun sangat landai (hampir datar).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Kuadrat Dasar (Light) -->
+  <div class="slide-container" id="slide5" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:64px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:16px;">
+        2. Fungsi Kuadrat (Parabola)
+      </h2>
+      <div id="formula-container" style="margin:48px 0; font-size:64px; color:#0f172a;">
+        $$ y = x^2 $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px; margin-top:24px;">
+        <div style="background:#f0f9ff; padding:24px 32px; border-radius:16px; display:inline-block;">
+          <p contenteditable="true" style="font-size:24px; color:#0369a1; font-weight:600; margin:0;">Bentuk huruf "U" mulus.</p>
+        </div>
+        <div style="background:#f0f9ff; padding:24px 32px; border-radius:16px; display:inline-block;">
+          <p contenteditable="true" style="font-size:24px; color:#0369a1; font-weight:600; margin:0;">Terbuka ke atas.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide5" class="desmos-container" style="width: 400px; height: 400px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 5a: Parabola (Geser) -->
+  <div class="slide-container" id="slide5a" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Langkah 1: Menggeser Parabola
+      </h2>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #ef4444;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = x^2 - 5 $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Dikurang di luar: Geser kurva 5 satuan ke <strong>Bawah</strong>.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #10b981;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = (x - 3)^2 $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Dikurang di dalam kurung: Geser kurva 3 satuan ke <strong>Kanan</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide5a" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 5b: Parabola (Rentang) -->
+  <div class="slide-container" id="slide5b" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Langkah 2: Merentang/Menyempit
+      </h2>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #38bdf8;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = 0.5x^2 $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Dikali pecahan: Kurva menjadi lebih <strong>Lebar/Landai</strong>.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #8b5cf6;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = 2x^2 $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Dikali angka bulat: Kurva menjadi lebih <strong>Sempit/Curam</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide5b" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 6: Kuadrat Kasus (Light) -->
+  <div class="slide-container" id="slide6" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Gabungan: Transformasi Parabola
+      </h2>
+      <div id="formula-container" style="font-size:40px; color:#38bdf8; font-weight:700;">
+        $$ y = 0.5x^2 - 5 $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px; margin-top:32px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #94a3b8;">
+          <h3 contenteditable="true" style="font-size:20px; color:#0f172a; margin-bottom:8px;">Angka 0.5 di depan:</h3>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Kurva melebar (lebih landai dari U normal).</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #ef4444;">
+          <h3 contenteditable="true" style="font-size:20px; color:#0f172a; margin-bottom:8px;">Minus 5 di belakang:</h3>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Puncak parabola turun sejauh 5 satuan ke Y=-5.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide6" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Nilai Mutlak Dasar (Light) -->
+  <div class="slide-container" id="slide7" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:64px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:16px;">
+        3. Fungsi Nilai Mutlak
+      </h2>
+      <div id="formula-container" style="margin:48px 0; font-size:64px; color:#0f172a;">
+        $$ y = |x| $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px; margin-top:24px;">
+        <div style="background:#fef2f2; padding:24px 32px; border-radius:16px; display:inline-block;">
+          <p contenteditable="true" style="font-size:24px; color:#b91c1c; font-weight:600; margin:0;">Bentuk huruf "V" tajam.</p>
+        </div>
+        <div style="background:#fef2f2; padding:24px 32px; border-radius:16px; display:inline-block;">
+          <p contenteditable="true" style="font-size:24px; color:#b91c1c; font-weight:600; margin:0;">Semua nilai negatif dipantulkan jadi positif.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide7" class="desmos-container" style="width: 400px; height: 400px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 7a: Mutlak (Geser) -->
+  <div class="slide-container" id="slide7a" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Langkah 1: Menggeser "V"
+      </h2>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #38bdf8;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = |x + 4| $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Ditambah di dalam: Geser kurva 4 satuan ke <strong>Kiri</strong>.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #10b981;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = |x| + 3 $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Ditambah di luar: Geser kurva 3 satuan ke <strong>Atas</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide7a" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 7b: Mutlak (Rentang & Refleksi) -->
+  <div class="slide-container" id="slide7b" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Langkah 2: Menarik & Membalik "V"
+      </h2>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #8b5cf6;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = 2|x| $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Dikali 2: Bentuk V ditarik menjadi lebih <strong>Tajam/Sempit</strong>.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #ef4444;">
+          <div style="font-size:28px; color:#0f172a; font-weight:bold; margin-bottom:8px;">$$ y = -|x| $$</div>
+          <p style="font-size:18px; color:#475569; margin:0;">Diberi minus: Bentuk V <strong>Terbalik</strong> (menghadap bawah).</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide7b" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Nilai Mutlak Kasus 1 (Light) -->
+  <div class="slide-container" id="slide8" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; align-items:center; gap:48px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:24px;">
+        Gabungan Mutlak 1
+      </h2>
+      <div id="formula-container" style="font-size:48px; color:#38bdf8; font-weight:700;">
+        $$ y = 2|x| - 5 $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px; margin-top:32px;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #94a3b8;">
+          <h3 contenteditable="true" style="font-size:20px; color:#0f172a; margin-bottom:8px;">Angka 2 di depan:</h3>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Huruf V ditarik memanjang sehingga lebih tajam/curam.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; border-left:6px solid #ef4444;">
+          <h3 contenteditable="true" style="font-size:20px; color:#0f172a; margin-bottom:8px;">Minus 5 di belakang:</h3>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Ujung bawah V bergeser turun ke Y=-5.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide8" class="desmos-container" style="width: 450px; height: 450px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 9: Nilai Mutlak Kasus 2 (Light) -->
+  <div class="slide-container" id="slide9" style="background:#ffffff; padding:48px; display:flex; flex-direction:column;">
+    <h2 contenteditable="true" style="font-size:36px; color:#0f172a; margin-bottom:8px; text-align:center;">
+      Gabungan Mutlak 2 (Ekstrem)
+    </h2>
+    <div id="formula-container" style="text-align:center; margin:16px 0 32px 0; font-size:40px; color:#0f172a; font-weight:700;">
+      $$ y = -|x + 4| + 3 $$
+    </div>
+    <div style="display:flex; gap:48px; align-items:center;">
+      <div id="d-slide9" class="desmos-container" style="width: 400px; height: 400px; flex-shrink:0;"></div>
+      <div style="display:flex; flex-direction:column; gap:16px; flex-grow:1;">
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; display:flex; gap:24px; align-items:center;">
+          <p contenteditable="true" style="font-size:40px; font-weight:700; color:#ef4444; margin:0; min-width:60px; text-align:center;">-</p>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Tanda minus di depan. Mengubah arah V menjadi terbalik (membuka ke bawah).</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; display:flex; gap:24px; align-items:center;">
+          <p contenteditable="true" style="font-size:40px; font-weight:700; color:#38bdf8; margin:0; min-width:60px; text-align:center;">+ 4</p>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Di dalam kurung mutlak. Aturan terbalik: Geser kurva ke KIRI 4 satuan.</p>
+        </div>
+        <div style="background:#f8fafc; padding:24px; border-radius:12px; display:flex; gap:24px; align-items:center;">
+          <p contenteditable="true" style="font-size:40px; font-weight:700; color:#10b981; margin:0; min-width:60px; text-align:center;">+ 3</p>
+          <p contenteditable="true" style="font-size:18px; color:#475569; margin:0;">Di luar kurung. Geser seluruh kurva ke ATAS 3 satuan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 10: Lingkaran Dasar (Light) -->
+  <div class="slide-container" id="slide10" style="background:#ffffff; padding:64px; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:64px;">
+    <div style="flex:1;">
+      <h2 contenteditable="true" style="font-size:40px; color:#0f172a; margin-bottom:16px;">
+        4. Persamaan Lingkaran
+      </h2>
+      <div id="formula-container" style="margin:48px 0; font-size:48px; color:#0f172a;">
+        $$ x^2 + y^2 = r^2 $$
+      </div>
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <p contenteditable="true" style="font-size:28px; color:#475569;">Berpusat tegak lurus di titik <strong style="color:#0f172a;">(0,0)</strong>.</p>
+        <p contenteditable="true" style="font-size:28px; color:#475569;"><strong style="color:#0f172a;">r:</strong> Adalah jari-jari (radius) lingkaran.</p>
+      </div>
+    </div>
+    <div>
+      <div id="d-slide10" class="desmos-container" style="width: 400px; height: 400px;"></div>
+    </div>
+  </div>
+
+  <!-- Slide 11: Lingkaran Kasus (Light) -->
+  <div class="slide-container" id="slide11" style="background:#ffffff; padding:48px; display:flex; flex-direction:column;">
+    <h2 contenteditable="true" style="font-size:36px; color:#0f172a; margin-bottom:24px; border-left:8px solid #38bdf8; padding-left:24px;">
+      Mencari Jari-Jari (r)
+    </h2>
+    <div style="display:flex; gap:48px; flex-grow:1; align-items:center;">
+      <div style="flex:1; background:#f8fafc; padding:32px; border-radius:16px; text-align:center; display:flex; flex-direction:column; align-items:center;">
+        <div id="d-slide11-1" class="desmos-container" style="width: 250px; height: 250px; margin-bottom:24px;"></div>
+        <div style="margin-bottom:16px; font-size:28px; font-weight:bold;">
+          $$ x^2 + y^2 = 25 $$
+        </div>
+        <p contenteditable="true" style="font-size:20px; color:#475569; margin:0;">Nilai r = √25</p>
+        <p contenteditable="true" style="font-size:24px; color:#0f172a; font-weight:700; margin-top:8px;">Jari-jari = 5</p>
+      </div>
+      
+      <div style="flex:1; background:#f8fafc; padding:32px; border-radius:16px; text-align:center; display:flex; flex-direction:column; align-items:center;">
+        <div id="d-slide11-2" class="desmos-container" style="width: 250px; height: 250px; margin-bottom:24px;"></div>
+        <div style="margin-bottom:16px; font-size:28px; font-weight:bold;">
+          $$ x^2 + y^2 = 50 $$
+        </div>
+        <p contenteditable="true" style="font-size:20px; color:#475569; margin:0;">Nilai r = √50</p>
+        <p contenteditable="true" style="font-size:24px; color:#0f172a; font-weight:700; margin-top:8px;">Jari-jari ≈ 7.07</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 12: Closing (Dark) -->
+  <div class="slide-container" id="slide12" style="background:#0f172a; padding:64px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+    <i class="fa-solid fa-pen-ruler" style="font-size:64px; color:#38bdf8; margin-bottom:32px;"></i>
+    <h2 contenteditable="true" style="font-size:56px; font-weight:700; color:#f8fafc; margin-bottom:24px;">
+      Sekarang Giliranmu!
+    </h2>
+    <p contenteditable="true" style="font-size:24px; color:#94a3b8; max-width:600px;">
+      Gunakan prinsip geser dan rentang ini untuk menggambar grafiknya di atas kertas. Ada pertanyaan?
+    </p>
+  </div>
+
+  <script>
+    function initGraphs() {
+      const colors = { 
+        blue: '#0284c7', 
+        gray: '#94a3b8',
+        red: '#ef4444'
+      };
+      
+      // Fungsi helper untuk merender Kalkulator Desmos ke dalam div
+      function createDesmos(id, expressions, bounds = null) {
+        const elt = document.getElementById(id);
+        if(!elt) return;
+        
+        // Konfigurasi Kalkulator UI
+        const calc = Desmos.GraphingCalculator(elt, {
+          expressions: false,   // Sembunyikan panel rumus kiri
+          lockViewport: false,  // Izinkan user nge-zoom/pan
+          zoomButtons: true,    // Tampilkan tombol zoom in/out
+          settingsMenu: false,  // Sembunyikan menu setting rumit
+          showGrid: true,
+          xAxisArrowMode: Desmos.AxisArrowModes.BOTH,
+          yAxisArrowMode: Desmos.AxisArrowModes.BOTH
+        });
+        
+        // Render semua rumus (bisa berlapis)
+        expressions.forEach((expr, i) => {
+          calc.setExpression({ 
+            id: 'graph' + i, 
+            latex: expr.latex, 
+            color: expr.color || colors.blue, 
+            lineStyle: expr.dashed ? Desmos.Styles.DASHED : Desmos.Styles.SOLID,
+            lineWidth: 3
+          });
+        });
+
+        // Paksa skala tampilan (berguna untuk lingkaran)
+        if (bounds) {
+          calc.setMathBounds(bounds);
+        }
+        
+        return calc;
+      }
+
+      
+      // -- Garis Linear --
+      createDesmos('d-slide3', [{ latex: 'y = x' }]);
+      createDesmos('d-slide4-1', [{ latex: 'y = x + 8' }]);
+      createDesmos('d-slide4-2', [{ latex: 'y = -x + 6' }]);
+      createDesmos('d-slide4-3', [{ latex: 'y = -5' }]);
+      createDesmos('d-slide4-4', [{ latex: 'y = (3/4)x' }]);
+      createDesmos('d-slide4-5', [{ latex: 'y = -(1/7)x' }]);
+      
+      // -- Parabola --
+      createDesmos('d-slide5', [{ latex: 'y = x^2' }]);
+      
+      createDesmos('d-slide5a', [
+        { latex: 'y = x^2 - 5', color: colors.red },
+        { latex: 'y = (x-3)^2', color: '#10b981' }, 
+        { latex: 'y = x^2', color: colors.gray, dashed: true }
+      ]);
+      
+      createDesmos('d-slide5b', [
+        { latex: 'y = 0.5x^2', color: colors.blue },
+        { latex: 'y = 2x^2', color: '#8b5cf6' },
+        { latex: 'y = x^2', color: colors.gray, dashed: true }
+      ]);
+
+      createDesmos('d-slide6', [
+        { latex: 'y = 0.5x^2 - 5' },
+        { latex: 'y = x^2', color: colors.gray, dashed: true } // Referensi awal
+      ]);
+      
+      // -- Nilai Mutlak --
+      createDesmos('d-slide7', [{ latex: 'y = \\left|x\\right|' }]);
+      
+      createDesmos('d-slide7a', [
+        { latex: 'y = \\left|x + 4\\right|', color: colors.blue },
+        { latex: 'y = \\left|x\\right| + 3', color: '#10b981' },
+        { latex: 'y = \\left|x\\right|', color: colors.gray, dashed: true }
+      ]);
+
+      createDesmos('d-slide7b', [
+        { latex: 'y = 2\\left|x\\right|', color: '#8b5cf6' },
+        { latex: 'y = -\\left|x\\right|', color: colors.red },
+        { latex: 'y = \\left|x\\right|', color: colors.gray, dashed: true }
+      ]);
+
+      createDesmos('d-slide8', [
+        { latex: 'y = 2\\left|x\\right| - 5' },
+        { latex: 'y = \\left|x\\right|', color: colors.gray, dashed: true }
+      ]);
+      
+      createDesmos('d-slide9', [
+        { latex: 'y = -\\left|x + 4\\right| + 3' },
+        { latex: 'y = \\left|x\\right|', color: colors.gray, dashed: true }
+      ]);
+      
+      // -- Lingkaran --
+      createDesmos('d-slide10', [{ latex: 'x^2 + y^2 = 16' }], {left: -8, right: 8, bottom: -8, top: 8}); // Contoh radius 4
+      createDesmos('d-slide11-1', [{ latex: 'x^2 + y^2 = 25' }], {left: -10, right: 10, bottom: -10, top: 10});
+      createDesmos('d-slide11-2', [
+        { latex: 'x^2 + y^2 = 50' },
+        { latex: 'x^2 + y^2 = 25', color: colors.gray, dashed: true } // Bandingkan dengan r=5
+      ], {left: -12, right: 12, bottom: -12, top: 12});
+    }
+    
+    // Pastikan load Desmos selesai baru render grafiknya
+    window.onload = initGraphs;
+  </script>
+</body></html>
