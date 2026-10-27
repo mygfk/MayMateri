@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox Number Bond</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Inter', sans-serif; overflow: hidden; background-color: #f8fafc; }
+        
+        #board {
+            position: relative; width: 100%; height: 100%; 
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+            background-size: 30px 30px; overflow: hidden;
+        }
+
+        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        
+        /* Line styling */
+        .bond-line { stroke: #64748b; stroke-width: 4px; pointer-events: stroke; cursor: pointer; transition: stroke 0.2s; }
+        .bond-line:hover { stroke: #ef4444; stroke-width: 6px; } /* Merah saat dihover untuk dihapus */
+
+        /* Magnet Piece */
+        .magnet {
+            position: absolute; width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.1rem; user-select: none;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15), inset 0 -4px 6px rgba(0,0,0,0.2), inset 0 4px 6px rgba(255,255,255,0.3);
+            transition: transform 0.1s, box-shadow 0.3s; z-index: 20;
+            transform: translate(-50%, -50%); /* Center positioning */
+        }
+        
+        /* Mode Drag */
+        body[data-mode="drag"] .magnet { cursor: grab; }
+        body[data-mode="drag"] .magnet:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.05); }
+        
+        /* Mode Connect */
+        body[data-mode="connect"] .magnet { cursor: crosshair; }
+        body[data-mode="connect"] .magnet:hover { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
+        
+        .magnet.selected-for-connect { border: 4px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 1); animation: pulse 1.5s infinite; }
+        
+        /* Validation Glows */
+        .magnet.math-valid { box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.7) !important; border: 3px solid #10b981; }
+        .magnet.math-invalid { box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.7) !important; border: 3px solid #ef4444; }
+
+        /* Badge Phase */
+        .phase-badge {
+            position: absolute; top: -5px; right: -5px; width: 20px; height: 20px;
+            border-radius: 50%; border: 2px solid white; z-index: 25;
+        }
+        .phase-awal { background-color: #10b981; } /* Emerald */
+        .phase-m1 { background-color: #f59e0b; } /* Amber */
+        .phase-m2 { background-color: #ef4444; } /* Rose */
+        .phase-m3 { background-color: #8b5cf6; } /* Purple */
+
+        /* Connector dots */
+        .dot { position: absolute; width: 8px; height: 8px; background-color: #cbd5e1; border: 1.5px solid #334155; border-radius: 50%; top: 50%; left: 50%; }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body data-mode="drag" class="flex h-screen w-screen text-slate-800">
+
+    <!-- Sidebar UI -->
+    <div class="w-80 h-full bg-white/95 backdrop-blur-md shadow-2xl border-r border-slate-200 flex flex-col z-50">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-2xl font-black mb-1">Sandbox</h1>
+            <p class="text-xs text-slate-500 font-medium">Uji Coba Number Bond</p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Mode Interaksi</p>
+            <div class="flex bg-slate-200 p-1 rounded-xl">
+                <button id="btn-mode-drag" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-slate-800 transition-all">🖐️ Geser</button>
+                <button id="btn-mode-connect" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all">🔗 Sambung</button>
+            </div>
+            <p id="mode-helper" class="text-[11px] text-slate-500 mt-2 text-center">Tarik kepingan untuk memindahkannya.</p>
+        </div>
+
+        <!-- Inventory Spawner -->
+        <div class="p-4 overflow-y-auto flex-1">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Turunkan Kepingan</p>
+            <div class="space-y-3">
+                <button onclick="spawnPhase('awal')" class="w-full text-left p-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-emerald-800 text-sm">Modal Awal</div>
+                        <div class="text-[10px] text-emerald-600">15 Keping</div>
+                    </div>
+                    <div class="w-4 h-4 rounded-full phase-awal border-none"></div>
+                </button>
+                <button onclick="spawnPhase('m1')" class="w-full text-left p-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-amber-800 text-sm">Mining 1 (Perombakan)</div>
+                        <div class="text-[10px] text-amber-600">10 Keping</div>
+                    </div>
+                    <div class="w-4 h-4 rounded-full phase-m1 border-none"></div>
+                </button>
+                <button onclick="spawnPhase('m2')" class="w-full text-left p-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 transition flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-rose-800 text-sm">Mining 2 (Pengecoh)</div>
+                        <div class="text-[10px] text-rose-600">10 Keping</div>
+                    </div>
+                    <div class="w-4 h-4 rounded-full phase-m2 border-none"></div>
+                </button>
+                <button onclick="spawnPhase('m3')" class="w-full text-left p-3 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 transition flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-purple-800 text-sm">Mining 3 (Final)</div>
+                        <div class="text-[10px] text-purple-600">5 Keping</div>
+                    </div>
+                    <div class="w-4 h-4 rounded-full phase-m3 border-none"></div>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <button onclick="clearBoard()" class="w-full py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold hover:bg-red-100 hover:text-red-600 transition">🧹 Bersihkan Meja</button>
+        </div>
+    </div>
+
+    <!-- Papan Permainan -->
+    <div id="board" class="flex-1 overflow-hidden relative cursor-grab active:cursor-grabbing">
+        <!-- Zoom UI Controls -->
+        <div class="absolute bottom-6 right-6 flex flex-col gap-2 z-[60]">
+            <button onclick="zoomIn()" class="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center justify-center text-xl transition" title="Zoom In">+</button>
+            <button onclick="resetZoom()" class="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center justify-center text-xs transition" title="Reset Zoom">1x</button>
+            <button onclick="zoomOut()" class="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-lg border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center justify-center text-xl transition" title="Zoom Out">-</button>
+        </div>
+
+        <div id="zoom-layer" style="transform-origin: 0 0; width: 100%; height: 100%; position: absolute;">
+            <svg id="svg-layer">
+                <defs>
+                    <marker id="arrow" viewBox="0 -5 10 10" refX="28" refY="0" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M0,-5L10,0L0,5" fill="#64748b"></path>
+                    </marker>
+                </defs>
+                <g id="lines-container"></g>
+            </svg>
+            <div id="nodes-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data Kepingan
+        const types = {
+            cokelat: { hands: 5, bg: "#8B4513", text: "#fff", border: "none" },
+            hitam:   { hands: 4, bg: "#1e293b", text: "#fff", border: "none" },
+            biru:    { hands: 3, bg: "#3B82F6", text: "#fff", border: "none" },
+            merah:   { hands: 2, bg: "#EF4444", text: "#fff", border: "none" },
+            putih:   { hands: 1, bg: "#ffffff", text: "#0f172a", border: "3px solid #cbd5e1" }
+        };
+
+        const inventory = {
+            awal: [
+                {v: 2400, t: 'cokelat'}, {v: 600, t: 'biru'}, {v: 450, t: 'hitam'}, {v: 225, t: 'biru'}, {v: 200, t: 'hitam'}, {v: 175, t: 'biru'},
+                {v: 250, t: 'putih'}, {v: 250, t: 'putih'}, {v: 125, t: 'putih'}, {v: 125, t: 'putih'}, {v: 100, t: 'putih'}, {v: 100, t: 'putih'},
+                {v: 75, t: 'putih'}, {v: 50, t: 'putih'}, {v: 25, t: 'putih'}, {v: 25, t: 'putih'}
+            ],
+            m1: [
+                {v: 950, t: 'cokelat'}, {v: 450, t: 'hitam'}, {v: 350, t: 'biru'}, {v: 125, t: 'biru'}, {v: 100, t: 'biru'},
+                {v: 150, t: 'putih'}, {v: 150, t: 'putih'}, {v: 125, t: 'putih'}, {v: 75, t: 'putih'}, {v: 75, t: 'putih'}
+            ],
+            m2: [
+                {v: 250, t: 'merah'}, {v: 175, t: 'merah'}, {v: 150, t: 'merah'}, {v: 75, t: 'merah'}, {v: 25, t: 'merah'},
+                {v: 250, t: 'biru'}, {v: 125, t: 'biru'}, {v: 175, t: 'putih'}, {v: 100, t: 'putih'}, {v: 75, t: 'putih'}
+            ],
+            m3: [
+                {v: 250, t: 'putih'}, {v: 100, t: 'putih'}, {v: 75, t: 'putih'}, {v: 25, t: 'putih'}, {v: 25, t: 'putih'}
+            ]
+        };
+
+        let nodes = []; // { id, val, type, phase, x, y, el }
+        let links = []; // { id, sourceId, targetId }
+        let nodeCounter = 0;
+        let linkCounter = 0;
+        
+        let currentMode = 'drag'; // 'drag' | 'connect'
+        let selectedForConnect = null;
+        let draggedNode = null;
+
+        // State untuk Zoom dan Panning
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startPanX = 0;
+        let startPanY = 0;
+
+        const board = document.getElementById('board');
+        const nodesContainer = document.getElementById('nodes-container');
+        const linesContainer = document.getElementById('lines-container');
+
+        // Mode Switching
+        document.getElementById('btn-mode-drag').addEventListener('click', () => setMode('drag'));
+        document.getElementById('btn-mode-connect').addEventListener('click', () => setMode('connect'));
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.body.setAttribute('data-mode', mode);
+            
+            const btnDrag = document.getElementById('btn-mode-drag');
+            const btnConn = document.getElementById('btn-mode-connect');
+            const helper = document.getElementById('mode-helper');
+
+            if(mode === 'drag') {
+                btnDrag.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-slate-800 transition-all";
+                btnConn.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+                helper.innerText = "Tarik kepingan untuk memindahkannya.";
+                clearConnectSelection();
+            } else {
+                btnConn.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600 transition-all";
+                btnDrag.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
+                helper.innerHTML = "Klik <b>Induk</b>, lalu klik <b>Anak</b>.<br/>(Klik garis untuk menghapus)";
+            }
+        }
+
+        // Spawn Nodes
+        function spawnPhase(phaseId) {
+            const list = inventory[phaseId];
+            if(!list) return;
+
+            // Cari area spawn (tengah layar) menyesuaikan zoom dan pan
+            const centerX = ((board.clientWidth / 2) - panX) / scale;
+            const centerY = ((board.clientHeight / 2) - panY) / scale;
+
+            list.forEach((item, index) => {
+                // Posisi random menyebar sedikit agar tidak numpuk
+                const offsetX = (Math.random() - 0.5) * 300;
+                const offsetY = (Math.random() - 0.5) * 300;
+                
+                const node = {
+                    id: 'node_' + (nodeCounter++),
+                    val: item.v,
+                    type: item.t,
+                    phase: phaseId,
+                    x: centerX + offsetX,
+                    y: centerY + offsetY,
+                    el: null
+                };
+                nodes.push(node);
+                createNodeElement(node);
+            });
+            updateLines();
+            validateMath();
+        }
+
+        function createNodeElement(node) {
+            const config = types[node.type];
+            const el = document.createElement('div');
+            el.className = 'magnet';
+            el.id = node.id;
+            el.style.backgroundColor = config.bg;
+            el.style.color = config.text;
+            if (config.border !== "none") el.style.border = config.border;
+            el.innerText = node.val;
+
+            // Phase Badge
+            const badge = document.createElement('div');
+            badge.className = `phase-badge phase-${node.phase}`;
+            el.appendChild(badge);
+
+            // Connector Dots
+            const radius = 35;
+            for (let i = 0; i < config.hands; i++) {
+                const dot = document.createElement('div');
+                dot.className = "dot";
+                const angle = (i * (360 / config.hands) - 90) * (Math.PI / 180);
+                const dx = Math.cos(angle) * radius;
+                const dy = Math.sin(angle) * radius;
+                dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+                el.appendChild(dot);
+            }
+
+            // Events
+            el.addEventListener('mousedown', (e) => handleNodeMouseDown(e, node));
+            el.addEventListener('click', (e) => handleNodeClick(e, node));
+
+            updateNodePosition(node, el);
+            nodesContainer.appendChild(el);
+            node.el = el;
+        }
+
+        function updateNodePosition(node, el) {
+            el.style.left = node.x + 'px';
+            el.style.top = node.y + 'px';
+        }
+
+        // --- Drag, Panning & Zoom Logic ---
+        board.addEventListener('mousemove', (e) => {
+            if (currentMode === 'drag' && draggedNode) {
+                const rect = board.getBoundingClientRect();
+                // Hitung koordinat memperhitungkan zoom dan pergeseran meja
+                draggedNode.x = (e.clientX - rect.left - panX) / scale;
+                draggedNode.y = (e.clientY - rect.top - panY) / scale;
+                updateNodePosition(draggedNode, draggedNode.el);
+                updateLines();
+            } else if (isPanning) {
+                panX = e.clientX - startPanX;
+                panY = e.clientY - startPanY;
+                updateTransform();
+            }
+        });
+        
+        board.addEventListener('mousedown', (e) => {
+            // Aktifkan panning hanya jika klik pada area kosong (board/svg) bukan kepingan
+            if (e.target === board || e.target === document.getElementById('svg-layer') || e.target === document.getElementById('zoom-layer')) {
+                isPanning = true;
+                startPanX = e.clientX - panX;
+                startPanY = e.clientY - panY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+            if (draggedNode) {
+                draggedNode = null;
+                validateMath(); // Cek lagi sapa tau habis mindahin
+            }
+        });
+
+        // Kontrol Zoom (Wheel Mouse)
+        board.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSensitivity = -0.002;
+            const delta = e.deltaY * zoomSensitivity;
+            
+            const rect = board.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            applyZoom(delta, mouseX, mouseY);
+        }, { passive: false });
+
+        function applyZoom(delta, mouseX, mouseY) {
+            let newScale = scale * Math.exp(delta);
+            newScale = Math.min(Math.max(0.3, newScale), 3); // Batas zoom: 0.3x s/d 3x
+
+            // Geser titik tengah (pan) agar zoom terfokus ke titik kursor
+            panX = mouseX - (mouseX - panX) * (newScale / scale);
+            panY = mouseY - (mouseY - panY) * (newScale / scale);
+            
+            scale = newScale;
+            updateTransform();
+        }
+
+        // Kontrol Zoom (Tombol UI)
+        function zoomIn() { applyZoom(0.2, board.clientWidth / 2, board.clientHeight / 2); }
+        function zoomOut() { applyZoom(-0.2, board.clientWidth / 2, board.clientHeight / 2); }
+        function resetZoom() {
+            scale = 1; panX = 0; panY = 0;
+            updateTransform();
+        }
+
+        function updateTransform() {
+            const zoomLayer = document.getElementById('zoom-layer');
+            zoomLayer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            
+            // Efek background grid ikut bergerak dan membesar/mengecil
+            board.style.backgroundSize = `${30 * scale}px ${30 * scale}px`;
+            board.style.backgroundPosition = `${panX}px ${panY}px`;
+        }
+
+        function handleNodeMouseDown(e, node) {
+            if (currentMode === 'drag') {
+                draggedNode = node;
+                // Bawa ke depan
+                nodesContainer.appendChild(node.el);
+            }
+        }
+
+        // Connect Logic
+        function handleNodeClick(e, node) {
+            if (currentMode !== 'connect') return;
+
+            if (!selectedForConnect) {
+                // Seleksi Induk
+                selectedForConnect = node;
+                node.el.classList.add('selected-for-connect');
+            } else {
+                // Mencegah link ke diri sendiri
+                if (selectedForConnect.id !== node.id) {
+                    attemptLink(selectedForConnect, node);
+                }
+                clearConnectSelection();
+            }
+        }
+
+        function attemptLink(source, target) {
+            // Aturan 1: Cek apakah link sudah ada (jangan double)
+            const exists = links.find(l => l.sourceId === source.id && l.targetId === target.id);
+            if (exists) return;
+
+            // Aturan 2: Cek Tangan (Total connection = max hands)
+            const sourceHandsUsed = links.filter(l => l.sourceId === source.id || l.targetId === source.id).length;
+            const targetHandsUsed = links.filter(l => l.sourceId === target.id || l.targetId === target.id).length;
+
+            const sourceMax = types[source.type].hands;
+            const targetMax = types[target.type].hands;
+
+            if (sourceHandsUsed >= sourceMax) {
+                alert(`Tangan ${source.val} sudah penuh!`);
+                return;
+            }
+            if (targetHandsUsed >= targetMax) {
+                alert(`Tangan ${target.val} sudah penuh!`);
+                return;
+            }
+
+            // Aturan 3: Mencegah Loop sederhana (Target tidak boleh jadi Source ke anak yang muter) - dilewati demi Sandbox, biar peserta bebas nyoba.
+
+            links.push({
+                id: 'link_' + (linkCounter++),
+                sourceId: source.id,
+                targetId: target.id
+            });
+
+            updateLines();
+            validateMath();
+        }
+
+        function clearConnectSelection() {
+            if (selectedForConnect && selectedForConnect.el) {
+                selectedForConnect.el.classList.remove('selected-for-connect');
+            }
+            selectedForConnect = null;
+        }
+
+        // Line Rendering
+        function updateLines() {
+            linesContainer.innerHTML = '';
+            links.forEach(link => {
+                const source = nodes.find(n => n.id === link.sourceId);
+                const target = nodes.find(n => n.id === link.targetId);
+                if(!source || !target) return;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', source.x);
+                line.setAttribute('y1', source.y);
+                line.setAttribute('x2', target.x);
+                line.setAttribute('y2', target.y);
+                line.setAttribute('class', 'bond-line');
+                line.setAttribute('marker-end', 'url(#arrow)');
+
+                // Hapus line saat di klik
+                line.addEventListener('click', () => {
+                    if (currentMode === 'connect') {
+                        links = links.filter(l => l.id !== link.id);
+                        updateLines();
+                        validateMath();
+                    }
+                });
+
+                linesContainer.appendChild(line);
+            });
+        }
+
+        // Auto Validation
+        function validateMath() {
+            // Reset state
+            nodes.forEach(n => {
+                n.el.classList.remove('math-valid', 'math-invalid');
+            });
+
+            nodes.forEach(node => {
+                // Cari anak-anaknya (garis yang keluarnya dari node ini)
+                const childrenLinks = links.filter(l => l.sourceId === node.id);
+                
+                // Jika dia punya cabang keluar, periksa jumlahnya
+                if (childrenLinks.length > 0) {
+                    let sum = 0;
+                    childrenLinks.forEach(link => {
+                        const child = nodes.find(n => n.id === link.targetId);
+                        if (child) sum += child.val;
+                    });
+
+                    if (sum === node.val) {
+                        node.el.classList.add('math-valid'); // Benar: Nyala Hijau
+                    } else {
+                        node.el.classList.add('math-invalid'); // Salah: Nyala Merah
+                    }
+                }
+            });
+        }
+
+        function clearBoard() {
+            nodes = [];
+            links = [];
+            nodesContainer.innerHTML = '';
+            linesContainer.innerHTML = '';
+        }
+
+    </script>
+</body>
+</html>
