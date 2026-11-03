@@ -29,15 +29,15 @@
         }
 
         #sidebar {
-            width: 410px;
+            width: 425px;
             background: var(--panel-bg);
             backdrop-filter: blur(12px);
-            padding: 18px 20px;
+            padding: 16px 18px;
             height: 100vh;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             border-right: 1px solid rgba(53, 213, 232, 0.3);
             z-index: 10;
             box-shadow: 10px 0 30px rgba(0,0,0,0.5);
@@ -58,7 +58,7 @@
             backdrop-filter: blur(8px);
             padding: 12px 16px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             z-index: 5;
             pointer-events: none;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -67,7 +67,7 @@
             font-weight: bold;
             color: var(--text-main);
             margin-bottom: 8px;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -85,7 +85,7 @@
         }
 
         h1, h2, h3 { margin: 0; }
-        h1 { font-size: 21px; color: var(--cyan); margin-bottom: 2px; }
+        h1 { font-size: 20px; color: var(--cyan); margin-bottom: 2px; }
         p { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 
         .badge-gm {
@@ -108,7 +108,7 @@
             padding: 8px 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
             font-size: 12px;
         }
         .conn-row {
@@ -118,7 +118,7 @@
         }
         .room-code-display {
             font-family: monospace;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 900;
             color: var(--gold);
             letter-spacing: 2px;
@@ -174,6 +174,22 @@
             margin-top: 4px;
         }
 
+        .intel-box {
+            background: rgba(255, 209, 102, 0.08);
+            border: 1px solid rgba(255, 209, 102, 0.5);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+        .intel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px 10px;
+            margin-top: 4px;
+        }
+
         .coord-wrapper {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -187,7 +203,7 @@
         }
 
         .coord-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-align: center;
         }
@@ -195,7 +211,7 @@
         .coord-field input, .gm-coord-row input {
             width: 100%;
             box-sizing: border-box;
-            padding: 8px 6px;
+            padding: 7px 6px;
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(53, 213, 232, 0.4);
             color: white;
@@ -260,14 +276,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--cyan);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .proximity-card {
             background: rgba(0, 0, 0, 0.38);
             border: 1px solid rgba(53, 213, 232, 0.35);
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 9px 11px;
             text-align: center;
         }
         .proximity-sub {
@@ -278,8 +294,8 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 6px;
-            padding: 8px;
-            margin-top: 6px;
+            padding: 7px;
+            margin-top: 5px;
         }
         .format-label {
             font-size: 10px;
@@ -287,10 +303,10 @@
             text-transform: uppercase;
             color: var(--gold);
             letter-spacing: 0.4px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .proximity-value {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--cyan);
             margin: 2px 0;
@@ -315,7 +331,7 @@
             border: 1px solid rgba(53, 213, 232, 0.25);
             overflow-y: auto;
             flex-grow: 1;
-            min-height: 110px;
+            min-height: 120px;
             padding: 8px;
             display: flex;
             flex-direction: column;
@@ -323,7 +339,7 @@
         }
         .history-item {
             font-size: 12px;
-            padding: 6px 10px;
+            padding: 7px 10px;
             border-radius: 6px;
             background: rgba(255,255,255,0.04);
             border-left: 3px solid var(--cyan);
@@ -331,6 +347,28 @@
         }
         .history-item.team-2 {
             border-left-color: var(--red);
+        }
+        .history-highlight {
+            margin-top: 5px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            background: rgba(74, 222, 128, 0.16);
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-weight: 700;
+            font-size: 11px;
+            display: block;
+        }
+        .history-warning {
+            margin-top: 5px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            background: rgba(255, 209, 102, 0.18);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 11px;
+            display: block;
         }
         .history-empty {
             text-align: center;
@@ -410,7 +448,7 @@
     <div id="sidebar">
         <div>
             <h1>Sonar Strike 3D <span class="badge-gm">GAME MASTER</span></h1>
-            <p>Panel Kontrol Utama & Pemantauan Pergerakan</p>
+            <p>Sistem Sonar Modern (TVG) &mdash; Skala Kilometer (km)</p>
         </div>
 
         <div class="conn-bar">
@@ -435,52 +473,72 @@
         <div class="turn-box">
             <div id="turnIndicator" class="turn-1">Giliran: Tim 1 (Biru)</div>
             <div class="score-board">
-                <span>Tim 1: <b id="score1" style="color:var(--cyan)">0</b></span>
-                <span>Tim 2: <b id="score2" style="color:var(--red)">0</b></span>
+                <span>Tim 1 (Biru): <b id="score1" style="color:var(--cyan)">0</b></span>
+                <span>Tim 2 (Merah): <b id="score2" style="color:var(--red)">0</b></span>
+            </div>
+        </div>
+
+        <div class="intel-box">
+            <strong style="color: var(--gold);">Target Strength (TVG) &amp; Aturan Operasi Kapal Selam:</strong>
+            <div class="intel-grid">
+                <span>🎯 <b style="color: var(--green);">-5 dB</b> : Logam Kapal</span>
+                <span>🪨 <b>-18 dB</b> : Batu Karang</span>
+                <span>🏖️ <b>-30 dB</b> : Pasir Laut</span>
+                <span>🌫️ <b>-50 dB</b> : Lumpur Silt</span>
+            </div>
+            <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed rgba(255,209,102,0.3); color: #ffd166; font-size: 10.5px;">
+                ⚠️ <b>Batas Selam Kapal:</b> Kedalaman <b>Z = 0 s.d. 65 km</b> (Maks. 65 km)<br>
+                ⚠️ <b>Batas Gerak / Giliran:</b> Maks. <b>±40 km</b> (pada X, Y, Z) dari posisi sebelumnya
             </div>
         </div>
 
         <div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">Input Koordinat Kapal Selam (0 - 100):</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 11px; color: var(--text-muted);">Input Gerak Kapal Selam:</span>
+                <span id="currentSubPosLabel" style="font-size: 11px; font-weight: bold; color: var(--cyan);">Posisi: (50, 50, 50) km</span>
+            </div>
+            <div id="validRangeInfo" style="font-size: 10.5px; color: var(--gold); background: rgba(0,0,0,0.35); padding: 5px 8px; border-radius: 5px; margin-bottom: 6px; text-align: center; border: 1px solid rgba(255, 209, 102, 0.25);">
+                Rentang Gerak Valid: X (10–90) | Y (10–90) | Z (10–65) km
+            </div>
             <div class="coord-wrapper">
                 <div class="coord-field">
-                    <span class="coord-label" style="color: #ff4d4d;">SUMBU X</span>
+                    <span class="coord-label" style="color: #ff4d4d;">SUMBU X (0-100)</span>
                     <input type="number" id="inputX" placeholder="0 - 100" min="0" max="100">
                 </div>
                 <div class="coord-field">
-                    <span class="coord-label" style="color: #22ff66;">SUMBU Y</span>
+                    <span class="coord-label" style="color: #22ff66;">SUMBU Y (0-100)</span>
                     <input type="number" id="inputY" placeholder="0 - 100" min="0" max="100">
                 </div>
                 <div class="coord-field">
-                    <span class="coord-label" style="color: #00d4ff;">SUMBU Z</span>
-                    <input type="number" id="inputZ" placeholder="0 - 100" min="0" max="100">
+                    <span class="coord-label" style="color: #00d4ff;">SUMBU Z (0-65)</span>
+                    <input type="number" id="inputZ" placeholder="Maks 65" min="0" max="100">
                 </div>
             </div>
         </div>
 
         <div>
-            <button class="btn-ping" onclick="game.actionMoveAndPing()">⚓ Gerak & Ping Sensor</button>
-            <button class="btn-guess" onclick="game.actionGuess()">🎯 Tebak Koordinat Kapal!</button>
+            <button class="btn-ping" id="btnMovePing" onclick="game.actionMoveAndPing()">⚓ Gerak &amp; Ping Sensor</button>
+            <button class="btn-guess" id="btnGuessGM" onclick="game.actionGuess()">🎯 Submit / Tebak Koordinat (GM)</button>
             <div class="gm-btn-group">
                 <button class="btn-gm" onclick="game.showAnswers()">🔑 Kunci Jawaban</button>
                 <button class="btn-gm btn-reset" onclick="game.openResetConfirm()">🔄 Reset Game</button>
             </div>
         </div>
 
-        <!-- Data Tunggal Kedekatan Target (2 Format: Meter/Unit & Selisih Koordinat) -->
+        <!-- Data Tunggal Kedekatan Target (2 Format: Kilometer & Selisih Koordinat) -->
         <div>
             <div class="section-title">📡 Data Tunggal Kedekatan Target</div>
             <div class="proximity-card" id="proximityCard">
                 <div class="proximity-sub" id="proxTargetName" style="font-weight: 600; color: var(--text-main);">Belum ada pindaian sensor</div>
                 
-                <!-- Format 1: Meter dan Unit (Konsisten dengan perhitungan Waktu Gema) -->
+                <!-- Format 1: Kilometer dan Unit -->
                 <div class="format-box">
-                    <div class="format-label">Format 1: Jarak (Sesuai Hitungan Waktu Gema)</div>
-                    <div class="proximity-value" id="proxDistance">-- m (-- unit)</div>
-                    <div class="proximity-sub" id="proxDetail">Waktu Gema: -- s | Jarak Geometris Asli: -- m</div>
+                    <div class="format-label">Format 1: Jarak (Sesuai Waktu Gema 3 Desimal)</div>
+                    <div class="proximity-value" id="proxDistance">-- km (-- unit)</div>
+                    <div class="proximity-sub" id="proxDetail">Waktu Gema: -- s | Jarak Geometris Asli: -- km</div>
                 </div>
 
-                <!-- Format 2: Selisih Koordinat (Tanpa Nilai Mutlak) -->
+                <!-- Format 2: Selisih Koordinat -->
                 <div class="format-box">
                     <div class="format-label">Format 2: Selisih Koordinat</div>
                     <div class="coord-diff-grid">
@@ -488,34 +546,38 @@
                         <div class="coord-diff-pill" style="color: #4ade80;">ΔY: <span id="diffY">--</span></div>
                         <div class="coord-diff-pill" style="color: #38bdf8;">ΔZ: <span id="diffZ">--</span></div>
                     </div>
-                    <div class="proximity-sub" id="proxCoordTarget" style="margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--text-main);">Selisih Koordinat: (-, -, -)</div>
+                    <div class="proximity-sub" id="proxCoordTarget" style="margin-top: 5px; font-size: 12px; font-weight: 700; color: var(--text-main);">Selisih Koordinat: (-, -, -)</div>
                 </div>
             </div>
         </div>
 
-        <!-- Histori Pergerakan Kedua Tim -->
+        <!-- Histori Pergerakan & Submit Jawaban Kedua Tim -->
         <div style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
-            <div class="section-title">📜 Histori Pergerakan Tim</div>
+            <div class="section-title">📜 Histori Langkah &amp; Submit Jawaban</div>
             <div class="history-container" id="historyList">
-                <div class="history-empty">Belum ada pergerakan kapal.</div>
+                <div class="history-empty">Belum ada aktivitas pergerakan / submit jawaban.</div>
             </div>
         </div>
     </div>
 
     <div id="game-canvas">
         <div class="axis-hud">
-            <div class="axis-hud-title">Petunjuk Sumbu 3D (0 - 100)</div>
+            <div class="axis-hud-title">Sumbu 3D (0,0,0 di Permukaan Laut)</div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #ff3b3b;"></span>
-                <span><b style="color: #ff3b3b;">Sumbu X:</b> Kiri &rarr; Kanan</span>
+                <span><b style="color: #ff3b3b;">Sumbu X (Datar):</b> Kiri &rarr; Kanan (0-100 km)</span>
             </div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #22ff66;"></span>
-                <span><b style="color: #22ff66;">Sumbu Y:</b> Bawah &rarr; Atas</span>
+                <span><b style="color: #22ff66;">Sumbu Y (Datar):</b> Belakang &rarr; Depan (0-100 km)</span>
             </div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #00d4ff;"></span>
-                <span><b style="color: #00d4ff;">Sumbu Z:</b> Belakang &rarr; Depan</span>
+                <span><b style="color: #00d4ff;">Sumbu Z (Kedalaman):</b> Permukaan (0) &rarr; Dasar (100 km)</span>
+            </div>
+            <div class="axis-item" style="margin-top: 6px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.15);">
+                <span class="axis-dot" style="background: #ff9f1c;"></span>
+                <span><b style="color: #ff9f1c;">Batas Selam Kapal:</b> Z = 0 s.d. 65 km | Gerak &le; 40 km</span>
             </div>
         </div>
     </div>
@@ -525,16 +587,17 @@
         <div class="modal-box">
             <div class="modal-title">Pengaturan Game Master</div>
             <div class="modal-text" style="text-align: center; margin-bottom: 15px;">
-                Bagikan <b>Kode Room: <span id="modalRoomCode" style="color: var(--gold);">----</span></b> ke laptop Peserta.<br>
-                Atur jumlah dan titik koordinat pasti (0 - 100) untuk setiap kapal karam:
+                Bagikan <b>Kode Room: <span id="modalRoomCode" style="color: var(--gold);">----</span></b> ke perangkat Peserta.<br>
+                Atur jumlah dan titik koordinat (0 - 100 km) kapal karam.<br>
+                <span style="font-size: 11px; color: var(--cyan);">*X, Y = Bidang Datar | Z = Kedalaman dari Permukaan Laut (0 - 100 km)</span>
                 <div style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;">
                     <label style="font-size: 13px; color: var(--text-main);">Jumlah Kapal (1 - 5): </label>
-                    <input type="number" id="targetCount" value="3" min="1" max="5" onchange="game.renderGMInputs()" oninput="game.renderGMInputs()" style="width: 65px; padding: 6px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--cyan); border-radius: 6px; text-align: center; font-size: 15px;">
+                    <input type="number" id="targetCount" value="1" min="1" max="5" onchange="game.renderGMInputs()" oninput="game.renderGMInputs()" style="width: 65px; padding: 6px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--cyan); border-radius: 6px; text-align: center; font-size: 15px;">
                     <button class="btn-gm" style="width: auto; padding: 6px 10px;" onclick="game.clearGMInputs()">Kosongkan Input</button>
                 </div>
                 <div id="gmShipInputs" class="gm-ship-list"></div>
             </div>
-            <button class="btn-ping" onclick="game.startGame()">Simpan & Siapkan Simulasi</button>
+            <button class="btn-ping" onclick="game.startGame()">Simpan &amp; Siapkan Simulasi</button>
         </div>
     </div>
 
@@ -586,7 +649,6 @@
             }
         };
 
-        // Manajer Sinkronisasi Lintas Laptop (Multi-Broker Cloud WebSocket + BroadcastChannel)
         const syncManager = {
             bc: null,
             clients: [],
@@ -596,18 +658,15 @@
             participantApproved: false,
 
             init: () => {
-                // Hasilkan 4 digit Kode Room
                 syncManager.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
                 document.getElementById('roomCodeDisplay').innerText = syncManager.roomCode;
                 document.getElementById('modalRoomCode').innerText = syncManager.roomCode;
 
-                // 1. BroadcastChannel untuk tab/jendela di laptop yang sama
                 if ('BroadcastChannel' in window) {
                     syncManager.bc = new BroadcastChannel('sonar_strike_3d_sync');
                     syncManager.bc.onmessage = (e) => syncManager.onRawMessage(e.data);
                 }
 
-                // 2. Multi-Broker Cloud MQTT over WebSockets (Tembus Wi-Fi/Jaringan Berbeda)
                 const brokers = [
                     'wss://broker.emqx.io:8084/mqtt',
                     'wss://broker.hivemq.com:8884/mqtt'
@@ -647,7 +706,7 @@
                 const connectedCount = syncManager.clients.filter(c => c && c.connected).length;
                 const el = document.getElementById('serverStatusText');
                 if (connectedCount > 0) {
-                    el.innerHTML = `<span style="color: var(--green);">🟢 Server Cloud Online (Siap Lintas Laptop)</span>`;
+                    el.innerHTML = `<span style="color: var(--green);">🟢 Server Cloud Online (Siap Lintas Perangkat)</span>`;
                 } else {
                     el.innerHTML = `<span style="color: var(--gold);">🟡 Menghubungkan ulang ke Server Cloud...</span>`;
                 }
@@ -660,12 +719,10 @@
                     msgId: Date.now() + '-' + Math.random().toString(36).substring(2, 8)
                 };
 
-                // Kirim ke laptop yang sama (jika ada)
                 if (syncManager.bc) {
                     syncManager.bc.postMessage(packet);
                 }
 
-                // Kirim ke laptop berbeda via Cloud Broker
                 const topicOut = `sonar_strike_3d_v3/${syncManager.roomCode}/to_peserta`;
                 const strPacket = JSON.stringify(packet);
                 syncManager.clients.forEach(client => {
@@ -679,17 +736,14 @@
                 if (!msg || !msg.type) return;
                 if (msg.roomCode && msg.roomCode !== syncManager.roomCode) return;
 
-                // Cegah duplikasi pesan dari multi-broker
                 if (msg.msgId) {
                     if (syncManager.seenMsgIds.has(msg.msgId)) return;
                     syncManager.seenMsgIds.add(msg.msgId);
                 }
 
                 if (msg.type === 'REQUEST_JOIN') {
-                    // Kirim konfirmasi balik bahwa sinyal peserta sudah diterima laptop GM
                     syncManager.send({ type: 'JOIN_RECEIVED' });
 
-                    // Jika sebelumnya sudah di-approve oleh GM, langsung kirim ulang state permainan
                     if (syncManager.participantApproved && game.targets.length > 0) {
                         syncManager.send({
                             type: 'APPROVED_START',
@@ -707,6 +761,11 @@
                     const statusEl = document.getElementById('participantStatus');
                     statusEl.className = 'status-pill status-waiting';
                     statusEl.innerText = 'Peserta: Minta Izin!';
+                }
+
+                // Peserta menekan tombol Submit Jawaban Koordinat dari Versi 2 (kapan saja)
+                else if (msg.type === 'SUBMIT_ANSWER') {
+                    game.handleParticipantSubmission(msg.team, msg.x, msg.y, msg.z);
                 }
             },
 
@@ -738,7 +797,6 @@
                     subPos: game.currentPos
                 };
 
-                // Kirim 2 kali dengan jeda singkat untuk memastikan diterima meskipun koneksi peserta sempat delay
                 syncManager.send(approvalPayload);
                 setTimeout(() => syncManager.send(approvalPayload), 600);
             }
@@ -750,6 +808,7 @@
             score1: 0,
             score2: 0,
             isAnimating: false,
+            gameEnded: false,
             currentPos: { x: 50, y: 50, z: 50 },
             historyLogs: [],
 
@@ -776,11 +835,11 @@
                     const card = document.createElement('div');
                     card.className = 'gm-ship-card';
                     card.innerHTML = `
-                        <div class="gm-ship-title">⚓ Koordinat Kapal ${i + 1} (75 µT)</div>
+                        <div class="gm-ship-title">⚓ Koordinat Kapal ${i + 1} (Target Strength: -5 dB)</div>
                         <div class="gm-coord-row">
-                            <input type="number" id="gmX_${i}" placeholder="X (0-100)" min="0" max="100" value="${prevValues[i].x}">
-                            <input type="number" id="gmY_${i}" placeholder="Y (0-100)" min="0" max="100" value="${prevValues[i].y}">
-                            <input type="number" id="gmZ_${i}" placeholder="Z (0-100)" min="0" max="100" value="${prevValues[i].z}">
+                            <input type="number" id="gmX_${i}" placeholder="X Datar (0-100)" min="0" max="100" value="${prevValues[i].x}">
+                            <input type="number" id="gmY_${i}" placeholder="Y Datar (0-100)" min="0" max="100" value="${prevValues[i].y}">
+                            <input type="number" id="gmZ_${i}" placeholder="Z Dalam (0-100)" min="0" max="100" value="${prevValues[i].z}">
                         </div>
                     `;
                     container.appendChild(card);
@@ -809,6 +868,7 @@
 
             executeReset: () => {
                 game.isAnimating = false;
+                game.gameEnded = false;
                 engine3D.movingCb = null;
                 engine3D.pinging = false;
                 if(engine3D.pingSphere) {
@@ -817,7 +877,8 @@
                 }
 
                 if(engine3D.subGroup) {
-                    engine3D.subGroup.position.set(0, 0, 0);
+                    const start3D = engine3D.mapTo3D(50, 50, 50);
+                    engine3D.subGroup.position.copy(start3D);
                     engine3D.subGroup.rotation.set(0, 0, 0);
                 }
 
@@ -828,20 +889,24 @@
                 game.currentPos = { x: 50, y: 50, z: 50 };
                 game.historyLogs = [];
                 game.updateUI();
+                game.updateMoveRangeUI();
+
+                document.getElementById('btnMovePing').disabled = false;
+                document.getElementById('btnGuessGM').disabled = false;
 
                 document.getElementById('inputX').value = '';
                 document.getElementById('inputY').value = '';
                 document.getElementById('inputZ').value = '';
 
                 document.getElementById('proxTargetName').innerText = 'Belum ada pindaian sensor';
-                document.getElementById('proxDistance').innerText = '-- m (-- unit)';
+                document.getElementById('proxDistance').innerText = '-- km (-- unit)';
                 document.getElementById('proxDistance').style.color = 'var(--cyan)';
-                document.getElementById('proxDetail').innerText = 'Waktu Gema: -- s | Jarak Geometris Asli: -- m';
+                document.getElementById('proxDetail').innerText = 'Waktu Gema: -- s | Jarak Geometris Asli: -- km';
                 document.getElementById('diffX').innerText = '--';
                 document.getElementById('diffY').innerText = '--';
                 document.getElementById('diffZ').innerText = '--';
                 document.getElementById('proxCoordTarget').innerText = 'Selisih Koordinat: (-, -, -)';
-                document.getElementById('historyList').innerHTML = '<div class="history-empty">Belum ada pergerakan kapal.</div>';
+                document.getElementById('historyList').innerHTML = '<div class="history-empty">Belum ada aktivitas pergerakan / submit jawaban.</div>';
 
                 syncManager.participantApproved = false;
                 const statusEl = document.getElementById('participantStatus');
@@ -868,7 +933,7 @@
                     if(isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 100 || y < 0 || y > 100 || z < 0 || z > 100) {
                         app.showAlert(
                             "Koordinat Belum Lengkap",
-                            `Mohon isi koordinat X, Y, dan Z (antara 0 - 100) dengan benar untuk Kapal ${i + 1}.`,
+                            `Mohon isi koordinat X, Y, dan Z (antara 0 - 100 km) dengan benar untuk Kapal ${i + 1}.`,
                             "Perbaiki",
                             "#ff7a7a"
                         );
@@ -879,7 +944,7 @@
                         x: x,
                         y: y,
                         z: z,
-                        intensity: 75,
+                        ts: -5,
                         found: false
                     });
                 }
@@ -888,41 +953,116 @@
                 game.turn = 1;
                 game.score1 = 0;
                 game.score2 = 0;
+                game.gameEnded = false;
                 game.currentPos = { x: 50, y: 50, z: 50 };
+                document.getElementById('btnMovePing').disabled = false;
+                document.getElementById('btnGuessGM').disabled = false;
                 document.getElementById('setupModal').style.display = 'none';
                 game.updateUI();
+                game.updateMoveRangeUI();
 
                 app.showAlert(
                     "Koordinat Tersimpan!", 
-                    `Lokasi ${count} kapal karam telah siap.\nKode Room Anda: ${syncManager.roomCode}\n\nMasukkan Kode Room tersebut di laptop Peserta lalu klik START. Setelah itu klik tombol hijau "Approve" di pojok kiri atas.`
+                    `Lokasi ${count} kapal karam telah siap.\n• Batas Kedalaman Kapal Selam: Z = 0 s.d. 65 km\n• Batas Jarak Tempuh per Giliran: Maks. ±40 km pada X, Y, Z\n• Kode Room Anda: ${syncManager.roomCode}\n\nMasukkan Kode Room tersebut di layar Peserta lalu klik START.`
                 );
             },
             
             updateUI: () => {
                 const indicator = document.getElementById('turnIndicator');
-                if(game.turn === 1) {
+                if (game.gameEnded) {
                     indicator.className = 'turn-1';
+                    indicator.style.color = 'var(--gold)';
+                    indicator.innerText = "🏁 PERMAINAN SELESAI (GAME ENDED)";
+                } else if(game.turn === 1) {
+                    indicator.className = 'turn-1';
+                    indicator.style.color = '';
                     indicator.innerText = "Giliran: Tim 1 (Biru)";
                 } else {
                     indicator.className = 'turn-2';
+                    indicator.style.color = '';
                     indicator.innerText = "Giliran: Tim 2 (Merah)";
                 }
                 document.getElementById('score1').innerText = game.score1;
                 document.getElementById('score2').innerText = game.score2;
             },
+
+            updateMoveRangeUI: () => {
+                const { x, y, z } = game.currentPos;
+                const minX = Math.max(0, x - 40);
+                const maxX = Math.min(100, x + 40);
+                const minY = Math.max(0, y - 40);
+                const maxY = Math.min(100, y + 40);
+                const minZ = Math.max(0, z - 40);
+                const maxZ = Math.min(65, z + 40);
+
+                const posLabel = document.getElementById('currentSubPosLabel');
+                const rangeInfo = document.getElementById('validRangeInfo');
+                if (posLabel) posLabel.innerText = `Posisi: (${x}, ${y}, ${z}) km`;
+                if (rangeInfo) {
+                    rangeInfo.innerText = `Rentang Gerak Valid: X (${minX}–${maxX}) | Y (${minY}–${maxY}) | Z (${minZ}–${maxZ}) km`;
+                }
+            },
             
             switchTurn: () => {
+                if (game.gameEnded) return;
                 game.turn = game.turn === 1 ? 2 : 1;
                 game.updateUI();
             },
 
-            addHistoryLog: (team, fromPos, toPos, actionNote = "") => {
+            // Evaluasi kecocokan koordinat X, Y, Z terhadap kapal karam
+            checkCoordinateMatches: (x, y, z) => {
+                const gmHighlights = [];
+                let maxMatchedCount = 0;
+                let fullHitShipIndex = -1;
+
+                game.targets.forEach((t, idx) => {
+                    if (!t.found) {
+                        const matchedAxes = [];
+                        if (Math.abs(x - t.x) <= 1) matchedAxes.push(`X (${x} km)`);
+                        if (Math.abs(y - t.y) <= 1) matchedAxes.push(`Y (${y} km)`);
+                        if (Math.abs(z - t.z) <= 1) matchedAxes.push(`Z (${z} km)`);
+
+                        if (matchedAxes.length === 3 || Math.hypot(t.x - x, t.y - y, t.z - z) <= 1) {
+                            fullHitShipIndex = idx;
+                            maxMatchedCount = 3;
+                            gmHighlights.push(
+                                `🏆 KETIGA KOORDINAT BENAR [X=${x}, Y=${y}, Z=${z} km] pada Kapal ${idx + 1}!`
+                            );
+                        } else if (matchedAxes.length > 0) {
+                            if (matchedAxes.length > maxMatchedCount) {
+                                maxMatchedCount = matchedAxes.length;
+                            }
+                            gmHighlights.push(
+                                `✨ HIGHLIGHT: ${matchedAxes.length} Koordinat Benar [Sumbu ${matchedAxes.join(' & ')}] pada Kapal ${idx + 1}!`
+                            );
+                        }
+                    }
+                });
+
+                // Pesan untuk Peserta (Hanya menyebutkan "Salah satu" atau "Salah dua" TANPA membocorkan sumbu mana)
+                let participantHintText = "";
+                if (maxMatchedCount === 1) {
+                    participantHintText = "💡 INFO KOORDINAT: Salah satu koordinat benar!";
+                } else if (maxMatchedCount === 2) {
+                    participantHintText = "💡 INFO KOORDINAT: Salah dua koordinat benar!";
+                }
+
+                return { gmHighlights, maxMatchedCount, participantHintText, fullHitShipIndex };
+            },
+
+            addHistoryLog: (team, logText, actionNote = "", highlightNotes = [], warningNotes = []) => {
                 const teamName = team === 1 ? "Tim 1 (Biru)" : "Tim 2 (Merah)";
                 const teamColor = team === 1 ? "var(--cyan)" : "var(--red)";
+                
+                const warningsHtml = warningNotes.map(w => `<span class="history-warning">${w}</span>`).join('');
+                const highlightsHtml = highlightNotes.map(h => `<span class="history-highlight">${h}</span>`).join('');
+
                 const itemHtml = `
                     <div class="history-item ${team === 2 ? 'team-2' : ''}">
-                        <b style="color: ${teamColor};">${teamName}:</b> dari <b>(${fromPos.x}, ${fromPos.y}, ${fromPos.z})</b> ke <b>(${toPos.x}, ${toPos.y}, ${toPos.z})</b>
-                        ${actionNote ? `<br><span style="color: var(--gold); font-size: 11px;">${actionNote}</span>` : ''}
+                        <b style="color: ${teamColor};">${teamName}:</b> ${logText}
+                        ${actionNote ? `<br><span style="color: var(--gold); font-size: 11px; font-weight: 600;">${actionNote}</span>` : ''}
+                        ${warningsHtml}
+                        ${highlightsHtml}
                     </div>
                 `;
                 game.historyLogs.unshift(itemHtml);
@@ -931,67 +1071,128 @@
             },
             
             actionMoveAndPing: () => {
-                if(game.isAnimating) return;
+                if(game.isAnimating || game.gameEnded) return;
                 
-                const x = parseFloat(document.getElementById('inputX').value);
-                const y = parseFloat(document.getElementById('inputY').value);
-                const z = parseFloat(document.getElementById('inputZ').value);
+                const reqX = parseFloat(document.getElementById('inputX').value);
+                const reqY = parseFloat(document.getElementById('inputY').value);
+                const reqZ = parseFloat(document.getElementById('inputZ').value);
                 
-                if(isNaN(x) || isNaN(y) || isNaN(z) || x<0 || x>100 || y<0 || y>100 || z<0 || z>100) {
-                    app.showAlert("Input Tidak Valid", "Masukkan koordinat X, Y, Z antara 0 - 100.", "Mengerti", "#ff7a7a");
+                if(isNaN(reqX) || isNaN(reqY) || isNaN(reqZ) || reqX < 0 || reqX > 100 || reqY < 0 || reqY > 100 || reqZ < 0 || reqZ > 100) {
+                    app.showAlert("Input Tidak Valid", "Masukkan koordinat X, Y, Z antara 0 - 100 km.", "Mengerti", "#ff7a7a");
                     return;
                 }
+
+                const prevPos = { ...game.currentPos };
+                const rawDX = reqX - prevPos.x;
+                const rawDY = reqY - prevPos.y;
+                const rawDZ = reqZ - prevPos.z;
+
+                const warningNotes = [];
+
+                // 1. Batasi jarak tempuh maksimal per giliran (±40 km pada masing-masing sumbu X, Y, Z)
+                let x = prevPos.x + Math.max(-40, Math.min(40, rawDX));
+                let y = prevPos.y + Math.max(-40, Math.min(40, rawDY));
+                let z = prevPos.z + Math.max(-40, Math.min(40, rawDZ));
+
+                // Pastikan tetap di dalam batas area 0 - 100 km
+                x = Math.max(0, Math.min(100, x));
+                y = Math.max(0, Math.min(100, y));
+                z = Math.max(0, Math.min(100, z));
+
+                const exceededStep = Math.abs(rawDX) > 40 || Math.abs(rawDY) > 40 || Math.abs(rawDZ) > 40;
+                const exceededDepth = reqZ > 65;
+
+                // 2. Batasi kedalaman maksimal kapal selam di Z = 65 km
+                if (z > 65) {
+                    z = 65;
+                }
+
+                if (exceededStep) {
+                    warningNotes.push(
+                        `⚠️ LANGKAH INVALID (Jarak > 40 km): Request (${reqX}, ${reqY}, ${reqZ}) km melebihi batas tempuh ±40 km/giliran &rarr; Mentok otomatis di (${x}, ${y}, ${z}) km!`
+                    );
+                }
+
+                if (exceededDepth) {
+                    warningNotes.push(
+                        `⚠️ LANGKAH INVALID (Kedalaman > 65 km): Request Z = ${reqZ} km melebihi batas selam 65 km &rarr; Mentok otomatis di Z = ${z} km!`
+                    );
+                }
+
+                // Perbarui angka di kolom input GM agar menunjukkan koordinat aktual tempat kapal berhenti
+                document.getElementById('inputX').value = x;
+                document.getElementById('inputY').value = y;
+                document.getElementById('inputZ').value = z;
                 
                 game.isAnimating = true;
-                const prevPos = { ...game.currentPos };
                 const activeTeam = game.turn;
                 game.currentPos = { x, y, z };
+                game.updateMoveRangeUI();
 
-                game.addHistoryLog(activeTeam, prevPos, game.currentPos);
+                // Evaluasi kecocokan koordinat pada posisi aktual (setelah mentok)
+                const matchInfo = game.checkCoordinateMatches(x, y, z);
+
+                const moveLogText = (exceededStep || exceededDepth)
+                    ? `Bergerak dari <b>(${prevPos.x}, ${prevPos.y}, ${prevPos.z}) km</b> ke <b>(${x}, ${y}, ${z}) km</b> <span style="color: var(--gold); font-size: 11px;">[Request awal: (${reqX}, ${reqY}, ${reqZ}) km]</span>`
+                    : `Bergerak dari <b>(${prevPos.x}, ${prevPos.y}, ${prevPos.z}) km</b> ke <b>(${x}, ${y}, ${z}) km</b>`;
+
+                game.addHistoryLog(
+                    activeTeam,
+                    moveLogText,
+                    "",
+                    matchInfo.gmHighlights,
+                    warningNotes
+                );
 
                 let resultsForParticipant = [];
-                let nearestGeoDistMeters = Infinity;
+                let nearestGeoDistKm = Infinity;
                 let nearestShipIndex = -1;
                 let nearestTargetObj = null;
 
+                // Kecepatan bunyi di air laut = 1.5 km/s (1500 m/s), 1 unit = 1 km
                 game.targets.forEach((t, idx) => {
                     if(!t.found) {
-                        let distMeters = Math.hypot(t.x - x, t.y - y, t.z - z) * 10;
-                        let roundedTime = Number(((distMeters * 2) / 1500).toFixed(1));
-                        resultsForParticipant.push({ time: roundedTime, intensity: 75 });
+                        let distKm = Math.hypot(t.x - x, t.y - y, t.z - z);
+                        let roundedTime = Number(((distKm * 2) / 1.5).toFixed(3));
+                        resultsForParticipant.push({ time: roundedTime, ts: -5 });
 
-                        if(distMeters < nearestGeoDistMeters) {
-                            nearestGeoDistMeters = distMeters;
+                        if(distKm < nearestGeoDistKm) {
+                            nearestGeoDistKm = distKm;
                             nearestShipIndex = idx + 1;
                             nearestTargetObj = t;
                         }
                     }
                 });
 
+                const decoyTypes = [-18, -30, -50];
                 while(resultsForParticipant.length < 10) {
-                    let isHigh = Math.random() > 0.5;
-                    let decoyInt = isHigh ? Math.floor(Math.random() * 26) + 80 : Math.floor(Math.random() * 41) + 30; 
-                    let decoyTime = Number(((Math.random() * 1500 * 2) / 1500).toFixed(1));
-                    resultsForParticipant.push({ time: decoyTime, intensity: decoyInt });
+                    let decoyTS = decoyTypes[Math.floor(Math.random() * decoyTypes.length)];
+                    let decoyTime = Number(((Math.random() * 150 * 2) / 1.5).toFixed(3));
+                    resultsForParticipant.push({ time: decoyTime, ts: decoyTS });
                 }
                 resultsForParticipant.sort(() => Math.random() - 0.5);
 
+                // Kirim koordinat aktual yang sudah mentok otomatis ke layar Peserta
                 syncManager.send({
                     type: 'MOVE_AND_PING',
                     x, y, z,
+                    reqX, reqY, reqZ,
+                    clamped: (exceededStep || exceededDepth),
                     turn: activeTeam,
                     results: resultsForParticipant
                 });
                 
                 engine3D.moveTo(x, y, z, () => {
-                    game.processPingGM(x, y, z, nearestGeoDistMeters, nearestShipIndex, nearestTargetObj, activeTeam);
+                    game.processPingGM(x, y, z, nearestGeoDistKm, nearestShipIndex, nearestTargetObj, activeTeam);
                 });
             },
             
-            processPingGM: (px, py, pz, nearestGeoDistMeters, nearestShipIndex, nearestTargetObj, activeTeam) => {
+            processPingGM: (px, py, pz, nearestGeoDistKm, nearestShipIndex, nearestTargetObj, activeTeam) => {
                 engine3D.triggerPingWave(activeTeam);
                 
                 setTimeout(() => {
+                    if (game.gameEnded) return;
+
                     const nameEl = document.getElementById('proxTargetName');
                     const distEl = document.getElementById('proxDistance');
                     const detailEl = document.getElementById('proxDetail');
@@ -1002,7 +1203,7 @@
 
                     if (nearestShipIndex === -1 || !nearestTargetObj) {
                         nameEl.innerText = "Semua Kapal Telah Ditemukan";
-                        distEl.innerText = "0.0 m (0.0 unit)";
+                        distEl.innerText = "0.0 km (0.0 unit)";
                         distEl.style.color = "var(--gold)";
                         detailEl.innerText = "Tidak ada target tersisa.";
                         diffXEl.innerText = "0";
@@ -1010,11 +1211,9 @@
                         diffZEl.innerText = "0";
                         coordTargetEl.innerText = "Selisih Koordinat: (0, 0, 0)";
                     } else {
-                        const echoTime = Number(((nearestGeoDistMeters * 2) / 1500).toFixed(1));
-                        const echoDistMeters = (echoTime * 1500) / 2;
-                        const echoUnitDist = (echoDistMeters / 10).toFixed(1);
+                        const echoTime = Number(((nearestGeoDistKm * 2) / 1.5).toFixed(3));
+                        const echoDistKm = (echoTime * 1.5) / 2;
 
-                        // Selisih koordinat tanpa nilai mutlak (bisa bernilai minus)
                         const dx = nearestTargetObj.x - px;
                         const dy = nearestTargetObj.y - py;
                         const dz = nearestTargetObj.z - pz;
@@ -1022,22 +1221,22 @@
                         let statusText = "Jauh dari Target";
                         let color = "var(--cyan)";
 
-                        if (nearestGeoDistMeters <= 10) {
-                            statusText = "🎯 SANGAT DEKAT (Radius ≤ 10m!)";
+                        if (nearestGeoDistKm <= 1) {
+                            statusText = "🎯 SANGAT DEKAT (Radius ≤ 1 km!)";
                             color = "var(--green)";
-                        } else if (nearestGeoDistMeters <= 150) {
+                        } else if (nearestGeoDistKm <= 15) {
                             statusText = "🔥 Dekat dengan Target";
                             color = "var(--gold)";
                         }
 
-                        nameEl.innerText = `Target Terdekat: Kapal ${nearestShipIndex} (75 µT) | ${statusText}`;
-                        distEl.innerText = `${echoDistMeters.toFixed(1)} m (${echoUnitDist} unit)`;
+                        nameEl.innerText = `Target Terdekat: Kapal ${nearestShipIndex} (-5 dB) | ${statusText}`;
+                        distEl.innerText = `${echoDistKm.toFixed(2)} km (${echoDistKm.toFixed(2)} unit)`;
                         distEl.style.color = color;
-                        detailEl.innerText = `Waktu Gema: ${echoTime.toFixed(1)} s | Jarak Geometris Asli: ${nearestGeoDistMeters.toFixed(1)} m (${(nearestGeoDistMeters/10).toFixed(1)} unit)`;
+                        detailEl.innerText = `Waktu Gema: ${echoTime.toFixed(3)} s | Jarak Geometris Asli: ${nearestGeoDistKm.toFixed(2)} km`;
 
-                        diffXEl.innerText = `${dx} unit (${dx * 10}m)`;
-                        diffYEl.innerText = `${dy} unit (${dy * 10}m)`;
-                        diffZEl.innerText = `${dz} unit (${dz * 10}m)`;
+                        diffXEl.innerText = `${dx} km`;
+                        diffYEl.innerText = `${dy} km`;
+                        diffZEl.innerText = `${dz} km`;
                         coordTargetEl.innerText = `Selisih Koordinat: (${dx}, ${dy}, ${dz})`;
                     }
                     
@@ -1046,79 +1245,126 @@
 
                 }, 1000);
             },
+
+            // Fungsi pemroses Submit Jawaban (baik dari Peserta kapan saja maupun dari tombol GM)
+            processTeamSubmission: (submittingTeam, x, y, z, sourceLabel = "Peserta") => {
+                if (game.gameEnded) return;
+
+                // Hentikan animasi sonar jika sedang berjalan agar langsung instan tanpa lag
+                game.isAnimating = false;
+                engine3D.movingCb = null;
+                engine3D.pinging = false;
+                if (engine3D.pingSphere) engine3D.pingSphere.visible = false;
+
+                const prevPos = { ...game.currentPos };
+                const matchInfo = game.checkCoordinateMatches(x, y, z);
+                const teamName = submittingTeam === 1 ? "Tim 1 (Biru)" : "Tim 2 (Merah)";
+
+                // Jika ketiga koordinat sudah benar semua (Kapal Karam Ditemukan -> Langsung Game Ended tanpa lag!)
+                if (matchInfo.fullHitShipIndex !== -1) {
+                    const shipNum = matchInfo.fullHitShipIndex + 1;
+                    game.targets[matchInfo.fullHitShipIndex].found = true;
+
+                    if (submittingTeam === 1) game.score1 += 100;
+                    else game.score2 += 100;
+
+                    game.gameEnded = true;
+                    document.getElementById('btnMovePing').disabled = true;
+                    document.getElementById('btnGuessGM').disabled = true;
+                    game.updateUI();
+
+                    game.addHistoryLog(
+                        submittingTeam,
+                        `<b>SUBMIT JAWABAN (${sourceLabel}): (${x}, ${y}, ${z}) km</b> (Posisi kapal selam: ${prevPos.x}, ${prevPos.y}, ${prevPos.z})`,
+                        `🏆 KAPAL KARAM DITEMUKAN OLEH ${teamName.toUpperCase()}! — GAME ENDED`,
+                        matchInfo.gmHighlights
+                    );
+
+                    // Kirim instan ke Versi 2 (Peserta) bahwa kapal ditemukan & Game Ended
+                    syncManager.send({
+                        type: 'SUBMISSION_RESULT',
+                        team: submittingTeam,
+                        x, y, z,
+                        subPos: game.currentPos,
+                        hit: true,
+                        gameEnded: true,
+                        shipNumber: shipNum,
+                        turn: game.turn,
+                        score1: game.score1,
+                        score2: game.score2,
+                        targets: game.targets,
+                        participantHintText: ""
+                    });
+
+                    app.showAlert(
+                        "🏆 KAPAL KARAM DITEMUKAN! (GAME ENDED)",
+                        `Luar Biasa!\n${teamName} berhasil menemukan Kapal Karam ${shipNum} pada koordinat:\nX = ${x} km, Y = ${y} km, Z = ${z} km.\n\nPERMAINAN SELESAI (GAME ENDED)!`,
+                        "Selesai",
+                        "#ffd166"
+                    );
+                } else {
+                    // Jika belum benar semua, posisi kapal selam TIDAK berubah agar batas gerak 40 km giliran berikutnya tetap akurat
+                    const gmDetailText = matchInfo.gmHighlights.length > 0
+                        ? matchInfo.gmHighlights.join('\n')
+                        : "❌ Belum ada koordinat (X, Y, Z) yang tepat dengan lokasi kapal karam.";
+
+                    game.addHistoryLog(
+                        submittingTeam,
+                        `<b>SUBMIT JAWABAN (${sourceLabel}): (${x}, ${y}, ${z}) km</b>`,
+                        `❌ Belum Tepat Sasaran (Meleset)`,
+                        matchInfo.gmHighlights.length > 0 ? matchInfo.gmHighlights : ["❌ 0 Koordinat Tepat"]
+                    );
+
+                    syncManager.send({
+                        type: 'SUBMISSION_RESULT',
+                        team: submittingTeam,
+                        x, y, z,
+                        subPos: game.currentPos,
+                        hit: false,
+                        gameEnded: false,
+                        turn: game.turn,
+                        score1: game.score1,
+                        score2: game.score2,
+                        targets: game.targets,
+                        participantHintText: matchInfo.participantHintText
+                    });
+
+                    app.showAlert(
+                        `Submit Jawaban — ${teamName}`,
+                        `${teamName} melakukan submit koordinat: (${x}, ${y}, ${z}) km.\n\nStatus Analisis GM:\n${gmDetailText}`,
+                        "Tutup",
+                        submittingTeam === 1 ? "#35d5e8" : "#ff7a7a"
+                    );
+                }
+            },
+
+            handleParticipantSubmission: (team, x, y, z) => {
+                const subTeam = (team === 2) ? 2 : 1;
+                game.processTeamSubmission(subTeam, Number(x), Number(y), Number(z), "Peserta");
+            },
             
             actionGuess: () => {
-                if(game.isAnimating) return;
+                if(game.gameEnded) return;
 
                 const x = parseFloat(document.getElementById('inputX').value);
                 const y = parseFloat(document.getElementById('inputY').value);
                 const z = parseFloat(document.getElementById('inputZ').value);
                 
                 if(isNaN(x) || isNaN(y) || isNaN(z) || x<0 || x>100 || y<0 || y>100 || z<0 || z>100) {
-                    app.showAlert("Input Tidak Valid", "Masukkan koordinat tebakan (X, Y, Z) antara 0 - 100.", "Mengerti", "#ff7a7a");
+                    app.showAlert("Input Tidak Valid", "Masukkan koordinat tebakan (X, Y, Z) antara 0 - 100 km.", "Mengerti", "#ff7a7a");
                     return;
                 }
                 
-                const prevPos = { ...game.currentPos };
-                game.currentPos = { x, y, z };
-                engine3D.subGroup.position.set(engine3D.mapCoords(x), engine3D.mapCoords(y), engine3D.mapCoords(z));
-
-                let hit = false;
-                let foundShipNumber = -1;
-                for(let i = 0; i < game.targets.length; i++) {
-                    let t = game.targets[i];
-                    if(!t.found) {
-                        let dist = Math.hypot(t.x - x, t.y - y, t.z - z);
-                        if(dist <= 1) {
-                            t.found = true;
-                            hit = true;
-                            foundShipNumber = i + 1;
-                            break;
-                        }
-                    }
-                }
-                
-                const activeTeam = game.turn;
-                let allFound = false;
-
-                if(hit) {
-                    if(activeTeam === 1) game.score1 += 100;
-                    else game.score2 += 100;
-                    
-                    allFound = game.targets.every(t => t.found);
-                    game.addHistoryLog(activeTeam, prevPos, game.currentPos, `🎯 TEBAKAN TEPAT! (Kapal ${foundShipNumber} Ditemukan)`);
-
-                    if(allFound) {
-                        app.showAlert("Tepat Sasaran!", `Luar Biasa!\nKoordinat (${x}, ${y}, ${z}) tepat mengenai Kapal ${foundShipNumber}.\n\nSEMUA KAPAL TELAH DITEMUKAN!\nPermainan Selesai.`, "Selesai", "#ffd166");
-                    } else {
-                        app.showAlert("Tepat Sasaran!", `Kerja Bagus!\nKoordinat (${x}, ${y}, ${z}) akurat (radius ≤ 10 meter). Kapal ${foundShipNumber} berhasil diamankan!`, "Lanjut", "#ffd166");
-                    }
-                } else {
-                    game.addHistoryLog(activeTeam, prevPos, game.currentPos, `❌ Tebakan Meleset di (${x}, ${y}, ${z})`);
-                    app.showAlert("Meleset!", `Sayang sekali...\nTidak ada kapal karam dalam radius 1 unit (10 meter) dari koordinat (${x}, ${y}, ${z}).\n\nGiliran berpindah!`, "Tutup", "#ff7a7a");
-                }
-                
-                game.switchTurn();
-
-                syncManager.send({
-                    type: 'GUESS_RESULT',
-                    x, y, z,
-                    hit,
-                    allFound,
-                    turn: game.turn,
-                    score1: game.score1,
-                    score2: game.score2,
-                    targets: game.targets
-                });
+                game.processTeamSubmission(game.turn, x, y, z, "Input GM");
             },
             
             showAnswers: () => {
                 if(game.targets.length === 0) return;
                 
-                let text = "Daftar Lokasi Rahasia Kapal Karam:\n\n";
+                let text = "Daftar Lokasi Rahasia Kapal Karam (Skala km):\n\n";
                 game.targets.forEach((t, i) => {
                     const status = t.found ? " ✅ (Ditemukan)" : " ❌ (Belum)";
-                    text += `Kapal ${i+1}: X=${t.x}, Y=${t.y}, Z=${t.z} | Identitas: ${t.intensity} µT ${status}\n`;
+                    text += `Kapal ${i+1}: X=${t.x} km, Y=${t.y} km, Z=${t.z} km (Kedalaman) | TS: ${t.ts} dB ${status}\n`;
                 });
                 
                 app.showAlert("Kunci Jawaban (GM)", text, "Tutup", "#64748b");
@@ -1130,7 +1376,15 @@
             subGroup: null, pingSphere: null, pinging: false, pingScale: 1,
             targetPos: new THREE.Vector3(), movingCb: null,
             
-            mapCoords: (val) => { return val - 50; },
+            // Konversi Koordinat Game (X, Y bidang dasar 0-100; Z kedalaman dari permukaan 0-100) ke Three.js
+            // Titik (0,0,0) berada di pojok atas permukaan laut: threeX = -50, threeY = +50, threeZ = -50
+            mapTo3D: (gx, gy, gz) => {
+                return new THREE.Vector3(
+                    gx - 50,      // Sumbu X: Kiri (-50) ke Kanan (+50)
+                    50 - gz,      // Sumbu Z (Kedalaman): Permukaan Atas (+50) ke Dasar Bawah (-50)
+                    gy - 50       // Sumbu Y: Belakang (-50) ke Depan (+50)
+                );
+            },
 
             init: () => {
                 const container = document.getElementById('game-canvas');
@@ -1138,8 +1392,8 @@
                 engine3D.scene = new THREE.Scene();
 
                 engine3D.camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-                engine3D.camera.position.set(145, 110, 145);
-                engine3D.camera.lookAt(0, -10, 0);
+                engine3D.camera.position.set(150, 95, 150);
+                engine3D.camera.lookAt(0, -5, 0);
 
                 engine3D.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 engine3D.renderer.setSize(container.clientWidth, container.clientHeight);
@@ -1191,7 +1445,7 @@
                 ctx.closePath();
             },
 
-            createTextSprite: (text, colorHex, fontSize = 54, scaleWidth = 26) => {
+            createTextSprite: (text, colorHex, fontSize = 52, scaleWidth = 26) => {
                 const canvas = document.createElement('canvas');
                 canvas.width = 512;
                 canvas.height = 128;
@@ -1200,7 +1454,7 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 ctx.fillStyle = '#061a38';
-                engine3D.drawRoundedRect(ctx, 24, 14, 464, 100, 24);
+                engine3D.drawRoundedRect(ctx, 18, 14, 476, 100, 24);
                 ctx.fill();
 
                 ctx.lineWidth = 6;
@@ -1259,65 +1513,128 @@
                 const gridCenterColor = 0x5ce1e6;
                 const gridLineColor = 0x1e4d7b;
 
+                // Bidang Permukaan Laut (Z = 0 -> threeY = +50)
+                const surfaceGeo = new THREE.PlaneGeometry(size, size);
+                surfaceGeo.rotateX(Math.PI / 2);
+                const surfaceMat = new THREE.MeshBasicMaterial({
+                    color: 0x35d5e8,
+                    transparent: true,
+                    opacity: 0.08,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+                const surfacePlane = new THREE.Mesh(surfaceGeo, surfaceMat);
+                surfacePlane.position.set(0, 50, 0);
+                engine3D.scene.add(surfacePlane);
+
+                // Grid Permukaan Laut (Z = 0 -> threeY = +50)
+                const gridTop = new THREE.GridHelper(size, div, 0x35d5e8, 0x164e63);
+                gridTop.position.set(0, 50, 0);
+                gridTop.material.fog = false;
+                engine3D.scene.add(gridTop);
+
+                // Bidang & Garis Batas Kedalaman Maksimal Kapal Selam (Z = 65 km -> threeY = 50 - 65 = -15)
+                const maxDepthY = 50 - 65; // -15
+                const crushPlaneGeo = new THREE.PlaneGeometry(size, size);
+                crushPlaneGeo.rotateX(Math.PI / 2);
+                const crushPlaneMat = new THREE.MeshBasicMaterial({
+                    color: 0xff9f1c,
+                    transparent: true,
+                    opacity: 0.07,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+                const crushPlane = new THREE.Mesh(crushPlaneGeo, crushPlaneMat);
+                crushPlane.position.set(0, maxDepthY, 0);
+                engine3D.scene.add(crushPlane);
+
+                const crushBorderPts = [
+                    new THREE.Vector3(-50, maxDepthY, -50),
+                    new THREE.Vector3(50, maxDepthY, -50),
+                    new THREE.Vector3(50, maxDepthY, 50),
+                    new THREE.Vector3(-50, maxDepthY, 50),
+                    new THREE.Vector3(-50, maxDepthY, -50)
+                ];
+                const crushBorderGeo = new THREE.BufferGeometry().setFromPoints(crushBorderPts);
+                const crushBorderLine = new THREE.Line(
+                    crushBorderGeo,
+                    new THREE.LineBasicMaterial({ color: 0xff9f1c, fog: false })
+                );
+                engine3D.scene.add(crushBorderLine);
+
+                const labelCrush = engine3D.createTextSprite("BATAS SELAM (Z = 65 km)", "#ff9f1c", 40, 34);
+                labelCrush.position.set(50, maxDepthY, 56);
+                engine3D.scene.add(labelCrush);
+
+                // Grid Dasar Laut (Z = 100 -> threeY = -50)
                 const gridBottom = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
                 gridBottom.position.set(0, -50, 0);
                 gridBottom.material.fog = false;
                 engine3D.scene.add(gridBottom);
 
+                // Grid Dinding Belakang (Y = 0 -> threeZ = -50)
                 const gridBack = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
                 gridBack.rotation.x = Math.PI / 2;
                 gridBack.position.set(0, 0, -50);
                 gridBack.material.fog = false;
                 engine3D.scene.add(gridBack);
 
+                // Grid Dinding Kiri (X = 0 -> threeX = -50)
                 const gridLeft = new THREE.GridHelper(size, div, gridCenterColor, gridLineColor);
                 gridLeft.rotation.z = Math.PI / 2;
                 gridLeft.position.set(-50, 0, 0);
                 gridLeft.material.fog = false;
                 engine3D.scene.add(gridLeft);
 
-                const origin = new THREE.Vector3(-50, -50, -50);
+                // Titik (0,0,0) di Pojok Permukaan Laut (Atas-Kiri-Belakang)
+                const origin = new THREE.Vector3(-50, 50, -50);
 
-                engine3D.createThickAxis(origin, new THREE.Vector3(56, -50, -50), 0xff3b3b);
-                engine3D.createThickAxis(origin, new THREE.Vector3(-50, 56, -50), 0x22ff66);
-                engine3D.createThickAxis(origin, new THREE.Vector3(-50, -50, 56), 0x00d4ff);
+                // Sumbu X (Merah - Datar Kiri ke Kanan)
+                engine3D.createThickAxis(origin, new THREE.Vector3(56, 50, -50), 0xff3b3b);
+                // Sumbu Y (Hijau - Datar Belakang ke Depan)
+                engine3D.createThickAxis(origin, new THREE.Vector3(-50, 50, 56), 0x22ff66);
+                // Sumbu Z (Biru - Kedalaman dari Permukaan Laut ke Dasar Laut)
+                engine3D.createThickAxis(origin, new THREE.Vector3(-50, -56, -50), 0x00d4ff);
 
                 const originSphere = new THREE.Mesh(
-                    new THREE.SphereGeometry(2.2, 16, 16),
+                    new THREE.SphereGeometry(2.4, 16, 16),
                     new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false })
                 );
                 originSphere.position.copy(origin);
                 engine3D.scene.add(originSphere);
 
-                const labelX = engine3D.createTextSprite("SUMBU X", "#ff4d4d", 56, 30);
-                labelX.position.set(82, -50, -50);
+                // Label Utama Sumbu X, Y, Z
+                const labelX = engine3D.createTextSprite("SUMBU X (km)", "#ff4d4d", 46, 32);
+                labelX.position.set(84, 50, -50);
                 engine3D.scene.add(labelX);
 
-                const labelY = engine3D.createTextSprite("SUMBU Y", "#22ff66", 56, 30);
-                labelY.position.set(-50, 78, -50);
+                const labelY = engine3D.createTextSprite("SUMBU Y (km)", "#22ff66", 46, 32);
+                labelY.position.set(-50, 50, 84);
                 engine3D.scene.add(labelY);
 
-                const labelZ = engine3D.createTextSprite("SUMBU Z", "#00d4ff", 56, 30);
-                labelZ.position.set(-50, -50, 82);
+                const labelZ = engine3D.createTextSprite("SUMBU Z (Dalam)", "#00d4ff", 44, 34);
+                labelZ.position.set(-50, -78, -50);
                 engine3D.scene.add(labelZ);
 
-                const labelOrigin = engine3D.createTextSprite("(0,0,0)", "#ffffff", 48, 22);
-                labelOrigin.position.set(-60, -58, -60);
+                const labelOrigin = engine3D.createTextSprite("(0,0,0) Permukaan", "#ffffff", 40, 32);
+                labelOrigin.position.set(-62, 60, -60);
                 engine3D.scene.add(labelOrigin);
 
+                // Angka Skala (20, 40, 60, 80, 100 km)
                 for (let val = 20; val <= 100; val += 20) {
-                    const pos = engine3D.mapCoords(val);
-
+                    // Ticks Sumbu X (di sepanjang tepi atas permukaan laut)
                     const tickX = engine3D.createTextSprite(val.toString(), "#ff8080", 52, 16);
-                    tickX.position.set(pos, -58, -50);
+                    tickX.position.set(val - 50, 58, -50);
                     engine3D.scene.add(tickX);
 
+                    // Ticks Sumbu Y (di sepanjang tepi kiri permukaan laut)
                     const tickY = engine3D.createTextSprite(val.toString(), "#4ade80", 52, 16);
-                    tickY.position.set(-59, pos, -50);
+                    tickY.position.set(-58, 58, val - 50);
                     engine3D.scene.add(tickY);
 
+                    // Ticks Sumbu Z (Kedalaman dari atas permukaan +50 turun ke dasar -50)
                     const tickZ = engine3D.createTextSprite(val.toString(), "#38bdf8", 52, 16);
-                    tickZ.position.set(-59, -58, pos);
+                    tickZ.position.set(-60, 50 - val, -50);
                     engine3D.scene.add(tickZ);
                 }
             },
@@ -1377,7 +1694,8 @@
                 finV.position.x = -8.5;
                 engine3D.subGroup.add(finV);
                 
-                engine3D.subGroup.position.set(0, 0, 0);
+                const start3D = engine3D.mapTo3D(50, 50, 50);
+                engine3D.subGroup.position.copy(start3D);
                 engine3D.scene.add(engine3D.subGroup);
             },
 
@@ -1396,12 +1714,12 @@
                     
                     engine3D.camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -deltaX * 0.008);
                     engine3D.camera.position.y += deltaY * 0.5;
-                    engine3D.camera.lookAt(0, -10, 0);
+                    engine3D.camera.lookAt(0, -5, 0);
                 });
             },
 
             moveTo: (gx, gy, gz, callback) => {
-                engine3D.targetPos.set(engine3D.mapCoords(gx), engine3D.mapCoords(gy), engine3D.mapCoords(gz));
+                engine3D.targetPos.copy(engine3D.mapTo3D(gx, gy, gz));
                 engine3D.movingCb = callback;
             },
 
