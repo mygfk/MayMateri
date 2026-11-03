@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonar Strike 3D - PESERTA</title>
+    <title>Submarine Expedition - PESERTA</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
     <style>
@@ -32,12 +32,12 @@
             width: 400px;
             background: var(--panel-bg);
             backdrop-filter: blur(12px);
-            padding: 18px 20px;
+            padding: 14px 18px;
             height: 100vh;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 13px;
+            gap: 10px;
             border-right: 1px solid rgba(53, 213, 232, 0.3);
             z-index: 10;
             box-shadow: 10px 0 30px rgba(0,0,0,0.5);
@@ -102,8 +102,10 @@
         .score-board {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            margin-top: 6px;
+            font-size: 12px;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
 
         .intel-box {
@@ -149,83 +151,6 @@
             border-radius: 6px;
         }
 
-        /* Panel Submit Jawaban Koordinat Kapal (Bisa Dipencet Kapan Saja oleh Tim Biru / Merah) */
-        .submit-answer-box {
-            background: rgba(0, 0, 0, 0.38);
-            border: 1px solid rgba(255, 209, 102, 0.45);
-            border-radius: 8px;
-            padding: 11px 12px;
-        }
-        .submit-title {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--gold);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .team-select-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .btn-team-select {
-            padding: 7px 8px;
-            font-size: 12px;
-            font-weight: 800;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            cursor: pointer;
-        }
-        .btn-team-select.active-team-1 {
-            background: rgba(53, 213, 232, 0.22);
-            color: var(--cyan);
-            border: 2px solid var(--cyan);
-            box-shadow: 0 0 10px rgba(53, 213, 232, 0.25);
-        }
-        .btn-team-select.active-team-2 {
-            background: rgba(255, 122, 122, 0.22);
-            color: var(--red);
-            border: 2px solid var(--red);
-            box-shadow: 0 0 10px rgba(255, 122, 122, 0.25);
-        }
-        .coord-wrapper {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .coord-field {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        .coord-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-align: center;
-        }
-        .coord-field input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 7px 5px;
-            background: rgba(0,0,0,0.45);
-            border: 1px solid rgba(53, 213, 232, 0.4);
-            color: white;
-            border-radius: 6px;
-            font-size: 13px;
-            outline: none;
-            text-align: center;
-        }
-        .coord-field input:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 5px var(--gold);
-        }
-
         button {
             width: 100%;
             padding: 10px 12px;
@@ -248,24 +173,30 @@
             border-radius: 6px;
             border: 1px solid rgba(53, 213, 232, 0.25);
             overflow-y: auto;
+            overflow-x: hidden;
             flex-grow: 1;
-            min-height: 140px;
             position: relative;
         }
 
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
         th {
             background-color: #0b2b52;
             color: var(--cyan);
-            padding: 10px;
+            padding: 6px 8px;
             text-align: left;
             position: sticky;
             top: 0;
             z-index: 5;
+            font-size: 11px;
+            line-height: 1.3;
+            white-space: normal;
+            word-wrap: break-word;
             border-bottom: 2px solid rgba(53, 213, 232, 0.45);
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
         }
-        td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        th:first-child, td:first-child { width: 30%; }
+        th:last-child, td:last-child { width: 70%; }
+        td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
         tr:hover { background: rgba(255,255,255,0.05); }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -343,20 +274,15 @@
 
     <div id="sidebar">
         <div>
-            <h1>Sonar Strike 3D</h1>
-            <p>Misi Sonar Aktif (TVG) &mdash; Skala Kilometer (km)</p>
+            <h1>Submarine Expedition</h1>
         </div>
 
         <div class="turn-box">
             <div id="turnIndicator" class="turn-1">Giliran: Tim 1 (Biru)</div>
-            <div class="score-board">
-                <span>Tim 1 (Biru): <b id="score1" style="color:var(--cyan)">0</b></span>
-                <span>Tim 2 (Merah): <b id="score2" style="color:var(--red)">0</b></span>
-            </div>
         </div>
 
         <div class="intel-box">
-            <strong style="color: var(--gold);">Data Intelijen Sonar (Target Strength + TVG):</strong>
+            <strong style="color: var(--gold);">Indeks Pantulan Akustik (Terkoreksi TVG):</strong>
             <div class="intel-grid">
                 <span>🎯 <b style="color: var(--green);">-5 dB</b> : Logam Kapal</span>
                 <span>🪨 <b>-18 dB</b> : Batu Karang</span>
@@ -364,45 +290,18 @@
                 <span>🌫️ <b>-50 dB</b> : Lumpur Silt</span>
             </div>
             <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed rgba(255,209,102,0.3); color: #ffd166; font-size: 10.5px;">
-                ⚠️ <b>Batas Selam Kapal:</b> Kedalaman <b>Z = 0 s.d. 65 km</b><br>
-                ⚠️ <b>Batas Gerak / Giliran:</b> Maks. <b>±40 km</b> (pada X, Y, Z) dari posisi sebelumnya
+                ⚠️ <b>Batas Selam Kapal:</b> Kedalaman <b>Z = 0 s.d. 65 hm</b><br>
+                ⚠️ <b>Batas Gerak / Giliran:</b> Maks. <b>±40 hm</b> (pada X, Y, Z) dari posisi sebelumnya
             </div>
         </div>
 
         <div class="pos-readout">
-            <div class="pos-readout-label">Posisi Kapal Selam Saat Ini (km)</div>
+            <div class="pos-readout-label">Posisi Kapal Selam Saat Ini (hm)</div>
             <div class="pos-grid">
-                <div class="pos-badge" style="color: #ff4d4d;">X: <span id="posX">50</span> km</div>
-                <div class="pos-badge" style="color: #22ff66;">Y: <span id="posY">50</span> km</div>
-                <div class="pos-badge" style="color: #00d4ff;">Z: <span id="posZ">50</span> km</div>
+                <div class="pos-badge" style="color: #ff4d4d;">X: <span id="posX">50</span> hm</div>
+                <div class="pos-badge" style="color: #22ff66;">Y: <span id="posY">50</span> hm</div>
+                <div class="pos-badge" style="color: #00d4ff;">Z: <span id="posZ">50</span> hm</div>
             </div>
-            <div id="pesertaValidRange" style="margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: var(--gold); font-weight: 600;">
-                Rentang Gerak Giliran Ini: X (10–90) | Y (10–90) | Z (10–65) km
-            </div>
-        </div>
-
-        <!-- Menu Submit Jawaban Koordinat Kapal Karam (Bisa Dipencet Kapan Saja) -->
-        <div class="submit-answer-box">
-            <div class="submit-title">🎯 Submit Jawaban Koordinat Kapal Karam</div>
-            <div class="team-select-group">
-                <button type="button" id="btnSelectTeam1" class="btn-team-select active-team-1" onclick="game.selectSubmitTeam(1)">🔵 Tim 1 (Biru)</button>
-                <button type="button" id="btnSelectTeam2" class="btn-team-select" onclick="game.selectSubmitTeam(2)">🔴 Tim 2 (Merah)</button>
-            </div>
-            <div class="coord-wrapper">
-                <div class="coord-field">
-                    <span class="coord-label" style="color: #ff4d4d;">X (Datar)</span>
-                    <input type="number" id="submitX" placeholder="0 - 100" min="0" max="100">
-                </div>
-                <div class="coord-field">
-                    <span class="coord-label" style="color: #22ff66;">Y (Datar)</span>
-                    <input type="number" id="submitY" placeholder="0 - 100" min="0" max="100">
-                </div>
-                <div class="coord-field">
-                    <span class="coord-label" style="color: #00d4ff;">Z (Dalam)</span>
-                    <input type="number" id="submitZ" placeholder="0 - 100" min="0" max="100">
-                </div>
-            </div>
-            <button type="button" id="btnSubmitCoord" class="btn-submit-answer" onclick="game.submitAnswer()">🚀 Submit Jawaban (Tim Biru)</button>
         </div>
 
         <div class="log-container">
@@ -410,7 +309,7 @@
                 <thead>
                     <tr>
                         <th>Waktu Gema</th>
-                        <th>Target Strength (dB)</th>
+                        <th>Data Pantulan Sonar (Backscatter Strength - Terkoreksi TVG)</th>
                     </tr>
                 </thead>
                 <tbody id="logBody">
@@ -425,19 +324,19 @@
             <div class="axis-hud-title">Sumbu 3D (0,0,0 di Permukaan Laut)</div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #ff3b3b;"></span>
-                <span><b style="color: #ff3b3b;">Sumbu X (Datar):</b> Kiri &rarr; Kanan (0-100 km)</span>
+                <span><b style="color: #ff3b3b;">Sumbu X (Datar):</b> Kiri &rarr; Kanan (0-100 hm)</span>
             </div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #22ff66;"></span>
-                <span><b style="color: #22ff66;">Sumbu Y (Datar):</b> Belakang &rarr; Depan (0-100 km)</span>
+                <span><b style="color: #22ff66;">Sumbu Y (Datar):</b> Belakang &rarr; Depan (0-100 hm)</span>
             </div>
             <div class="axis-item">
                 <span class="axis-dot" style="background: #00d4ff;"></span>
-                <span><b style="color: #00d4ff;">Sumbu Z (Kedalaman):</b> Permukaan (0) &rarr; Dasar (100 km)</span>
+                <span><b style="color: #00d4ff;">Sumbu Z (Kedalaman):</b> Permukaan (0) &rarr; Dasar (100 hm)</span>
             </div>
             <div class="axis-item" style="margin-top: 6px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.15);">
                 <span class="axis-dot" style="background: #ff9f1c;"></span>
-                <span><b style="color: #ff9f1c;">Batas Selam Kapal:</b> Z = 0 s.d. 65 km | Gerak &le; 40 km</span>
+                <span><b style="color: #ff9f1c;">Batas Selam Kapal:</b> Z = 0 s.d. 65 hm | Gerak &le; 40 hm</span>
             </div>
         </div>
     </div>
@@ -445,7 +344,7 @@
     <!-- Modal Start Peserta (Menunggu Persetujuan GM) -->
     <div id="startModal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title">Sonar Strike 3D</div>
+            <div class="modal-title">Submarine Expedition</div>
             <div class="modal-text" id="startModalText">
                 Selamat datang di Misi Sonar Aktif Bawah Laut.<br>
                 Masukkan <b>4 Digit Kode Room</b> yang tertera di layar Game Master, lalu klik <b>START</b>:
@@ -652,10 +551,11 @@
 
                     game.targets = msg.targets || [];
                     game.turn = msg.turn || 1;
-                    game.score1 = msg.score1 || 0;
-                    game.score2 = msg.score2 || 0;
+                    game.moveCount1 = msg.moveCount1 || 0;
+                    game.moveCount2 = msg.moveCount2 || 0;
+                    game.submitCount1 = msg.submitCount1 || 0;
+                    game.submitCount2 = msg.submitCount2 || 0;
                     game.gameEnded = false;
-                    document.getElementById('btnSubmitCoord').disabled = false;
                     
                     if (msg.subPos) {
                         game.currentSubPos = { x: msg.subPos.x, y: msg.subPos.y, z: msg.subPos.z };
@@ -669,16 +569,20 @@
                     document.getElementById('startModal').style.display = 'none';
                     app.showAlert(
                         "Akses Disetujui!",
-                        `Game Master telah menyetujui akses masuk.\n• Jumlah target kapal karam: ${game.targets.length} kapal\n• Batas Kedalaman Kapal Selam: Z = 0 s.d. 65 km\n• Batas Jarak Tempuh per Giliran: Maks. ±40 km pada X, Y, Z\n• Skala: 1 unit = 1 km (v = 1,5 km/s)\n\nCari sinyal dengan Target Strength -5 dB (Logam Kapal Karam)!`
+                        `Game Master telah menyetujui akses masuk.\n• Jumlah target kapal karam: ${game.targets.length} kapal\n• Batas Kedalaman Kapal Selam: Z = 0 s.d. 65 hm\n• Batas Jarak Tempuh per Giliran: Maks. ±40 hm pada X, Y, Z\n• Skala: 1 unit = 1 hm = 100 m (v = 1500 m/s = 15 hm/s)\n\nCari sinyal dengan pantulan -5 dB (Logam Kapal Karam)!`
                     );
                 }
 
-                // Pergerakan & Ping Sensor biasa (Otomatis mentok di ±40 km per sumbu & Z <= 65 km)
+                // Pergerakan & Ping Sensor biasa (Otomatis mentok di ±40 hm per sumbu & Z <= 65 hm)
                 else if (msg.type === 'MOVE_AND_PING') {
                     if (game.gameEnded) return;
                     game.isAnimating = true;
 
-                    // Pastikan di sisi Peserta juga mentok otomatis pada batas ±40 km dan Z <= 65 km
+                    if (msg.moveCount1 !== undefined) game.moveCount1 = msg.moveCount1;
+                    if (msg.moveCount2 !== undefined) game.moveCount2 = msg.moveCount2;
+                    if (msg.submitCount1 !== undefined) game.submitCount1 = msg.submitCount1;
+                    if (msg.submitCount2 !== undefined) game.submitCount2 = msg.submitCount2;
+
                     const prev = game.currentSubPos || { x: 50, y: 50, z: 50 };
                     let targetX = prev.x + Math.max(-40, Math.min(40, msg.x - prev.x));
                     let targetY = prev.y + Math.max(-40, Math.min(40, msg.y - prev.y));
@@ -698,7 +602,7 @@
                             game.isAnimating = false;
                             app.showAlert(
                                 "Ping Selesai",
-                                `Kapal selam berada di koordinat (${targetX}, ${targetY}, ${targetZ}) km dan menerima 10 sinyal balikan (gema).\nPerhatikan tabel log, cari sinyal dengan Target Strength tepat -5 dB untuk menghitung jarak kapal karam!`,
+                                `Kapal selam berada di koordinat (${targetX}, ${targetY}, ${targetZ}) hm dan menerima 10 sinyal balikan (gema).\nPerhatikan tabel log, cari sinyal dengan pantulan tepat -5 dB untuk menghitung jarak kapal karam!`,
                                 "Analisis",
                                 msg.turn === 1 ? "#35d5e8" : "#ff7a7a",
                                 ""
@@ -723,19 +627,20 @@
                     
                     game.targets = msg.targets || game.targets;
                     game.turn = msg.turn;
-                    game.score1 = msg.score1;
-                    game.score2 = msg.score2;
+                    if (msg.moveCount1 !== undefined) game.moveCount1 = msg.moveCount1;
+                    if (msg.moveCount2 !== undefined) game.moveCount2 = msg.moveCount2;
+                    if (msg.submitCount1 !== undefined) game.submitCount1 = msg.submitCount1;
+                    if (msg.submitCount2 !== undefined) game.submitCount2 = msg.submitCount2;
 
                     const teamName = msg.team === 1 ? "Tim 1 (Biru)" : "Tim 2 (Merah)";
 
                     if (msg.hit && msg.gameEnded) {
                         game.gameEnded = true;
-                        document.getElementById('btnSubmitCoord').disabled = true;
                         game.updateUI();
 
                         app.showAlert(
                             "🏆 KAPAL KARAM DITEMUKAN! — GAME ENDED",
-                            `Luar Biasa!\n${teamName} berhasil menemukan lokasi Kapal Karam pada koordinat:\nX = ${msg.x} km, Y = ${msg.y} km, Z = ${msg.z} km.\n\nPERMAINAN SELESAI (GAME ENDED)!`,
+                            `Luar Biasa!\n${teamName} berhasil menemukan lokasi Kapal Karam pada koordinat:\nX = ${msg.x} hm, Y = ${msg.y} hm, Z = ${msg.z} hm.\n\nPERMAINAN SELESAI (GAME ENDED)!`,
                             "Selesai",
                             "#ffd166",
                             ""
@@ -744,7 +649,7 @@
                         game.updateUI();
                         app.showAlert(
                             `Hasil Submit — ${teamName}`,
-                            `Koordinat yang disubmit oleh ${teamName}: (${msg.x}, ${msg.y}, ${msg.z}) km.\nBelum tepat mengenai titik kapal karam (toleransi radius ≤ 1 km).`,
+                            `Koordinat yang disubmit oleh ${teamName}: (${msg.x}, ${msg.y}, ${msg.z}) hm.\nBelum tepat mengenai titik kapal karam (toleransi radius ≤ 1 hm).`,
                             "Tutup",
                             msg.team === 1 ? "#35d5e8" : "#ff7a7a",
                             msg.participantHintText || ""
@@ -773,17 +678,14 @@
                     }
 
                     game.turn = 1;
-                    game.score1 = 0;
-                    game.score2 = 0;
+                    game.moveCount1 = 0;
+                    game.moveCount2 = 0;
+                    game.submitCount1 = 0;
+                    game.submitCount2 = 0;
                     game.targets = [];
                     game.currentSubPos = { x: 50, y: 50, z: 50 };
                     game.updateUI();
                     game.updateSubPositionDisplay(50, 50, 50);
-
-                    document.getElementById('submitX').value = '';
-                    document.getElementById('submitY').value = '';
-                    document.getElementById('submitZ').value = '';
-                    document.getElementById('btnSubmitCoord').disabled = false;
 
                     document.getElementById('logBody').innerHTML = '<tr><td colspan="2" style="text-align:center; color:#64748b;">Menunggu pindaian sensor...</td></tr>';
                     
@@ -800,60 +702,14 @@
 
         const game = {
             turn: 1,
-            selectedSubmitTeam: 1,
             targets: [],
-            score1: 0,
-            score2: 0,
+            moveCount1: 0,
+            moveCount2: 0,
+            submitCount1: 0,
+            submitCount2: 0,
             isAnimating: false,
             gameEnded: false,
             currentSubPos: { x: 50, y: 50, z: 50 },
-
-            selectSubmitTeam: (teamNum) => {
-                game.selectedSubmitTeam = teamNum;
-                const btn1 = document.getElementById('btnSelectTeam1');
-                const btn2 = document.getElementById('btnSelectTeam2');
-                const submitBtn = document.getElementById('btnSubmitCoord');
-
-                if (teamNum === 1) {
-                    btn1.className = 'btn-team-select active-team-1';
-                    btn2.className = 'btn-team-select';
-                    submitBtn.innerText = '🚀 Submit Jawaban (Tim Biru)';
-                    submitBtn.style.background = 'var(--cyan)';
-                } else {
-                    btn1.className = 'btn-team-select';
-                    btn2.className = 'btn-team-select active-team-2';
-                    submitBtn.innerText = '🚀 Submit Jawaban (Tim Merah)';
-                    submitBtn.style.background = 'var(--red)';
-                }
-            },
-
-            // Peserta dapat melakukan Submit Jawaban kapan saja (meskipun bukan gilirannya)
-            submitAnswer: () => {
-                if (game.gameEnded) return;
-
-                const x = parseFloat(document.getElementById('submitX').value);
-                const y = parseFloat(document.getElementById('submitY').value);
-                const z = parseFloat(document.getElementById('submitZ').value);
-
-                if (isNaN(x) || isNaN(y) || isNaN(z) || x < 0 || x > 100 || y < 0 || y > 100 || z < 0 || z > 100) {
-                    app.showAlert(
-                        "Input Koordinat Belum Valid",
-                        "Masukkan angka koordinat X, Y, dan Z antara 0 hingga 100 km sebelum melakukan submit jawaban.",
-                        "Perbaiki",
-                        "#ff7a7a"
-                    );
-                    return;
-                }
-
-                // Kirim langsung ke Versi 1 (Game Master) untuk dievaluasi & dicatat di Histori GM
-                syncClient.sendToGM({
-                    type: 'SUBMIT_ANSWER',
-                    team: game.selectedSubmitTeam,
-                    x: x,
-                    y: y,
-                    z: z
-                });
-            },
 
             updateUI: () => {
                 const indicator = document.getElementById('turnIndicator');
@@ -870,26 +726,12 @@
                     indicator.style.color = '';
                     indicator.innerText = "Giliran: Tim 2 (Merah)";
                 }
-                document.getElementById('score1').innerText = game.score1;
-                document.getElementById('score2').innerText = game.score2;
             },
 
             updateSubPositionDisplay: (x, y, z) => {
                 document.getElementById('posX').innerText = x;
                 document.getElementById('posY').innerText = y;
                 document.getElementById('posZ').innerText = z;
-
-                const minX = Math.max(0, x - 40);
-                const maxX = Math.min(100, x + 40);
-                const minY = Math.max(0, y - 40);
-                const maxY = Math.min(100, y + 40);
-                const minZ = Math.max(0, z - 40);
-                const maxZ = Math.min(65, z + 40);
-
-                const rangeEl = document.getElementById('pesertaValidRange');
-                if (rangeEl) {
-                    rangeEl.innerText = `Rentang Gerak Giliran Ini: X (${minX}–${maxX}) | Y (${minY}–${maxY}) | Z (${minZ}–${maxZ}) km`;
-                }
             },
 
             renderSensorTable: (results) => {
@@ -1094,7 +936,7 @@
                 );
                 engine3D.scene.add(crushBorderLine);
 
-                const labelCrush = engine3D.createTextSprite("BATAS SELAM (Z = 65 km)", "#ff9f1c", 40, 34);
+                const labelCrush = engine3D.createTextSprite("BATAS SELAM (Z = 65 hm)", "#ff9f1c", 40, 34);
                 labelCrush.position.set(50, maxDepthY, 56);
                 engine3D.scene.add(labelCrush);
 
@@ -1135,11 +977,11 @@
                 originSphere.position.copy(origin);
                 engine3D.scene.add(originSphere);
 
-                const labelX = engine3D.createTextSprite("SUMBU X (km)", "#ff4d4d", 46, 32);
+                const labelX = engine3D.createTextSprite("SUMBU X (hm)", "#ff4d4d", 46, 32);
                 labelX.position.set(84, 50, -50);
                 engine3D.scene.add(labelX);
 
-                const labelY = engine3D.createTextSprite("SUMBU Y (km)", "#22ff66", 46, 32);
+                const labelY = engine3D.createTextSprite("SUMBU Y (hm)", "#22ff66", 46, 32);
                 labelY.position.set(-50, 50, 84);
                 engine3D.scene.add(labelY);
 
