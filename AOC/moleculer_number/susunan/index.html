@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisasi Cetak Kepingan Number Bond</title>
+    <!-- Memuat KaTeX untuk merender rumus matematika dengan sempurna -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Tambahkan html2canvas untuk fitur download PNG transparan -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --cokelat: #8B4513;
+            --hitam: #1e272e;
+            --biru: #00B4D8;
+            --merah: #FF0800;
+            --putih: #f5f6fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            padding: 20px;
+            margin: 0;
+        }
+        h1, p {
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .phase-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .phase-title {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .token-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .token-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .token {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        /* Pewarnaan Token */
+        .token.cokelat { background-color: var(--cokelat); color: white; }
+        .token.hitam { background-color: var(--hitam); color: white; }
+        .token.biru { background-color: var(--biru); color: white; }
+        .token.merah { background-color: var(--merah); color: white; }
+        .token.putih { background-color: var(--putih); color: black; border: 2px solid #bdc3c7; box-shadow: none;}
+
+        /* Tangan Kepingan (Nodes) */
+        .node {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background-color: white;
+            border: 3px solid #7f8c8d;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .qty-label {
+            font-weight: bold;
+            background: #f1c40f;
+            color: #2c3e50;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* Print styling */
+        @media print {
+            body { background: white; padding: 0; }
+            .phase-section { box-shadow: none; margin-bottom: 40px; page-break-inside: avoid; }
+            .token { box-shadow: none; border: 1px solid #000; }
+            .token-wrapper { page-break-inside: avoid; }
+            .qty-label { border: 1px solid #000; }
+            .no-print { display: none; }
+        }
+
+        /* Styling saat proses export PNG */
+        .exporting-png { background: transparent !important; }
+        .exporting-png body { background: transparent !important; }
+        .exporting-png .phase-section { 
+            background: transparent !important; 
+            box-shadow: none !important; 
+        }
+        .exporting-png .qty-label { 
+            display: none !important; /* Sembunyikan label qty agar PNG lebih bersih */
+        }
+        .exporting-png .phase-title {
+            color: #000 !important; /* Ubah warna judul agar tetap terbaca jika diperlukan */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <h1>Visual Kepingan Number Bond</h1>
+        <p>Gunakan tombol di bawah ini atau tekan <b>Ctrl + P</b> untuk langsung mencetak keping-keping ini.</p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+            <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cetak (Print PDF)</button>
+            <button onclick="downloadPNG()" style="padding: 10px 20px; font-size: 16px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Download as PNG (Transparan)</button>
+        </div>
+    </div>
+
+    <div id="kepingan-container"></div>
+</div>
+
+<script>
+    const dataKepingan = [
+        {
+            phase: "Modal Awal (Total Cetak: 15 Keping)",
+            tokens: [
+                {color: "cokelat", hands: 5, math: "\\displaystyle 4800 \\sin(30^\\circ)", qty: 1},
+                {color: "hitam", hands: 4, math: "\\displaystyle \\int_{0}^{30} 15 dx", qty: 1},
+                {color: "hitam", hands: 4, math: "\\displaystyle \\int_{0}^{10} 20 dx", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle 5! \\times 5", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle 15^2", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle 350 \\times \\frac{1}{2}", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 2},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 3x^2 dx", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\log_{10}(10^{100})", qty: 2},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 6x dx", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{10} x dx", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\sqrt{625}", qty: 2},
+            ]
+        },
+        {
+            phase: "Mining 1 - Core Induk (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "cokelat", hands: 5, math: "\\displaystyle 1900 \\cos(60^\\circ)", qty: 1},
+                {color: "hitam", hands: 4, math: "\\displaystyle \\int_{0}^{30} 15 dx", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle 5! + 30", qty: 2},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 3x^2 dx", qty: 1},
+            ]
+        },
+        {
+            phase: "Mining 2 - Core Biru (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "biru", hands: 3, math: "\\displaystyle \\lim_{x\\to5} 70x", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle \\int_{0}^{5} 3x^2 dx", qty: 2},
+                {color: "biru", hands: 3, math: "\\displaystyle \\log_{10}(10^{100})", qty: 1},
+            ]
+        },
+        {
+            phase: "Mining 3 - Pengecoh Merah (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "merah", hands: 2, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 1},
+                {color: "merah", hands: 2, math: "\\displaystyle 350 \\times \\frac{1}{2}", qty: 1},
+                {color: "merah", hands: 2, math: "\\displaystyle 5! + 30", qty: 1},
+                {color: "merah", hands: 2, math: "\\displaystyle \\int_{0}^{5} 6x dx", qty: 1},
+                {color: "merah", hands: 2, math: "\\displaystyle \\sqrt{625}", qty: 1},
+            ]
+        },
+        {
+            phase: "Mining 4 - Daun Putih A (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "putih", hands: 1, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle 350 \\times \\frac{1}{2}", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\log_{10}(10^{100})", qty: 2},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 6x dx", qty: 1},
+            ]
+        },
+        {
+            phase: "Mining 5 - Daun Putih B (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 6x dx", qty: 3},
+                {color: "putih", hands: 1, math: "\\displaystyle \\sqrt{625}", qty: 2},
+            ]
+        },
+        {
+            phase: "Mining 6 - Alternatif 1 (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "cokelat", hands: 5, math: "\\displaystyle 1900 \\cos(60^\\circ)", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle \\lim_{x\\to5} 70x", qty: 1},
+                {color: "merah", hands: 2, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\log_{10}(10^{100})", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\int_{0}^{5} 6x dx", qty: 1},
+            ]
+        },
+        {
+            phase: "Mining 7 - Alternatif 2 (Total Cetak: 5 Keping)",
+            tokens: [
+                {color: "hitam", hands: 4, math: "\\displaystyle \\int_{0}^{30} 15 dx", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle \\frac{125}{\\sin(30^\\circ)}", qty: 1},
+                {color: "biru", hands: 3, math: "\\displaystyle \\int_{0}^{5} 3x^2 dx", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle 5! + 30", qty: 1},
+                {color: "putih", hands: 1, math: "\\displaystyle \\sqrt{625}", qty: 1},
+            ]
+        }
+    ];
+
+    // Fungsi untuk menghitung posisi tangan (nodes)
+    function getNodesHtml(hands) {
+        let nodesHtml = '';
+        const radius = 65; // Radius of token (130/2)
+        const angles = [];
+
+        if (hands === 1) angles.push(0); // Top
+        else if (hands === 2) angles.push(-90, 90); // Left, Right
+        else if (hands === 3) angles.push(0, 120, 240); // Triangle
+        else if (hands === 4) angles.push(0, 90, 180, 270); // Cross
+        else if (hands === 5) angles.push(0, 72, 144, 216, 288); // Pentagon
+
+        angles.forEach(angle => {
+            // Convert angle to radians. -90 ensures 0 degrees starts at the top
+            const rad = (angle - 90) * (Math.PI / 180);
+            const x = radius + (radius * Math.cos(rad));
+            const y = radius + (radius * Math.sin(rad));
+            nodesHtml += `<div class="node" style="left: ${x}px; top: ${y}px;"></div>`;
+        });
+        return nodesHtml;
+    }
+
+    const container = document.getElementById('kepingan-container');
+
+    dataKepingan.forEach(phaseData => {
+        let section = document.createElement('div');
+        section.className = 'phase-section';
+        
+        let title = document.createElement('h2');
+        title.className = 'phase-title';
+        title.innerText = phaseData.phase;
+        section.appendChild(title);
+
+        let grid = document.createElement('div');
+        grid.className = 'token-grid';
+
+        phaseData.tokens.forEach(tokenData => {
+            for(let i=0; i < tokenData.qty; i++) {
+                let wrapper = document.createElement('div');
+                wrapper.className = 'token-wrapper';
+
+                let tokenDiv = document.createElement('div');
+                tokenDiv.className = `token ${tokenData.color}`;
+                
+                // Masukkan rumus
+                let mathDiv = document.createElement('div');
+                mathDiv.innerText = `$$${tokenData.math}$$`;
+                
+                tokenDiv.innerHTML = getNodesHtml(tokenData.hands);
+                tokenDiv.appendChild(mathDiv);
+
+                let label = document.createElement('div');
+                label.className = 'qty-label';
+                label.innerText = `Cetak 1x`; // Dibuat terpisah per iterasi agar mudah dicetak
+
+                wrapper.appendChild(tokenDiv);
+                wrapper.appendChild(label);
+                grid.appendChild(wrapper);
+            }
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+    });
+
+    // Render MathJax/KaTeX
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+          ],
+          throwOnError : false
+        });
+    });
+
+    // Fungsi untuk mendownload elemen sebagai PNG dengan background transparan
+    function downloadPNG() {
+        // Tambahkan class penanda bahwa kita sedang mengekspor PNG
+        document.body.classList.add('exporting-png');
+        const container = document.getElementById('kepingan-container');
+
+        // Beri sedikit waktu untuk browser mengaplikasikan CSS background transparan
+        setTimeout(() => {
+            html2canvas(container, {
+                backgroundColor: null, // Kunci utama untuk background transparan
+                scale: 4, // Ditingkatkan ke resolusi 4X lipat untuk hasil SUPER HD (Anti-Pecah)
+                logging: false
+            }).then(canvas => {
+                // Buat link imajiner untuk memicu download
+                const link = document.createElement('a');
+                link.download = 'Aset_Kepingan_Number_Bond_HD.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Kembalikan ke mode normal
+                document.body.classList.remove('exporting-png');
+            }).catch(err => {
+                console.error("Terjadi kesalahan saat mengekspor gambar:", err);
+                alert("Gagal mengekspor PNG. Silakan coba lagi.");
+                document.body.classList.remove('exporting-png');
+            });
+        }, 200); // jeda 200ms
+    }
+</script>
+
+</body>
+</html>
