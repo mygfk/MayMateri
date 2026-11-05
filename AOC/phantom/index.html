@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Fungsi f(x, y) = x² + 2x² - xy</title>
+    <title>Kalkulator Fungsi f(x, y) = 6x² - x - xy</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -129,8 +129,7 @@
                 KALKULATOR FUNGSI
             </h1>
             <div class="inline-block px-4 py-1 rounded bg-black/40 border border-amber-500/50 shadow-inner">
-                <!-- Rumus diupdate ke x^2 + 2x^2 - xy -->
-                <span class="text-lg md:text-xl font-semibold text-amber-300 font-mono">f(x, y) = x² + 2x² - xy</span>
+                <span class="text-lg md:text-xl font-semibold text-amber-300 font-mono">f(x, y) = 6x² - x - xy</span>
             </div>
         </div>
 
@@ -232,22 +231,20 @@
             const x = parseFloat(xInput);
             const y = parseFloat(yInput);
 
-            // Calculation for f(x,y) = x^2 + 2x^2 - xy
-            const term1 = Math.pow(x, 2);       // x^2
-            const term2 = 2 * Math.pow(x, 2);   // 2x^2
+            // Calculation for f(x,y) = 6x^2 - x - xy
+            const term1 = 6 * Math.pow(x, 2);   // 6x^2
+            const term2 = x;                    // x
             const term3 = x * y;                // xy
             
-            const result = term1 + term2 - term3;
+            const result = term1 - term2 - term3;
 
             // Format numbers for display
             const formatNum = (num) => Number.isInteger(num) ? num : num.toFixed(2);
 
             // Update UI Output
             resultOutput.innerText = formatNum(result);
-            step1.innerText = `f(${x}, ${y}) = (${x})² + 2(${x})² - (${x})(${y})`;
-            
-            // Format langkah 2 (menggunakan tanda kurang untuk term terakhir)
-            step2.innerText = `= ${formatNum(term1)} + ${formatNum(term2)} - ${formatNum(term3)}`;
+            step1.innerText = `f(${x}, ${y}) = 6(${x})² - (${x}) - (${x})(${y})`;
+            step2.innerText = `= ${formatNum(term1)} - ${formatNum(term2)} - ${formatNum(term3)}`;
         }
 
         function resetForm() {
