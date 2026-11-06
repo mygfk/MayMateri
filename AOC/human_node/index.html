@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room Control Dashboard</title>
+    <!-- Import Google Font: Lexend Deca -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset & Basic Setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            font-family: 'Lexend Deca', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 16:9 TV Container Setup */
+        .tv-container {
+            width: 100%;
+            height: 100%;
+            max-width: calc(100vh * (16 / 9));
+            max-height: calc(100vw * (9 / 16));
+            aspect-ratio: 16 / 9;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1a1a24 0%, #050508 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
+            display: flex;
+            flex-direction: column;
+            container-type: size; /* Enables scalable text inside container */
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* 2x2 Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            flex-grow: 1;
+            gap: 2cqh;
+            padding: 2cqh;
+        }
+
+        /* Room Box Setup */
+        .room-box {
+            background: rgba(20, 20, 30, 0.6);
+            border-radius: 2cqh;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5cqh;
+            border: 0.3cqh solid #2a2a35;
+            box-shadow: inset 0 0 3cqh rgba(0,0,0,0.5);
+        }
+
+        /* Editable Team Name */
+        .team-name {
+            font-size: 5cqh;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5cqh;
+            padding: 1cqh;
+            margin-bottom: 2cqh;
+            color: #b0b0c0;
+            border-bottom: 0.3cqh dashed #3a3a45;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .team-name:focus {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        /* Status Block Layout */
+        .status-block {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 1.5cqh;
+            cursor: pointer;
+            user-select: none;
+            border: 0.6cqh solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        /* --- ICONS SETUP --- */
+        .status-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-icon {
+            width: 12cqh;
+            height: 12cqh;
+            display: none; /* Disembunyikan secara default, ditampilkan sesuai status */
+            margin-bottom: 1cqh;
+        }
+
+        .status-text {
+            font-size: 6cqh;
+            font-weight: 900;
+            letter-spacing: 0.8cqh;
+            text-transform: uppercase;
+        }
+
+        /* --- STATE 1: WARNING --- */
+        .state-warning {
+            border-color: #ff003c;
+            background: rgba(255, 0, 60, 0.1);
+            animation: flash-border 0.8s infinite alternate;
+        }
+        
+        .state-warning .status-text {
+            color: #ff003c;
+            text-shadow: 0 0 10px #ff003c, 0 0 20px #ff003c, 0 0 40px #ff003c;
+            animation: flash-text 0.8s infinite alternate;
+        }
+
+        .state-warning .icon-warning {
+            display: block;
+            stroke: #ff003c;
+            filter: drop-shadow(0 0 10px #ff003c) drop-shadow(0 0 20px #ff003c);
+            animation: flash-text 0.8s infinite alternate;
+        }
+
+        /* --- STATE 2: LOADING --- */
+        .state-loading {
+            border-color: #ff9d00;
+            background: rgba(255, 157, 0, 0.1);
+            animation: pulse-bg 1.5s infinite ease-in-out;
+        }
+
+        .state-loading .status-text {
+            color: #ff9d00;
+            text-shadow: 0 0 10px #ff9d00, 0 0 20px #ff9d00;
+            animation: pulse-text 1.5s infinite ease-in-out;
+        }
+
+        .state-loading .icon-loading {
+            display: block;
+            stroke: #ff9d00;
+            filter: drop-shadow(0 0 10px #ff9d00);
+            animation: spin 2s linear infinite;
+        }
+
+        /* --- STATE 3: SAFE --- */
+        .state-safe {
+            border-color: #00ff66;
+            background: rgba(0, 255, 102, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.2), inset 0 0 20px rgba(0, 255, 102, 0.2);
+        }
+
+        .state-safe .status-text {
+            color: #00ff66;
+            text-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66, 0 0 30px #00ff66;
+        }
+
+        .state-safe .icon-safe {
+            display: block;
+            stroke: #00ff66;
+            filter: drop-shadow(0 0 10px #00ff66) drop-shadow(0 0 20px #00ff66);
+        }
+
+        /* Bottom Instructions */
+        .instructions {
+            text-align: center;
+            padding: 2cqh;
+            font-size: 2.2cqh;
+            color: #6a6a75;
+            background-color: #050508;
+            border-top: 1px solid #1a1a24;
+            letter-spacing: 0.2cqh;
+        }
+
+        /* Animations */
+        @keyframes flash-text {
+            0%, 49% { opacity: 1; transform: scale(1.02); }
+            50%, 100% { opacity: 0.4; transform: scale(1); text-shadow: none; }
+        }
+
+        @keyframes flash-border {
+            0%, 49% { border-color: #ff003c; box-shadow: 0 0 30px rgba(255,0,60,0.6) inset; }
+            50%, 100% { border-color: #5a0015; box-shadow: none; }
+        }
+
+        @keyframes pulse-bg {
+            0%, 100% { background: rgba(255, 157, 0, 0.1); box-shadow: 0 0 15px rgba(255, 157, 0, 0.2) inset; }
+            50% { background: rgba(255, 157, 0, 0.02); box-shadow: none; }
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="tv-container">
+        <!-- 2x2 Grid -->
+        <div class="grid-container">
+            
+            <!-- Room 1 -->
+            <div class="room-box">
+                <h2 class="team-name" contenteditable="true" spellcheck="false">TIM ALPHA</h2>
+                <div class="status-block state-warning" onclick="cycleState(this)">
+                    <div class="status-content">
+                        <!-- Warning Icon (Triangle) -->
+                        <svg class="status-icon icon-warning" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <!-- Loading Icon (Gear) -->
+                        <svg class="status-icon icon-loading" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <!-- Safe Icon (Shield Check) -->
+                        <svg class="status-icon icon-safe" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                        
+                        <span class="status-text">WARNING</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room 2 -->
+            <div class="room-box">
+                <h2 class="team-name" contenteditable="true" spellcheck="false">TIM BETA</h2>
+                <div class="status-block state-warning" onclick="cycleState(this)">
+                    <div class="status-content">
+                        <svg class="status-icon icon-warning" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <svg class="status-icon icon-loading" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg class="status-icon icon-safe" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                        
+                        <span class="status-text">WARNING</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room 3 -->
+            <div class="room-box">
+                <h2 class="team-name" contenteditable="true" spellcheck="false">TIM GAMMA</h2>
+                <div class="status-block state-warning" onclick="cycleState(this)">
+                    <div class="status-content">
+                        <svg class="status-icon icon-warning" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <svg class="status-icon icon-loading" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg class="status-icon icon-safe" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                        
+                        <span class="status-text">WARNING</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room 4 -->
+            <div class="room-box">
+                <h2 class="team-name" contenteditable="true" spellcheck="false">TIM DELTA</h2>
+                <div class="status-block state-warning" onclick="cycleState(this)">
+                    <div class="status-content">
+                        <svg class="status-icon icon-warning" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <svg class="status-icon icon-loading" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg class="status-icon icon-safe" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                        
+                        <span class="status-text">WARNING</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Instructions Text -->
+        <div class="instructions">
+            Klik nama tim untuk mengedit. Klik kotak status di bawahnya untuk mengubah (WARNING &rarr; LOADING &rarr; SAFE).
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function cycleState(element) {
+            const textElement = element.querySelector('.status-text');
+
+            if (element.classList.contains('state-warning')) {
+                // Warning -> Loading
+                element.classList.remove('state-warning');
+                element.classList.add('state-loading');
+                textElement.textContent = 'LOADING';
+            } 
+            else if (element.classList.contains('state-loading')) {
+                // Loading -> Safe
+                element.classList.remove('state-loading');
+                element.classList.add('state-safe');
+                textElement.textContent = 'SAFE';
+            } 
+            else if (element.classList.contains('state-safe')) {
+                // Safe -> Warning (Cycle back)
+                element.classList.remove('state-safe');
+                element.classList.add('state-warning');
+                textElement.textContent = 'WARNING';
+            }
+        }
+    </script>
+</body>
+</html>
